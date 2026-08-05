@@ -1,0 +1,989 @@
+use std::{error::Error, fmt};
+
+#[cfg(any(feature = "network_handler", feature = "xswd"))]
+use xelis_common::rpc::client::JsonRPCError;
+use xelis_common::{
+    crypto::proofs::ProofGenerationError, serializer::ReaderError,
+    transaction::builder::GenerationError,
+};
+use xelis_wallet::{error::WalletError, mnemonics::MnemonicsError};
+
+#[cfg(feature = "network_handler")]
+use xelis_wallet::network_handler::NetworkError;
+
+/// Version of the native structured error contract.
+pub const NATIVE_XELIS_ERROR_VERSION: u16 = 1;
+
+/// Native component that produced or surfaced an operation failure.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NativeXelisErrorSource {
+    XelisWalletFlutter,
+    XelisWallet,
+    XelisCommon,
+    Dependency,
+    Unknown,
+}
+
+/// Stable package-owned error category.
+///
+/// Consumers may use this value for recovery and presentation decisions. The
+/// optional native kind remains diagnostic metadata and is not a replacement
+/// for this package-owned contract.
+///
+/// Flutter Rust Bridge encodes these variants by declaration order. Preserve
+/// the existing prefix and append new codes only; reordering requires a native
+/// contract-version migration.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NativeXelisErrorCode {
+    InvalidInput,
+    Offline,
+    Network,
+    RemoteRejected,
+    InsufficientFunds,
+    Conflict,
+    NotFound,
+    Unsupported,
+    Storage,
+    Serialization,
+    Initialization,
+    Internal,
+    AuthenticationOrCorruptData,
+    NetworkMismatch,
+    Cancelled,
+    OperationInProgress,
+    OperationFailed,
+    StreamLagged,
+    StreamClosedUnexpectedly,
+}
+
+/// Structured error transported by the private native bridge.
+///
+/// `diagnostic_message` is privileged diagnostic data. It may contain values
+/// supplied by a dependency or the caller and must not be displayed or logged
+/// without an explicit diagnostic policy.
+#[derive(Clone, Eq, PartialEq)]
+pub struct NativeXelisError {
+    pub version: u16,
+    pub source: NativeXelisErrorSource,
+    pub code: NativeXelisErrorCode,
+    pub native_kind: Option<String>,
+    pub native_code: Option<i32>,
+    pub diagnostic_message: String,
+}
+
+impl fmt::Debug for NativeXelisError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("NativeXelisError")
+            .field("version", &self.version)
+            .field("source", &self.source)
+            .field("code", &self.code)
+            .field("native_kind", &self.native_kind)
+            .field("native_code", &self.native_code)
+            .field("diagnostic_message", &"<privileged>")
+            .finish()
+    }
+}
+
+impl NativeXelisError {
+    pub(crate) fn xelis_wallet(
+        code: NativeXelisErrorCode,
+        native_kind: &'static str,
+        diagnostic_message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            NativeXelisErrorSource::XelisWallet,
+            code,
+            Some(native_kind.to_owned()),
+            None,
+            diagnostic_message.into(),
+        )
+    }
+
+    pub(crate) fn xelis_common(
+        code: NativeXelisErrorCode,
+        native_kind: &'static str,
+        diagnostic_message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            NativeXelisErrorSource::XelisCommon,
+            code,
+            Some(native_kind.to_owned()),
+            None,
+            diagnostic_message.into(),
+        )
+    }
+
+    pub(crate) fn xelis_wallet_flutter(
+        code: NativeXelisErrorCode,
+        native_kind: &'static str,
+        diagnostic_message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            NativeXelisErrorSource::XelisWalletFlutter,
+            code,
+            Some(native_kind.to_owned()),
+            None,
+            diagnostic_message.into(),
+        )
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn dependency(
+        code: NativeXelisErrorCode,
+        native_kind: &'static str,
+        diagnostic_message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            NativeXelisErrorSource::Dependency,
+            code,
+            Some(native_kind.to_owned()),
+            None,
+            diagnostic_message.into(),
+        )
+    }
+
+    pub(crate) fn from_wallet_operation(
+        error: anyhow::Error,
+        fallback_code: NativeXelisErrorCode,
+        fallback_kind: &'static str,
+    ) -> Self {
+        Self::from_wallet_operation_with_policy(
+            error,
+            fallback_code,
+            fallback_kind,
+            WalletOperationErrorPolicy::Standard,
+        )
+    }
+
+    pub(crate) fn from_wallet_storage_operation(
+        error: anyhow::Error,
+        fallback_kind: &'static str,
+    ) -> Self {
+        let diagnostic_message = anyhow_diagnostic_message(&error);
+        let classification = classify_storage_operation_error(&error).unwrap_or_else(|| {
+            typed_classification(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::Storage,
+                fallback_kind,
+            )
+        });
+        Self::from_classification(classification, diagnostic_message)
+    }
+
+    pub(crate) fn from_wallet_authentication_operation(
+        error: anyhow::Error,
+        fallback_code: NativeXelisErrorCode,
+        fallback_kind: &'static str,
+    ) -> Self {
+        Self::from_wallet_operation_with_policy(
+            error,
+            fallback_code,
+            fallback_kind,
+            WalletOperationErrorPolicy::Authentication,
+        )
+    }
+
+    pub(crate) fn from_wallet_seed_recovery_operation(error: anyhow::Error) -> Self {
+        if let Some(mnemonics_error) = error.downcast_ref::<MnemonicsError>() {
+            let (native_kind, diagnostic_message) = safe_mnemonics_recovery_error(mnemonics_error);
+            return Self::new(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::InvalidInput,
+                Some(native_kind.to_owned()),
+                None,
+                diagnostic_message,
+            );
+        }
+
+        Self::from_wallet_operation(
+            error,
+            NativeXelisErrorCode::Internal,
+            "WALLET_RECOVER_SEED_FAILED",
+        )
+    }
+
+    pub(crate) fn from_wallet_private_key_recovery_operation(error: anyhow::Error) -> Self {
+        if let Some(reader_error) = error.downcast_ref::<ReaderError>() {
+            let (native_kind, diagnostic_message) = safe_private_key_reader_error(reader_error);
+            return Self::new(
+                NativeXelisErrorSource::XelisCommon,
+                NativeXelisErrorCode::InvalidInput,
+                Some(native_kind.to_owned()),
+                None,
+                diagnostic_message.to_owned(),
+            );
+        }
+
+        Self::from_wallet_operation(
+            error,
+            NativeXelisErrorCode::Internal,
+            "WALLET_RECOVER_PRIVATE_KEY_FAILED",
+        )
+    }
+
+    fn from_wallet_operation_with_policy(
+        error: anyhow::Error,
+        fallback_code: NativeXelisErrorCode,
+        fallback_kind: &'static str,
+        policy: WalletOperationErrorPolicy,
+    ) -> Self {
+        let diagnostic_message = anyhow_diagnostic_message(&error);
+        let classification =
+            classify_anyhow_error_with_policy(&error, policy).unwrap_or_else(|| {
+                typed_classification(
+                    NativeXelisErrorSource::XelisWallet,
+                    fallback_code,
+                    fallback_kind,
+                )
+            });
+        Self::from_classification(classification, diagnostic_message)
+    }
+
+    fn from_classification(
+        classification: NativeErrorClassification,
+        diagnostic_message: String,
+    ) -> Self {
+        Self::new(
+            classification.source,
+            classification.code,
+            classification.native_kind,
+            classification.native_code,
+            diagnostic_message,
+        )
+    }
+
+    fn new(
+        source: NativeXelisErrorSource,
+        code: NativeXelisErrorCode,
+        native_kind: Option<String>,
+        native_code: Option<i32>,
+        diagnostic_message: String,
+    ) -> Self {
+        Self {
+            version: NATIVE_XELIS_ERROR_VERSION,
+            source,
+            code,
+            native_kind,
+            native_code,
+            diagnostic_message,
+        }
+    }
+}
+
+impl fmt::Display for NativeXelisError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Keep implicit formatting safe. Detailed native diagnostics remain
+        // available only through the explicit diagnostic_message field.
+        write!(
+            formatter,
+            "native XELIS error ({:?}/{:?})",
+            self.source, self.code
+        )
+    }
+}
+
+impl Error for NativeXelisError {}
+
+impl From<WalletError> for NativeXelisError {
+    fn from(error: WalletError) -> Self {
+        let classification = classify_wallet_error(&error);
+        let diagnostic_message = wallet_diagnostic_message(&error);
+        Self::from_classification(classification, diagnostic_message)
+    }
+}
+
+#[cfg(any(feature = "network_handler", feature = "xswd"))]
+impl From<JsonRPCError> for NativeXelisError {
+    fn from(error: JsonRPCError) -> Self {
+        let classification = classify_json_rpc_error(&error);
+        let diagnostic_message = json_rpc_diagnostic_message(&error);
+        Self::from_classification(classification, diagnostic_message)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct NativeErrorClassification {
+    source: NativeXelisErrorSource,
+    code: NativeXelisErrorCode,
+    native_kind: Option<String>,
+    native_code: Option<i32>,
+}
+
+#[derive(Clone, Copy)]
+enum WalletOperationErrorPolicy {
+    Standard,
+    Authentication,
+}
+
+impl NativeErrorClassification {
+    fn new(
+        source: NativeXelisErrorSource,
+        code: NativeXelisErrorCode,
+        native_kind: Option<String>,
+        native_code: Option<i32>,
+    ) -> Self {
+        Self {
+            source,
+            code,
+            native_kind,
+            native_code,
+        }
+    }
+}
+
+fn typed_classification(
+    source: NativeXelisErrorSource,
+    code: NativeXelisErrorCode,
+    native_kind: &'static str,
+) -> NativeErrorClassification {
+    NativeErrorClassification::new(source, code, native_kind_option(native_kind), None)
+}
+
+fn native_kind_option(native_kind: &'static str) -> Option<String> {
+    (native_kind != "UNSPECIFIED").then(|| native_kind.to_owned())
+}
+
+fn safe_mnemonics_recovery_error(error: &MnemonicsError) -> (&'static str, String) {
+    match error {
+        MnemonicsError::InvalidWordsCount => (
+            "MNEMONICS_INVALID_WORDS_COUNT",
+            "Mnemonic has an invalid word count".to_owned(),
+        ),
+        MnemonicsError::InvalidChecksum => (
+            "MNEMONICS_INVALID_CHECKSUM",
+            "Mnemonic checksum is invalid".to_owned(),
+        ),
+        MnemonicsError::InvalidChecksumIndex => (
+            "MNEMONICS_INVALID_CHECKSUM_INDEX",
+            "Mnemonic checksum index is invalid".to_owned(),
+        ),
+        MnemonicsError::InvalidLanguageIndex => (
+            "MNEMONICS_INVALID_LANGUAGE_INDEX",
+            "Mnemonic language index is invalid".to_owned(),
+        ),
+        MnemonicsError::InvalidLanguage => (
+            "MNEMONICS_INVALID_LANGUAGE",
+            "Mnemonic language is invalid".to_owned(),
+        ),
+        MnemonicsError::UnknownWord(_, position) => (
+            "MNEMONICS_UNKNOWN_WORD",
+            format!("Unknown mnemonic word at position {position}"),
+        ),
+        MnemonicsError::InvalidKeySize => (
+            "MNEMONICS_INVALID_KEY_SIZE",
+            "Mnemonic produced an invalid key size".to_owned(),
+        ),
+        MnemonicsError::InvalidKeyFromBytes => (
+            "MNEMONICS_INVALID_KEY_FROM_BYTES",
+            "Mnemonic key bytes are invalid".to_owned(),
+        ),
+        MnemonicsError::InvalidChecksumCalculation => (
+            "MNEMONICS_INVALID_CHECKSUM_CALCULATION",
+            "Mnemonic checksum calculation failed".to_owned(),
+        ),
+        MnemonicsError::NoIndicesFound => (
+            "MNEMONICS_NO_INDICES_FOUND",
+            "Mnemonic word indices are unavailable".to_owned(),
+        ),
+        MnemonicsError::WordListSanityCheckError => (
+            "MNEMONICS_WORD_LIST_SANITY_CHECK_FAILED",
+            "Mnemonic word list validation failed".to_owned(),
+        ),
+        MnemonicsError::OutOfBounds => (
+            "MNEMONICS_OUT_OF_BOUNDS",
+            "Mnemonic data is out of bounds".to_owned(),
+        ),
+    }
+}
+
+fn safe_private_key_reader_error(error: &ReaderError) -> (&'static str, &'static str) {
+    match error {
+        ReaderError::InvalidSize => (
+            "PRIVATE_KEY_INVALID_SIZE",
+            "Private key has an invalid size",
+        ),
+        ReaderError::InvalidValue => (
+            "PRIVATE_KEY_INVALID_VALUE",
+            "Private key contains an invalid value",
+        ),
+        ReaderError::InvalidHex => (
+            "PRIVATE_KEY_INVALID_HEX",
+            "Private key is not valid hexadecimal data",
+        ),
+        ReaderError::ErrorTryInto | ReaderError::TryFromSliceError(_) => (
+            "PRIVATE_KEY_INVALID_ENCODING",
+            "Private key encoding is invalid",
+        ),
+        ReaderError::Any(_) => (
+            "PRIVATE_KEY_INVALID_DATA",
+            "Private key data could not be decoded",
+        ),
+    }
+}
+
+fn wallet_diagnostic_message(error: &WalletError) -> String {
+    match error {
+        WalletError::Any(inner) => anyhow_diagnostic_message(&inner.error),
+        #[cfg(feature = "network_handler")]
+        WalletError::NetworkError(NetworkError::DaemonAPIError(inner)) => {
+            anyhow_diagnostic_message(inner)
+        }
+        _ => error.to_string(),
+    }
+}
+
+fn anyhow_diagnostic_message(error: &anyhow::Error) -> String {
+    let mut diagnostic = format!("{error:#}");
+
+    #[cfg(any(feature = "network_handler", feature = "xswd"))]
+    if let Some(rpc_error) = error.downcast_ref::<JsonRPCError>() {
+        append_json_rpc_data(&mut diagnostic, rpc_error);
+    }
+
+    diagnostic
+}
+
+#[cfg(any(feature = "network_handler", feature = "xswd"))]
+fn json_rpc_diagnostic_message(error: &JsonRPCError) -> String {
+    let mut diagnostic = match error {
+        JsonRPCError::Any(inner) => anyhow_diagnostic_message(inner),
+        _ => error.to_string(),
+    };
+    append_json_rpc_data(&mut diagnostic, error);
+    diagnostic
+}
+
+#[cfg(any(feature = "network_handler", feature = "xswd"))]
+fn append_json_rpc_data(diagnostic: &mut String, error: &JsonRPCError) {
+    let data = match error {
+        JsonRPCError::InternalError { data, .. } | JsonRPCError::ServerError { data, .. } => {
+            data.as_deref()
+        }
+        _ => None,
+    };
+
+    if let Some(data) = data {
+        diagnostic.push_str("\nRPC data: ");
+        diagnostic.push_str(data);
+    }
+}
+
+fn classify_anyhow_error(error: &anyhow::Error) -> Option<NativeErrorClassification> {
+    classify_anyhow_error_with_policy(error, WalletOperationErrorPolicy::Standard)
+}
+
+fn classify_storage_operation_error(error: &anyhow::Error) -> Option<NativeErrorClassification> {
+    #[cfg(any(feature = "network_handler", feature = "xswd"))]
+    if let Some(json_rpc_error) = error.downcast_ref::<JsonRPCError>() {
+        return Some(classify_json_rpc_error(json_rpc_error));
+    }
+
+    let wallet_error = error.downcast_ref::<WalletError>()?;
+    match wallet_error {
+        // An untyped WalletError::Any must not turn a cache/persistence
+        // boundary into Internal. Preserve only an actually typed nested cause.
+        WalletError::Any(inner) => classify_storage_operation_error(&inner.error),
+        _ => Some(classify_wallet_error(wallet_error)),
+    }
+}
+
+fn classify_anyhow_error_with_policy(
+    error: &anyhow::Error,
+    policy: WalletOperationErrorPolicy,
+) -> Option<NativeErrorClassification> {
+    #[cfg(any(feature = "network_handler", feature = "xswd"))]
+    if let Some(json_rpc_error) = error.downcast_ref::<JsonRPCError>() {
+        return Some(classify_json_rpc_error(json_rpc_error));
+    }
+
+    error
+        .downcast_ref::<WalletError>()
+        .map(|error| classify_wallet_error_with_policy(error, policy))
+}
+
+fn classify_wallet_error_with_policy(
+    error: &WalletError,
+    policy: WalletOperationErrorPolicy,
+) -> NativeErrorClassification {
+    match error {
+        WalletError::CryptoError(_)
+            if matches!(policy, WalletOperationErrorPolicy::Authentication) =>
+        {
+            typed_classification(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::AuthenticationOrCorruptData,
+                error.kind(),
+            )
+        }
+        WalletError::Any(inner) => classify_anyhow_error_with_policy(&inner.error, policy)
+            .unwrap_or_else(|| {
+                typed_classification(
+                    NativeXelisErrorSource::XelisWallet,
+                    NativeXelisErrorCode::Internal,
+                    inner.kind,
+                )
+            }),
+        _ => classify_wallet_error(error),
+    }
+}
+
+fn classify_wallet_error(error: &WalletError) -> NativeErrorClassification {
+    let native_kind = error.kind();
+
+    match error {
+        WalletError::Any(inner) => classify_anyhow_error(&inner.error).unwrap_or_else(|| {
+            typed_classification(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::Internal,
+                inner.kind,
+            )
+        }),
+        #[cfg(feature = "network_handler")]
+        WalletError::NetworkError(error) => classify_network_error(error),
+        WalletError::NotOnlineMode
+        | WalletError::NoNetworkHandler
+        | WalletError::NoAPIServer
+        | WalletError::RPCServerNotRunning => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Offline,
+            native_kind,
+        ),
+        WalletError::AlreadyOnlineMode
+        | WalletError::AssetAlreadyRegistered
+        | WalletError::RPCServerAlreadyRunning
+        | WalletError::TxNotBuilt => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Conflict,
+            native_kind,
+        ),
+        WalletError::NotEnoughFunds(..) | WalletError::NotEnoughFundsForFee(..) => {
+            typed_classification(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::InsufficientFunds,
+                native_kind,
+            )
+        }
+        WalletError::ProofGenerationError(ProofGenerationError::InsufficientFunds { .. })
+        | WalletError::GenerationError(GenerationError::Proof(
+            ProofGenerationError::InsufficientFunds { .. },
+        )) => typed_classification(
+            NativeXelisErrorSource::XelisCommon,
+            NativeXelisErrorCode::InsufficientFunds,
+            native_kind,
+        ),
+        WalletError::AssetNotTracked(_) | WalletError::BalanceNotFound(_) => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::NotFound,
+            native_kind,
+        ),
+        WalletError::DatabaseError(_) => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Storage,
+            native_kind,
+        ),
+        WalletError::InvalidEncryptedValue
+        | WalletError::NoSalt
+        | WalletError::NoMasterKeyFound
+        | WalletError::NoPasswordSaltFound
+        | WalletError::InvalidSaltSize
+        | WalletError::NoSaltFound => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::AuthenticationOrCorruptData,
+            native_kind,
+        ),
+        WalletError::NoHandlerAvailable | WalletError::Unsupported => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Unsupported,
+            native_kind,
+        ),
+        WalletError::AEADCipherFormatError(_)
+        | WalletError::GenerationError(_)
+        | WalletError::ProofGenerationError(_)
+        | WalletError::DecompressionError(_) => typed_classification(
+            NativeXelisErrorSource::XelisCommon,
+            NativeXelisErrorCode::InvalidInput,
+            native_kind,
+        ),
+        WalletError::InvalidDatetime
+        | WalletError::TransactionTooBig(..)
+        | WalletError::InvalidKeyPair
+        | WalletError::InvalidSignature
+        | WalletError::ExpectedOneTx
+        | WalletError::TooManyTx
+        | WalletError::TxOwnerIsReceiver
+        | WalletError::InvalidAddressParams
+        | WalletError::ExtraDataTooBig(..)
+        | WalletError::RescanTopoheightTooHigh
+        | WalletError::InvalidFeeProvided(..)
+        | WalletError::EmptyName
+        | WalletError::NotTransactionSigner => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::InvalidInput,
+            native_kind,
+        ),
+        WalletError::Cipher
+        | WalletError::CryptoError(_)
+        | WalletError::AlgorithmHashingError(_)
+        | WalletError::CiphertextDecode
+        | WalletError::NonceGeneration
+        | WalletError::PoisonError
+        | WalletError::SemaphoreError(_) => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Internal,
+            native_kind,
+        ),
+    }
+}
+
+#[cfg(feature = "network_handler")]
+fn classify_network_error(error: &NetworkError) -> NativeErrorClassification {
+    match error {
+        NetworkError::AlreadyRunning => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Conflict,
+            "NETWORK_ALREADY_RUNNING",
+        ),
+        NetworkError::NotRunning => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Offline,
+            "NETWORK_NOT_RUNNING",
+        ),
+        NetworkError::TaskError(_) => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::Internal,
+            "NETWORK_TASK_ERROR",
+        ),
+        NetworkError::DaemonAPIError(error) => classify_anyhow_error(error).unwrap_or_else(|| {
+            typed_classification(
+                NativeXelisErrorSource::XelisWallet,
+                NativeXelisErrorCode::Network,
+                "DAEMON_API_ERROR",
+            )
+        }),
+        NetworkError::NetworkMismatch => typed_classification(
+            NativeXelisErrorSource::XelisWallet,
+            NativeXelisErrorCode::NetworkMismatch,
+            "NETWORK_MISMATCH",
+        ),
+    }
+}
+
+#[cfg(any(feature = "network_handler", feature = "xswd"))]
+fn classify_json_rpc_error(error: &JsonRPCError) -> NativeErrorClassification {
+    if let JsonRPCError::Any(inner) = error {
+        if let Some(classification) = classify_anyhow_error(inner) {
+            return classification;
+        }
+    }
+
+    let native_kind: &'static str = error.into();
+    let code = match error {
+        JsonRPCError::NoResponse(..)
+        | JsonRPCError::TimedOut(_)
+        | JsonRPCError::HttpError(_)
+        | JsonRPCError::ConnectionError(_)
+        | JsonRPCError::SocketError(_)
+        | JsonRPCError::SendError(..) => NativeXelisErrorCode::Network,
+        JsonRPCError::InvalidBatch
+        | JsonRPCError::MissingResult
+        | JsonRPCError::SerializationError(_) => NativeXelisErrorCode::Serialization,
+        JsonRPCError::EventNotRegistered => NativeXelisErrorCode::NotFound,
+        JsonRPCError::Any(_) => NativeXelisErrorCode::Internal,
+        JsonRPCError::ParseError
+        | JsonRPCError::InvalidRequest
+        | JsonRPCError::MethodNotFound
+        | JsonRPCError::InvalidParams
+        | JsonRPCError::InternalError { .. }
+        | JsonRPCError::ServerError { .. } => NativeXelisErrorCode::RemoteRejected,
+    };
+    let native_code = match error {
+        JsonRPCError::ParseError => Some(-32700),
+        JsonRPCError::InvalidRequest => Some(-32600),
+        JsonRPCError::MethodNotFound => Some(-32601),
+        JsonRPCError::InvalidParams => Some(-32602),
+        JsonRPCError::InternalError { .. } => Some(-32603),
+        JsonRPCError::ServerError { code, .. } => Some(i32::from(*code)),
+        _ => None,
+    };
+
+    NativeErrorClassification::new(
+        NativeXelisErrorSource::XelisCommon,
+        code,
+        native_kind_option(native_kind),
+        native_code,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use xelis_common::serializer::ReaderError;
+    use xelis_wallet::cipher::Cipher;
+    use xelis_wallet::mnemonics::MnemonicsError;
+
+    fn crypto_wallet_error() -> WalletError {
+        let encrypting_cipher = Cipher::new(&[1; 32], None).unwrap();
+        let decrypting_cipher = Cipher::new(&[2; 32], None).unwrap();
+        let encrypted = encrypting_cipher.encrypt_value(b"test value").unwrap();
+        let error = decrypting_cipher.decrypt_value(&encrypted).unwrap_err();
+        assert!(matches!(error, WalletError::CryptoError(_)));
+        error
+    }
+
+    #[test]
+    fn native_error_code_v1_prefix_is_append_only() {
+        let codes = [
+            NativeXelisErrorCode::InvalidInput,
+            NativeXelisErrorCode::Offline,
+            NativeXelisErrorCode::Network,
+            NativeXelisErrorCode::RemoteRejected,
+            NativeXelisErrorCode::InsufficientFunds,
+            NativeXelisErrorCode::Conflict,
+            NativeXelisErrorCode::NotFound,
+            NativeXelisErrorCode::Unsupported,
+            NativeXelisErrorCode::Storage,
+            NativeXelisErrorCode::Serialization,
+            NativeXelisErrorCode::Initialization,
+            NativeXelisErrorCode::Internal,
+            NativeXelisErrorCode::AuthenticationOrCorruptData,
+            NativeXelisErrorCode::NetworkMismatch,
+            NativeXelisErrorCode::Cancelled,
+            NativeXelisErrorCode::OperationInProgress,
+            NativeXelisErrorCode::OperationFailed,
+            NativeXelisErrorCode::StreamLagged,
+            NativeXelisErrorCode::StreamClosedUnexpectedly,
+        ];
+
+        for (index, code) in codes.into_iter().enumerate() {
+            assert_eq!(code as usize, index);
+        }
+    }
+
+    #[test]
+    fn wallet_variants_map_to_package_owned_codes() {
+        let offline = NativeXelisError::from(WalletError::NotOnlineMode);
+        assert_eq!(offline.version, NATIVE_XELIS_ERROR_VERSION);
+        assert_eq!(offline.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(offline.code, NativeXelisErrorCode::Offline);
+        assert_eq!(offline.native_kind.as_deref(), Some("NOT_ONLINE_MODE"));
+
+        let funds = NativeXelisError::from(WalletError::NotEnoughFundsForFee(10, 20));
+        assert_eq!(funds.code, NativeXelisErrorCode::InsufficientFunds);
+
+        let proof_funds = NativeXelisError::from(WalletError::GenerationError(
+            GenerationError::Proof(ProofGenerationError::InsufficientFunds {
+                required: 20,
+                available: 10,
+            }),
+        ));
+        assert_eq!(proof_funds.source, NativeXelisErrorSource::XelisCommon);
+        assert_eq!(proof_funds.code, NativeXelisErrorCode::InsufficientFunds);
+
+        let invalid = NativeXelisError::from(WalletError::InvalidAddressParams);
+        assert_eq!(invalid.code, NativeXelisErrorCode::InvalidInput);
+        assert_eq!(
+            invalid.native_kind.as_deref(),
+            Some("INVALID_ADDRESS_PARAMS")
+        );
+
+        let authentication = NativeXelisError::from(WalletError::InvalidEncryptedValue);
+        assert_eq!(
+            authentication.code,
+            NativeXelisErrorCode::AuthenticationOrCorruptData
+        );
+    }
+
+    #[cfg(any(feature = "network_handler", feature = "xswd"))]
+    #[test]
+    fn wallet_any_preserves_a_typed_json_rpc_cause_through_anyhow_context() {
+        let rpc_error = anyhow::Error::new(JsonRPCError::ConnectionError(
+            "private endpoint context".to_owned(),
+        ))
+        .context("wallet network operation failed");
+        let classified = NativeXelisError::from(WalletError::from(rpc_error));
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisCommon);
+        assert_eq!(classified.code, NativeXelisErrorCode::Network);
+        assert_eq!(classified.native_kind.as_deref(), Some("CONNECTION_ERROR"));
+        assert_eq!(classified.native_code, None);
+        assert!(classified
+            .diagnostic_message
+            .contains("wallet network operation failed"));
+        assert!(classified
+            .diagnostic_message
+            .contains("private endpoint context"));
+    }
+
+    #[cfg(any(feature = "network_handler", feature = "xswd"))]
+    #[test]
+    fn json_rpc_server_error_preserves_numeric_code_without_parsing_text() {
+        let classified = NativeXelisError::from(JsonRPCError::ServerError {
+            code: -32042,
+            message: "daemon rejected request".to_owned(),
+            data: Some("privileged diagnostic data".to_owned()),
+        });
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisCommon);
+        assert_eq!(classified.code, NativeXelisErrorCode::RemoteRejected);
+        assert_eq!(classified.native_kind.as_deref(), Some("SERVER_ERROR"));
+        assert_eq!(classified.native_code, Some(-32042));
+        assert!(classified
+            .diagnostic_message
+            .contains("privileged diagnostic data"));
+    }
+
+    #[cfg(feature = "network_handler")]
+    #[test]
+    fn wallet_network_error_preserves_nested_json_rpc_classification() {
+        let error = WalletError::NetworkError(NetworkError::DaemonAPIError(anyhow::Error::new(
+            JsonRPCError::TimedOut("get_info".to_owned()),
+        )));
+        let classified = NativeXelisError::from(error);
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisCommon);
+        assert_eq!(classified.code, NativeXelisErrorCode::Network);
+        assert_eq!(classified.native_kind.as_deref(), Some("TIMED_OUT"));
+    }
+
+    #[cfg(feature = "network_handler")]
+    #[test]
+    fn network_mismatch_has_a_dedicated_recovery_code() {
+        let classified =
+            NativeXelisError::from(WalletError::NetworkError(NetworkError::NetworkMismatch));
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(classified.code, NativeXelisErrorCode::NetworkMismatch);
+        assert_eq!(classified.native_kind.as_deref(), Some("NETWORK_MISMATCH"));
+    }
+
+    #[test]
+    fn unspecified_wallet_any_error_uses_a_safe_fallback() {
+        let classified = NativeXelisError::from(WalletError::from(anyhow::anyhow!(
+            "unclassified privileged diagnostic"
+        )));
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(classified.code, NativeXelisErrorCode::Internal);
+        assert_eq!(classified.native_kind, None);
+    }
+
+    #[test]
+    fn display_does_not_expose_the_diagnostic_message() {
+        let error = NativeXelisError::xelis_wallet_flutter(
+            NativeXelisErrorCode::Internal,
+            "TEST_FAILURE",
+            "C:\\private\\wallet.db",
+        );
+
+        assert!(!error.to_string().contains("private"));
+        assert!(!format!("{error:?}").contains("private"));
+        assert_eq!(error.diagnostic_message, "C:\\private\\wallet.db");
+    }
+
+    #[test]
+    fn crypto_errors_are_authentication_failures_only_at_auth_boundaries() {
+        let general = NativeXelisError::from_wallet_operation(
+            anyhow::Error::new(crypto_wallet_error()),
+            NativeXelisErrorCode::Internal,
+            "WALLET_OPERATION_FAILED",
+        );
+        assert_eq!(general.code, NativeXelisErrorCode::Internal);
+
+        let authentication = NativeXelisError::from_wallet_authentication_operation(
+            anyhow::Error::new(crypto_wallet_error()),
+            NativeXelisErrorCode::Internal,
+            "WALLET_PASSWORD_VERIFICATION_FAILED",
+        );
+        assert_eq!(
+            authentication.code,
+            NativeXelisErrorCode::AuthenticationOrCorruptData
+        );
+        assert_eq!(authentication.source, NativeXelisErrorSource::XelisWallet);
+
+        let unrelated = NativeXelisError::from_wallet_authentication_operation(
+            anyhow::anyhow!("wallet file is unavailable"),
+            NativeXelisErrorCode::Internal,
+            "WALLET_OPEN_FAILED",
+        );
+        assert_eq!(unrelated.code, NativeXelisErrorCode::Internal);
+    }
+
+    #[test]
+    fn password_change_auth_boundary_classifies_an_invalid_old_password() {
+        let classified = NativeXelisError::from_wallet_authentication_operation(
+            anyhow::Error::new(crypto_wallet_error()),
+            NativeXelisErrorCode::Internal,
+            "WALLET_PASSWORD_CHANGE_FAILED",
+        );
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(
+            classified.code,
+            NativeXelisErrorCode::AuthenticationOrCorruptData
+        );
+        assert_eq!(classified.native_kind.as_deref(), Some("CRYPTO_ERROR"));
+        assert!(!classified.diagnostic_message.is_empty());
+    }
+
+    #[test]
+    fn untyped_wallet_errors_use_the_operation_fallback_without_text_parsing() {
+        let classified = NativeXelisError::from_wallet_operation(
+            anyhow::anyhow!("privileged failure at C:\\wallets\\primary"),
+            NativeXelisErrorCode::Internal,
+            "WALLET_CREATE_FAILED",
+        );
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(classified.code, NativeXelisErrorCode::Internal);
+        assert_eq!(
+            classified.native_kind.as_deref(),
+            Some("WALLET_CREATE_FAILED")
+        );
+        assert!(classified.diagnostic_message.contains("primary"));
+        assert!(!classified.to_string().contains("primary"));
+    }
+
+    #[test]
+    fn seed_recovery_errors_are_typed_without_retaining_seed_material() {
+        let secret_seed = "alpha beta gamma sensitive-word delta";
+        let error = anyhow::Error::new(MnemonicsError::UnknownWord("sensitive-word".to_owned(), 3))
+            .context(format!("Recovery failed for {secret_seed}"));
+
+        let classified = NativeXelisError::from_wallet_seed_recovery_operation(error);
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisWallet);
+        assert_eq!(classified.code, NativeXelisErrorCode::InvalidInput);
+        assert_eq!(
+            classified.native_kind.as_deref(),
+            Some("MNEMONICS_UNKNOWN_WORD")
+        );
+        assert_eq!(
+            classified.diagnostic_message,
+            "Unknown mnemonic word at position 3"
+        );
+        assert!(!classified.diagnostic_message.contains("sensitive-word"));
+        assert!(!classified.diagnostic_message.contains(secret_seed));
+    }
+
+    #[test]
+    fn private_key_recovery_errors_are_typed_without_retaining_the_key() {
+        let private_key = "0123456789abcdef-private-key";
+        let error = anyhow::Error::new(ReaderError::InvalidHex)
+            .context(format!("Invalid private key provided: {private_key}"));
+
+        let classified = NativeXelisError::from_wallet_private_key_recovery_operation(error);
+
+        assert_eq!(classified.source, NativeXelisErrorSource::XelisCommon);
+        assert_eq!(classified.code, NativeXelisErrorCode::InvalidInput);
+        assert_eq!(
+            classified.native_kind.as_deref(),
+            Some("PRIVATE_KEY_INVALID_HEX")
+        );
+        assert_eq!(
+            classified.diagnostic_message,
+            "Private key is not valid hexadecimal data"
+        );
+        assert!(!classified.diagnostic_message.contains(private_key));
+    }
+}

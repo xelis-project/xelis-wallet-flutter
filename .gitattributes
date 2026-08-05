@@ -1,0 +1,8 @@
+# Generated files preserve the exact output of their upstream tools.
+lib/src/generated/rust_bridge/** -whitespace
+rust/src/frb_generated.rs -whitespace
+
+# Keep the vendored Cargokit text files byte-compatible with their source.
+cargokit/LICENSE -whitespace
+cargokit/README -whitespace
+cargokit/docs/precompiled_binaries.md -whitespace
