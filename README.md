@@ -12,13 +12,34 @@ tooling retains its MIT/Apache-2.0 licensing under `cargokit/LICENSE`.
 
 ## Add the package
 
-Use the package from a sibling Flutter application:
+Add the current release to the consuming Flutter application's `pubspec.yaml`:
 
 ```yaml
 dependencies:
   xelis_wallet_flutter:
-    path: ../xelis-wallet-flutter
+    git:
+      url: https://github.com/xelis-project/xelis-wallet-flutter.git
+      ref: v0.1.1
 ```
+
+Keep `ref` pinned to a release tag. Update it when adopting a new package
+release, then run `flutter pub get` in the consuming application.
+
+### Requirements
+
+The consuming application needs Dart 3.10 or later and Flutter 3.38.1 or
+later. Native targets compile the bundled Rust runtime, so a Rust/Cargo
+toolchain is also required on build machines.
+
+| Target | Consumer requirement |
+| --- | --- |
+| Android | `compileSdk` 36, `minSdk` 24, Java 17, and an Android NDK configured for the Flutter application |
+| iOS | iOS 11 or later and the normal Xcode/CocoaPods toolchain |
+| Linux, macOS, Windows | The normal Flutter desktop toolchain plus Rust/Cargo |
+| Web | The separate Web build described below; it needs `wasm-pack`, Rust `nightly`, and the WebAssembly target |
+
+The native Flutter plugin supports Android, iOS, Linux, macOS, and Windows.
+Web uses the dedicated shared-memory WASM build pipeline.
 
 Consumers must import only the root library:
 
@@ -38,8 +59,10 @@ explicit operations so applications can control their startup order:
 ```dart
 Future<void> initializeXelisWallet() async {
   await XelisWalletFlutter.initialize();
-  await XelisWalletFlutter.initializeRustLogger();
   await XelisWalletFlutter.initializeConfiguration();
+
+  // Optional: configure native logging once for the process.
+  // await XelisWalletFlutter.initializeRustLogger();
 
   // Enable only when required by the consuming application.
   // await XelisWalletFlutter.initializeCryptoProvider();
@@ -132,9 +155,10 @@ Stable package failures use `XelisWalletException`. Applications should record
 its safe structured metadata once, map its stable code to localized copy, and
 never display or parse `diagnosticMessage`.
 
-## Local validation
+## Maintainer validation
 
-Regenerate bindings after changing the Rust bridge API:
+After changing the Rust bridge API, package maintainers regenerate bindings and
+run:
 
 ```text
 flutter pub get
