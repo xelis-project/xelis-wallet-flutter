@@ -74,4 +74,4 @@ clean-all:
 
 # Build the intentionally uncommitted Web package for a consuming application.
 build-web:
-    dart run tool/build_web.dart
+    dart run tool/build_web.dart --output web/pkg

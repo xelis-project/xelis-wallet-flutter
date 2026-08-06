@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Added the `xelis_wallet_flutter:build_web` executable so consumers can build
+  the shared-memory Web package from the XWF revision resolved by Pub.
+
 ## 0.1.1
 
 - Updated the native XELIS crates to a pinned 1.24.0 development revision,

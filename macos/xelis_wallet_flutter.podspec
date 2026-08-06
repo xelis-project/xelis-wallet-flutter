@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'xelis_wallet_flutter'
-  s.version          = '0.1.1'
+  s.version          = '0.1.2'
   s.summary          = 'Flutter bindings for the native XELIS wallet runtime.'
   s.description      = <<-DESC
 Flutter bindings for the native XELIS wallet runtime.

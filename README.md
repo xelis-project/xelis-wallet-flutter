@@ -176,11 +176,22 @@ edit `lib/src/generated/rust_bridge/**` or `rust/src/frb_generated.rs` manually.
 
 ## Web consumers
 
-The generated Web package is intentionally not committed. Build it directly in
-the consuming Flutter application's `web/pkg` directory:
+The generated Web package is intentionally not committed. From the consuming
+Flutter application's root, build the Rust code bundled with the XWF revision
+resolved by Pub directly into the application's `web/pkg` directory:
 
 ```text
-dart run ../xelis-wallet-flutter/tool/build_web.dart --output web/pkg
+dart run xelis_wallet_flutter:build_web --output web/pkg
+```
+
+The build requires `wasm-pack`, Rust `nightly`, and the
+`wasm32-unknown-unknown` target. A typical rustup setup is:
+
+```text
+cargo install wasm-pack
+rustup toolchain install nightly
+rustup component add rust-src --toolchain nightly
+rustup target add wasm32-unknown-unknown --toolchain nightly
 ```
 
 The Web host must enable cross-origin isolation for the shared-memory WASM

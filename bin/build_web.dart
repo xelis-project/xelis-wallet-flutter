@@ -3,19 +3,13 @@ import 'dart:io';
 import 'package:xelis_wallet_flutter/src/tooling/web_build.dart';
 
 Future<void> main(List<String> arguments) async {
-  final packageRoot = await resolveXwfPackageRoot();
   final WebBuildArguments parsedArguments;
   try {
-    parsedArguments = parseWebBuildArguments(
-      arguments,
-      defaultOutputDirectory: Directory.fromUri(
-        packageRoot.uri.resolve('web/pkg/'),
-      ),
-    );
+    parsedArguments = parseWebBuildArguments(arguments);
   } on FormatException catch (error) {
     stderr
       ..writeln(error.message)
-      ..writeln('Usage: dart run tool/build_web.dart [--output <directory>]');
+      ..writeln(buildWebUsage);
     exitCode = 64;
     return;
   }
@@ -25,6 +19,7 @@ Future<void> main(List<String> arguments) async {
     return;
   }
 
+  final packageRoot = await resolveXwfPackageRoot();
   final outputArguments = parsedArguments as WebBuildOutputArguments;
   exitCode = await runWebBuild(
     packageRoot: packageRoot,
