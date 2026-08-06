@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Updated the native XELIS crates to a pinned 1.24.0 development revision,
+  including post-release WebSocket session fixes.
+- No public Dart API changes.
+
 ## 0.1.0
 
 Initial development release of the shared Flutter integration for the native

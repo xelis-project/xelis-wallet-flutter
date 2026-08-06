@@ -3821,8 +3821,8 @@ dependencies = [
 
 [[package]]
 name = "xelis_common"
-version = "1.23.0"
-source = "git+https://github.com/xelis-project/xelis-blockchain?branch=dev#ba7e020fd1dd73c29556e549e021f87d99540722"
+version = "1.24.0"
+source = "git+https://github.com/xelis-project/xelis-blockchain?rev=fc66f1dfb4f64819cffca8778fa4889ee1f53a33#fc66f1dfb4f64819cffca8778fa4889ee1f53a33"
 dependencies = [
  "actix-rt",
  "actix-web",
@@ -3877,8 +3877,8 @@ dependencies = [
 
 [[package]]
 name = "xelis_wallet"
-version = "1.23.0"
-source = "git+https://github.com/xelis-project/xelis-blockchain?branch=dev#ba7e020fd1dd73c29556e549e021f87d99540722"
+version = "1.24.0"
+source = "git+https://github.com/xelis-project/xelis-blockchain?rev=fc66f1dfb4f64819cffca8778fa4889ee1f53a33#fc66f1dfb4f64819cffca8778fa4889ee1f53a33"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -3913,7 +3913,7 @@ dependencies = [
 
 [[package]]
 name = "xelis_wallet_flutter"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "flutter_rust_bridge",

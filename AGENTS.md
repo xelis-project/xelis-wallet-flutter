@@ -62,6 +62,9 @@ The root library must export authored contracts only. Do not add public
 
 ## Compatibility rules
 
+- Pin `xelis_wallet` and `xelis_common` to the same exact upstream revision.
+  Update both revisions atomically after auditing the complete upstream diff;
+  never mix floating branches, tags, or different revisions between them.
 - Treat every public Rust API and forwarding Dart export as a cross-language
   contract.
 - Keep `lib/src/api/**` independent from generated bindings and FRB packages;
