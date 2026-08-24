@@ -34,8 +34,8 @@ toolchain is also required on build machines.
 | Target | Consumer requirement |
 | --- | --- |
 | Android | `compileSdk` 36, `minSdk` 24, Java 17, and an Android NDK configured for the Flutter application |
-| iOS | iOS 11 or later and the normal Xcode/CocoaPods toolchain |
-| Linux, macOS, Windows | The normal Flutter desktop toolchain plus Rust/Cargo |
+| iOS | iOS 13 or later and the normal Xcode/CocoaPods toolchain |
+| Linux, macOS, Windows | macOS 10.15 or later where applicable, plus the normal Flutter desktop toolchain and Rust/Cargo |
 | Web | The separate Web build described below; it needs `wasm-pack`, Rust `nightly`, and the WebAssembly target |
 
 The native Flutter plugin supports Android, iOS, Linux, macOS, and Windows.
