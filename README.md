@@ -7,8 +7,7 @@ Flutter wallet applications. Application state management, presentation,
 localized messages, retry policy, and diagnostic retention remain the
 responsibility of the consuming application.
 
-The repository is licensed under GPL-3.0-only. The vendored Cargokit build
-tooling retains its MIT/Apache-2.0 licensing under `cargokit/LICENSE`.
+The repository is licensed under GPL-3.0-only.
 
 ## Add the package
 
@@ -27,19 +26,23 @@ release, then run `flutter pub get` in the consuming application.
 
 ### Requirements
 
-The consuming application needs Dart 3.13 or later and Flutter 3.47 or
-later. Native targets compile the bundled Rust runtime, so a Rust/Cargo
-toolchain is also required on build machines.
+The consuming application needs Dart 3.13 or later and Flutter 3.47 or later.
+Native targets compile the bundled Rust runtime through Flutter Native Assets,
+so build machines must install Rustup. The package pins Rust 1.93.1 and its
+supported targets in `rust/rust-toolchain.toml`; Rustup installs those exact
+components for reproducible builds.
 
 | Target | Consumer requirement |
 | --- | --- |
-| Android | `compileSdk` 36, `minSdk` 24, Java 17, and an Android NDK configured for the Flutter application |
-| iOS | iOS 13 or later and the normal Xcode/CocoaPods toolchain |
-| Linux, macOS, Windows | macOS 10.15 or later where applicable, plus the normal Flutter desktop toolchain and Rust/Cargo |
+| Android | `minSdk` 24, the normal Flutter 3.47 Android toolchain, AGP 8.5.1 or later, and NDK r28 or later for 16 KB page support |
+| iOS | iOS 13 or later, Rustup, and the normal Xcode toolchain |
+| Linux, macOS, Windows | macOS 10.15 or later where applicable, Rustup, and the normal Flutter desktop toolchain |
 | Web | The separate Web build described below; it needs `wasm-pack`, Rust `nightly`, and the WebAssembly target |
 
-The native Flutter plugin supports Android, iOS, Linux, macOS, and Windows.
-Web uses the dedicated shared-memory WASM build pipeline.
+The Native Assets build hook supports Android, iOS, Linux, macOS, and Windows.
+Flutter invokes it automatically for native `run`, `build`, and `test`
+commands. Web keeps the dedicated shared-memory WASM build pipeline described
+below; the native hook does not replace it.
 
 Consumers must import only the root library:
 
@@ -165,7 +168,10 @@ flutter pub get
 dart run tool/generate_bindings.dart
 dart analyze
 flutter test
-cd rust
+cd example
+flutter test
+flutter test integration_test/native_library_smoke_test.dart -d <device>
+cd ../rust
 cargo fmt --check
 cargo check --locked
 cargo test --locked
@@ -173,6 +179,8 @@ cargo test --locked
 
 `dart run tool/generate_bindings.dart` is the supported generation path. Do not
 edit `lib/src/generated/rust_bridge/**` or `rust/src/frb_generated.rs` manually.
+`hook/build.dart` is the authored Native Assets entrypoint and must keep its
+crate path set to `rust`.
 
 ## Web consumers
 

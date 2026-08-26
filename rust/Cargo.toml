@@ -8,6 +8,7 @@ readme = "../README.md"
 publish = false
 
 [lib]
+name = "xelis_wallet_flutter"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]

@@ -28,6 +28,8 @@ in the published documentation.
 - Rust dependencies and features: `rust/Cargo.toml`
 - Authored bridge API: `rust/src/api/**`
 - FRB configuration: `flutter_rust_bridge.yaml`
+- Native build hook: `hook/build.dart`
+- Reproducible Rust toolchain and targets: `rust/rust-toolchain.toml`
 - Authored public Dart contracts: `lib/src/api/**`
 - Private generated-to-public adapters: `lib/src/bridge/**`
 - Public Dart runtime façade: `lib/src/runtime/xelis_wallet_flutter.dart`
@@ -52,6 +54,13 @@ Regenerate them with `flutter_rust_bridge_codegen generate`.
 Prefer `dart run tool/generate_bindings.dart`, which clears only the two known
 generated output locations first so obsolete FRB files cannot survive a module
 move, then regenerates the required Freezed parts.
+
+Native Android, iOS, Linux, macOS, and Windows builds use Flutter Native Assets.
+Keep `hook/build.dart` pointed at the `rust` crate, keep
+`flutter_rust_bridge_hooks` aligned exactly with FRB, and keep the concrete Rust
+toolchain and supported target list in `rust/rust-toolchain.toml`. Do not
+reintroduce a root `ffiPlugin` scaffold, platform build glue, or vendored
+Cargokit. Web remains on the separate `wasm-pack` shared-memory pipeline.
 
 The generated FRB entrypoint is private. Consumers initialize the package via
 `XelisWalletFlutter` from `package:xelis_wallet_flutter/xelis_wallet_flutter.dart`.
@@ -170,10 +179,13 @@ The root library must export authored contracts only. Do not add public
   consumer validation.
 - Rename the native library only as an atomic Rust, FRB, platform, and consumer
   migration.
-- Keep Cargokit/native-assets migrations separate from public API changes.
+- Keep native build-backend migrations separate from public API changes.
 
 ## Validation
 
 For Rust-only changes run `cargo fmt --check`, `cargo check --locked`, and
 focused tests. For FFI changes regenerate bindings, run the Rust checks, then
-run `dart analyze`, `flutter test`, and at least one consumer build.
+run `dart analyze`, `flutter test`, the example widget test, and a real example
+integration test that loads and calls the Rust library. Validate every supported
+native platform on an appropriate host; Android release artifacts must retain
+16 KB ELF and ZIP alignment.

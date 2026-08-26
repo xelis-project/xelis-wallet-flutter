@@ -13,7 +13,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `asset_amounts`, `begin_next`, `business_event_from_wallet_event`, `business_event_projection_error`, `cancel_internal`, `contract_transfer_groups`, `explicit`, `extra_data_payload_kind`, `extra_data`, `new`, `next_business_event_generation`, `next_frame`, `pending_transaction`, `transaction_entry_data`, `transaction_entry`, `transfer_in`, `transfer_out`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ExtraDataProjection`, `NextEventGuard`, `WalletBusinessEventSubscriptionState`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `drop`, `drop`, `eq`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `drop`, `drop`, `eq`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<WalletBusinessEventSubscription>>
 abstract class WalletBusinessEventSubscription implements RustOpaqueInterface {

@@ -23,7 +23,6 @@ migrate_working_dir/
 **/doc/api/
 .dart_tool/
 build/
-android/src/main/jniLibs/
 /rust/target/
 target/
 /web/pkg/

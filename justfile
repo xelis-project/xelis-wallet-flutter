@@ -46,6 +46,14 @@ test:
     just rust-test
     flutter test
 
+# Test the consumer UI without loading a native library.
+test-example:
+    cd example && flutter test
+
+# Load and call the Rust library through the Windows consumer.
+smoke-windows:
+    cd example && flutter test integration_test/native_library_smoke_test.dart -d windows
+
 # Full validation used before handing off a change.
 verify:
     just check

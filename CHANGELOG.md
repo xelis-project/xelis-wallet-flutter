@@ -6,6 +6,10 @@
   while migrating the private generated boundary to Freezed 4 and
   `flutter_rust_bridge` 2.13.0. Authored Dart APIs, wallet storage, and
   consumer source contracts remain unchanged.
+- **Build:** Replaced the vendored Cargokit FFI-plugin integration with Flutter
+  Native Assets using `flutter_rust_bridge_hooks` 2.13.0. Native consumers now
+  build the pinned Rust 1.93.1 toolchain through Rustup; authored APIs, wallet
+  storage, XELIS revisions, and the separate Web build remain unchanged.
 - Web cancellation of the process-global native log and progress streams now
   completes after initiating the FRB listener detachment. Pull-driven wallet
   event subscriptions keep their existing fully awaited cancellation order.
@@ -62,5 +66,5 @@ XELIS wallet runtime.
   privileged diagnostics separated from UI and standard logs.
 - Package-owned native logging and XSWD contracts with explicit lifecycle,
   callback, relayer, redaction, and standard/diagnostic policies.
-- Flutter plugin packaging for Android, iOS, Linux, macOS, Windows, and a
+- Native packaging for Android, iOS, Linux, macOS, and Windows, plus a
   dedicated shared-memory Web build pipeline.
