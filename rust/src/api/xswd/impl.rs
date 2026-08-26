@@ -415,14 +415,18 @@ fn apply_permission_updates(
     current: &mut IndexMap<String, Permission>,
     updates: &HashMap<String, PermissionPolicy>,
 ) -> Result<()> {
+    if updates.keys().any(|key| key.starts_with("wallet.")) {
+        bail!("Prefixed XSWD permission names are unsupported");
+    }
     if updates.keys().any(|key| !current.contains_key(key)) {
         bail!("XSWD permission not found");
     }
 
     for (key, policy) in updates {
-        if let Some(permission) = current.get_mut(key) {
-            *permission = permission_from_policy(policy);
-        }
+        let permission = current
+            .get_mut(key)
+            .expect("XSWD permission was validated before applying updates");
+        *permission = permission_from_policy(policy);
     }
 
     Ok(())

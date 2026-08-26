@@ -53,26 +53,48 @@ XelisXswdRequest xelisXswdRequestFromGenerated(
 }
 
 Map<String, generated.PermissionPolicy> generatedXswdPermissionsFromXelis(
-  Map<String, XelisXswdPermissionPolicy> permissions,
-) => permissions.map(
-  (name, policy) => MapEntry(name, _permissionPolicyToGenerated(policy)),
-);
+  Map<String, XelisXswdPermissionPolicy> permissions, {
+  required XelisWalletOperation operation,
+}) {
+  _validateXswdPermissionNames(permissions.keys, operation: operation);
+  return permissions.map(
+    (name, policy) => MapEntry(name, _permissionPolicyToGenerated(policy)),
+  );
+}
 
 generated.ApplicationDataRelayer generatedXswdRelayerFromXelis(
   XelisXswdRelayer relayer, {
   required XelisWalletOperation operation,
-}) => generated.ApplicationDataRelayer(
-  id: relayer.id,
-  name: relayer.name,
-  description: relayer.description,
-  url: relayer.url,
-  permissions: List.of(relayer.permissions),
-  relayer: relayer.relayer,
-  encryptionMode: _encryptionToGenerated(
-    relayer.encryption,
-    operation: operation,
-  ),
-);
+}) {
+  _validateXswdPermissionNames(relayer.permissions, operation: operation);
+  return generated.ApplicationDataRelayer(
+    id: relayer.id,
+    name: relayer.name,
+    description: relayer.description,
+    url: relayer.url,
+    permissions: List.of(relayer.permissions),
+    relayer: relayer.relayer,
+    encryptionMode: _encryptionToGenerated(
+      relayer.encryption,
+      operation: operation,
+    ),
+  );
+}
+
+void _validateXswdPermissionNames(
+  Iterable<String> permissions, {
+  required XelisWalletOperation operation,
+}) {
+  if (permissions.any((name) => name.startsWith('wallet.'))) {
+    throw xelisOperationPreconditionException(
+      operation: operation,
+      code: XelisWalletErrorCode.invalidInput,
+      nativeKind: 'XSWD_PERMISSION_NAME_INVALID',
+      diagnosticMessage:
+          'XSWD permission names must use the unprefixed method form.',
+    );
+  }
+}
 
 /// Private generated callback bundle used only by bridge adapters.
 final class GeneratedXswdCallbacks {

@@ -17,6 +17,50 @@ async fn app_permission_updates_remain_atomic_under_the_async_lock() {
 }
 
 #[tokio::test]
+async fn app_permission_updates_accept_unprefixed_method_names() {
+    let app = app_state();
+
+    modify_app_permissions(
+        &app,
+        &HashMap::from([("get_balance".to_owned(), PermissionPolicy::Accept)]),
+    )
+    .await
+    .unwrap();
+    modify_app_permissions(
+        &app,
+        &HashMap::from([("build_transaction".to_owned(), PermissionPolicy::Reject)]),
+    )
+    .await
+    .unwrap();
+
+    let permissions = app.get_permissions().lock().await;
+    assert!(matches!(permissions["get_balance"], Permission::Allow));
+    assert!(matches!(
+        permissions["build_transaction"],
+        Permission::Reject
+    ));
+}
+
+#[tokio::test]
+async fn app_permission_updates_reject_prefixed_names_atomically() {
+    let app = app_state();
+    let updates = HashMap::from([
+        ("wallet.get_balance".to_owned(), PermissionPolicy::Accept),
+        ("build_transaction".to_owned(), PermissionPolicy::Reject),
+    ]);
+
+    let error = modify_app_permissions(&app, &updates).await.unwrap_err();
+    let permissions = app.get_permissions().lock().await;
+
+    assert_eq!(
+        error.to_string(),
+        "Prefixed XSWD permission names are unsupported"
+    );
+    assert!(matches!(permissions["get_balance"], Permission::Ask));
+    assert!(matches!(permissions["build_transaction"], Permission::Ask));
+}
+
+#[tokio::test]
 async fn app_info_preserves_identity_metadata_and_permission_policies() {
     let app = app_state();
     {

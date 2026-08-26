@@ -125,7 +125,7 @@ fn signature_share_rejects_non_canonical_encoding() {
 }
 
 #[test]
-fn signature_share_rejects_non_canonical_signature_encoding() {
+fn signature_share_rejects_signature_with_trailing_bytes() {
     let signer = KeyPair::new();
     let hash = Hash::new([9; 32]);
     let share = create_multisig_signature_share(&hash, 3, signer.sign(hash.as_bytes())).unwrap();
@@ -135,8 +135,5 @@ fn signature_share_rejects_non_canonical_signature_encoding() {
     let encoded = serde_json::to_string(&envelope).unwrap();
 
     let error = parse_multisig_signature_share(&encoded, &hash).unwrap_err();
-    assert_eq!(
-        error.to_string(),
-        "The signature share encoding is not canonical"
-    );
+    assert_eq!(error.to_string(), "Invalid signature share encoding");
 }

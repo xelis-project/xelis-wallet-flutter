@@ -120,6 +120,10 @@ recovery:
   typed `Offline` event controls recovery;
 - invalid hashes, destinations, amounts, fee policies, or protocol envelopes
   use `input.invalid` when the package can prove the precondition;
+- native hexadecimal inputs must encode exactly one value. Trailing bytes fail
+  closed. Private-key failures use `PRIVATE_KEY_INVALID_ENCODING`; hashes,
+  signatures, and multisig envelope fields use the domain-specific structured
+  classification of their stable boundary;
 - absent or stale native capabilities use `resource.not_found`, while
   reconstructed, cross-wallet, consumed, or replayed capabilities fail closed
   with `state.conflict`;

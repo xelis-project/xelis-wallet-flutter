@@ -346,7 +346,10 @@ final class NativeXelisWallet implements XelisWallet {
     return guardXelisFuture(
       () => _delegate.modifyApplicationPermissions(
         id: applicationId,
-        permissions: generatedXswdPermissionsFromXelis(permissions),
+        permissions: generatedXswdPermissionsFromXelis(
+          permissions,
+          operation: XelisWalletOperation.walletXswdPermissionsUpdate,
+        ),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,

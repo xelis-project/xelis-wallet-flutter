@@ -1,4 +1,5 @@
 use super::*;
+use xelis_common::crypto::{elgamal::PrivateKey, Signature};
 
 #[test]
 fn multisig_v1_protocol_constants_are_stable() {
@@ -25,6 +26,18 @@ fn multisig_v1_signing_bytes_are_stable() {
         signing_bytes,
         b"xelis:wallet:multisig-signing-request:v1\0{\"version\":1,\"network\":\"testnet\",\"unsigned_transaction\":\"00\",\"transaction\":{\"type\":\"delete_multisig\"}}"
     );
+}
+
+#[test]
+fn serializer_rejects_trailing_bytes_for_private_keys_hashes_and_signatures() {
+    let keypair = KeyPair::new();
+    let private_key = format!("{}00", keypair.get_private_key().to_hex());
+    let hash = format!("{}00", Hash::new([7; 32]).to_hex());
+    let signature = format!("{}00", keypair.sign(b"strict-encoding").to_hex());
+
+    assert!(PrivateKey::from_hex(&private_key).is_err());
+    assert!(Hash::from_hex(&hash).is_err());
+    assert!(Signature::from_hex(&signature).is_err());
 }
 
 #[test]

@@ -152,7 +152,7 @@ fn signing_request_rejects_proof_for_another_ciphertext() {
 }
 
 #[test]
-fn signing_request_rejects_non_canonical_amount_proof() {
+fn signing_request_rejects_amount_proof_with_trailing_bytes() {
     let (source, unsigned, transaction_type, configuration) = transfer_request_fixture();
     let request = create_multisig_signing_request(
         &unsigned,
@@ -177,10 +177,7 @@ fn signing_request_rejects_non_canonical_amount_proof() {
     let encoded = serde_json::to_string(&envelope).unwrap();
 
     let error = parse_multisig_signing_request(&encoded, Network::Testnet).unwrap_err();
-    assert_eq!(
-        error.to_string(),
-        "The transfer amount proof encoding is not canonical"
-    );
+    assert_eq!(error.to_string(), "The transfer amount proof is invalid");
 }
 
 #[test]
@@ -350,7 +347,7 @@ fn signing_request_rejects_tampered_attestation() {
 }
 
 #[test]
-fn signing_request_rejects_non_canonical_attestation_encoding() {
+fn signing_request_rejects_attestation_with_trailing_bytes() {
     let (source, unsigned, transaction_type, configuration) = burn_request_fixture();
     let request = create_multisig_signing_request(
         &unsigned,
@@ -368,7 +365,7 @@ fn signing_request_rejects_non_canonical_attestation_encoding() {
     let error = parse_multisig_signing_request(&encoded, Network::Testnet).unwrap_err();
     assert_eq!(
         error.to_string(),
-        "The multisig signing request attestation encoding is not canonical"
+        "Invalid multisig signing request attestation"
     );
 }
 

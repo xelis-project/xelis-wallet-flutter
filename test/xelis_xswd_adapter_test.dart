@@ -27,19 +27,17 @@ void main() {
       expect(state.applications, hasLength(1));
       expect(state.applications.single.id, 'application-id');
       expect(
-        state.applications.single.permissions['wallet.get_balance'],
+        state.applications.single.permissions['get_balance'],
         XelisXswdPermissionPolicy.ask,
       );
       expect(state.toString(), isNot(contains('application-id')));
 
       await wallet.updateXswdApplicationPermissions(
         applicationId: 'application-id',
-        permissions: const {
-          'wallet.get_balance': XelisXswdPermissionPolicy.accept,
-        },
+        permissions: const {'get_balance': XelisXswdPermissionPolicy.accept},
       );
       expect(delegate.lastPermissions, {
-        'wallet.get_balance': generated_models.PermissionPolicy.accept,
+        'get_balance': generated_models.PermissionPolicy.accept,
       });
 
       await wallet.closeXswdApplicationSession(applicationId: 'application-id');
@@ -50,7 +48,7 @@ void main() {
         name: 'relay-name',
         description: 'relay-description',
         url: null,
-        permissions: const ['wallet.get_balance'],
+        permissions: const ['get_balance'],
         relayer: 'wss://relay.example',
         encryption: XelisXswdEncryption(
           algorithm: XelisXswdEncryptionAlgorithm.aes,
@@ -161,6 +159,70 @@ void main() {
       expect(delegate.relayerCalls, 0);
     });
 
+    test('rejects prefixed permission names before generated calls', () async {
+      final delegate = _FakeGeneratedXswdWallet();
+      final wallet = NativeXelisWallet(delegate);
+
+      await expectLater(
+        wallet.updateXswdApplicationPermissions(
+          applicationId: 'application-id',
+          permissions: const {
+            'wallet.get_balance': XelisXswdPermissionPolicy.accept,
+          },
+        ),
+        throwsA(
+          isA<XelisWalletException>()
+              .having(
+                (error) => error.operation,
+                'operation',
+                XelisWalletOperation.walletXswdPermissionsUpdate,
+              )
+              .having(
+                (error) => error.code,
+                'code',
+                XelisWalletErrorCode.invalidInput,
+              )
+              .having(
+                (error) => error.nativeKind,
+                'nativeKind',
+                'XSWD_PERMISSION_NAME_INVALID',
+              ),
+        ),
+      );
+      expect(delegate.lastPermissions, isNull);
+
+      final relayer = XelisXswdRelayer(
+        id: 'relay-id',
+        name: 'relay-name',
+        description: '',
+        url: null,
+        permissions: const ['wallet.get_balance'],
+        relayer: 'wss://relay.example',
+      );
+      await expectLater(
+        wallet.addXswdRelayer(relayer: relayer, callbacks: _callbacks()),
+        throwsA(
+          isA<XelisWalletException>()
+              .having(
+                (error) => error.operation,
+                'operation',
+                XelisWalletOperation.walletXswdRelayerAdd,
+              )
+              .having(
+                (error) => error.code,
+                'code',
+                XelisWalletErrorCode.invalidInput,
+              )
+              .having(
+                (error) => error.nativeKind,
+                'nativeKind',
+                'XSWD_PERMISSION_NAME_INVALID',
+              ),
+        ),
+      );
+      expect(delegate.relayerCalls, 0);
+    });
+
     test('authors an exact operation for every generated failure', () async {
       final failure = AnyhowException('sensitive XSWD diagnostic payload');
 
@@ -262,9 +324,7 @@ generated_models.AppInfo _generatedApplication() =>
       name: 'application-name',
       description: 'application-description',
       url: 'https://application.example',
-      permissions: {
-        'wallet.get_balance': generated_models.PermissionPolicy.ask,
-      },
+      permissions: {'get_balance': generated_models.PermissionPolicy.ask},
       isRelayer: false,
     );
 

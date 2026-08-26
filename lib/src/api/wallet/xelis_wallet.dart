@@ -92,6 +92,10 @@ abstract interface class XelisWallet {
   Future<void> closeXswdApplicationSession({required String applicationId});
 
   /// Replaces the retained permission policies for [applicationId].
+  ///
+  /// Permission keys use unprefixed method identifiers such as `get_balance`.
+  /// A prefixed identifier such as `wallet.get_balance` fails before the native
+  /// call with `input.invalid / XSWD_PERMISSION_NAME_INVALID`.
   Future<void> updateXswdApplicationPermissions({
     required String applicationId,
     required Map<String, XelisXswdPermissionPolicy> permissions,

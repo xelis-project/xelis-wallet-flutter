@@ -19,7 +19,7 @@ dependencies:
   xelis_wallet_flutter:
     git:
       url: https://github.com/xelis-project/xelis-wallet-flutter.git
-      ref: v0.1.1
+      ref: v0.1.2
 ```
 
 Keep `ref` pinned to a release tag. Update it when adopting a new package

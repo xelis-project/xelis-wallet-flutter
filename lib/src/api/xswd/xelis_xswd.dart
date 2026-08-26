@@ -31,6 +31,10 @@ final class XelisXswdApplication {
   final String name;
   final String description;
   final String? url;
+
+  /// Wallet RPC policies keyed by unprefixed method identifiers.
+  ///
+  /// For example, the balance method is represented as `get_balance`.
   final Map<String, XelisXswdPermissionPolicy> permissions;
   final bool isRelayer;
 
@@ -123,6 +127,10 @@ final class XelisXswdRelayer {
   final String name;
   final String description;
   final String? url;
+
+  /// Requested wallet RPC methods in their unprefixed form.
+  ///
+  /// A prefixed identifier such as `wallet.get_balance` is invalid.
   final List<String> permissions;
   final String relayer;
   final XelisXswdEncryption? encryption;

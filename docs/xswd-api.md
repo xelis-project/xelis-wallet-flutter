@@ -21,6 +21,15 @@ One opened `XelisWallet` owns its local XSWD server and relayer sessions.
 Consumers own orchestration across wallet-session replacement. Stop XSWD and
 await completion before closing or disposing the wallet handle.
 
+## Permission identifiers
+
+`XelisXswdApplication.permissions`, permission updates, and relayer permission
+lists use unprefixed wallet RPC method names, for example `get_balance`.
+
+A permission name beginning with `wallet.` is invalid and fails before the
+native call with `input.invalid / XSWD_PERMISSION_NAME_INVALID`. Permission
+names are never ignored or normalized silently.
+
 ## Callback boundary
 
 `XelisXswdCallbacks` is an authored callback bundle. The package privately
@@ -48,9 +57,8 @@ state `toString()` implementations omit those values.
 ## Errors and diagnostics
 
 Every façade operation maps bridge failures to `XelisWalletException` with its
-exact `wallet.xswd.*` operation. Existing typed native classifications are
-preserved. The current private native XSWD contract returns `anyhow` failures
-for several operations; those use the documented conservative
+exact `wallet.xswd.*` operation. Typed native failures keep their structured
+classification. Untyped native failures use the documented conservative
 `operation.failed` adapter fallback without parsing exception prose.
 
 Invalid relayer encryption keys fail before the native call as structured
