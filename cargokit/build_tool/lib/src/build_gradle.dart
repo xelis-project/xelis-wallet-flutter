@@ -17,18 +17,13 @@ class BuildGradle {
   final CargokitUserOptions userOptions;
 
   Future<void> build() async {
-    final targets = Environment.targetPlatforms.map((arch) {
-      final target = Target.forFlutterName(arch);
-      if (target == null) {
-        throw Exception(
-            "Unknown darwin target or platform: $arch, ${Environment.darwinPlatformName}");
-      }
-      return target;
-    }).toList();
+    final targets = resolveGradleTargets(Environment.targetPlatforms);
 
     final environment = BuildEnvironment.fromEnvironment(isAndroid: true);
-    final provider =
-        ArtifactProvider(environment: environment, userOptions: userOptions);
+    final provider = ArtifactProvider(
+      environment: environment,
+      userOptions: userOptions,
+    );
     final artifacts = await provider.getArtifacts(targets);
 
     for (final target in targets) {
@@ -44,3 +39,15 @@ class BuildGradle {
     }
   }
 }
+
+List<Target> resolveGradleTargets(Iterable<String> targetPlatforms) =>
+    targetPlatforms
+        .map((arch) {
+          final target = Target.forFlutterName(arch);
+          if (target == null) {
+            throw Exception('Unknown Flutter target platform: $arch');
+          }
+          return target;
+        })
+        .toSet()
+        .toList();

@@ -6,3 +6,17 @@ for a tutorial on how to use Cargokit.
 
 Example plugin available at https://github.com/irondash/hello_rust_ffi_plugin.
 
+## Vendored baseline
+
+This copy tracks the Cargokit build tooling bundled with the
+`flutter_rust_bridge_codegen` 2.13.0 integration template for the platforms
+supported by `xelis_wallet_flutter`.
+
+The 2.13 update imports Android 16 KB page alignment, current Flutter Gradle
+plugin discovery, duplicate-target removal, and fully resolved Rustup
+toolchains. The integration template's nested CI and OHOS-only code are not
+vendored because they are outside this package's platform contract.
+
+`run_build_tool.cmd` intentionally retains this repository's Dart discovery,
+error checking, and exit-code propagation because those behaviors are more
+robust than the 2.13 integration template.
