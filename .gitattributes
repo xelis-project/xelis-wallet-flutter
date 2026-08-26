@@ -6,3 +6,6 @@ rust/src/frb_generated.rs -whitespace
 cargokit/LICENSE -whitespace
 cargokit/README -whitespace
 cargokit/docs/precompiled_binaries.md -whitespace
+
+# Keep the generated consumer scaffold reviewable across host platforms.
+example/** text=auto eol=lf
