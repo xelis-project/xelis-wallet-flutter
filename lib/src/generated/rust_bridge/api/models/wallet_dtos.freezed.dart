@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'wallet_dtos.dart';
@@ -9,6 +9,7 @@ part of 'wallet_dtos.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$HistoryPageFilterCopyWithImpl<$Res>
 /// Create a copy of HistoryPageFilter
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? page = null,Object? limit = freezed,Object? assetHash = freezed,Object? address = freezed,Object? minTopoheight = freezed,Object? maxTopoheight = freezed,Object? acceptIncoming = null,Object? acceptOutgoing = null,Object? acceptCoinbase = null,Object? acceptBurn = null,Object? acceptBlob = null,Object? minTimestamp = freezed,Object? maxTimestamp = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(HistoryPageFilter(
 page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as BigInt,limit: freezed == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
 as BigInt?,assetHash: freezed == assetHash ? _self.assetHash : assetHash // ignore: cast_nullable_to_non_nullable
@@ -350,7 +351,7 @@ class _$NativeMultisigParticipantCopyWithImpl<$Res>
 /// Create a copy of NativeMultisigParticipant
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? address = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeMultisigParticipant(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,
@@ -604,7 +605,7 @@ class _$NativeMultisigSignatureShareCopyWithImpl<$Res>
 /// Create a copy of NativeMultisigSignatureShare
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? encoded = null,Object? signingHash = null,Object? signerId = null,Object? signature = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeMultisigSignatureShare(
 encoded: null == encoded ? _self.encoded : encoded // ignore: cast_nullable_to_non_nullable
 as String,signingHash: null == signingHash ? _self.signingHash : signingHash // ignore: cast_nullable_to_non_nullable
 as String,signerId: null == signerId ? _self.signerId : signerId // ignore: cast_nullable_to_non_nullable
@@ -864,7 +865,7 @@ class _$NativeMultisigSigningRequestCopyWithImpl<$Res>
 /// Create a copy of NativeMultisigSigningRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? requestId = freezed,Object? encoded = null,Object? signingHash = null,Object? source = null,Object? network = null,Object? fee = null,Object? feeLimit = null,Object? nonce = null,Object? referenceTopoheight = null,Object? threshold = null,Object? participants = null,Object? signerId = freezed,Object? transaction = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeMultisigSigningRequest(
 requestId: freezed == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
 as BigInt?,encoded: null == encoded ? _self.encoded : encoded // ignore: cast_nullable_to_non_nullable
 as String,signingHash: null == signingHash ? _self.signingHash : signingHash // ignore: cast_nullable_to_non_nullable
@@ -1022,7 +1023,7 @@ return $default(_that.requestId,_that.encoded,_that.signingHash,_that.source,_th
 
 
 class _NativeMultisigSigningRequest implements NativeMultisigSigningRequest {
-  const _NativeMultisigSigningRequest({this.requestId, required this.encoded, required this.signingHash, required this.source, required this.network, required this.fee, required this.feeLimit, required this.nonce, required this.referenceTopoheight, required this.threshold, required final  List<NativeMultisigParticipant> participants, this.signerId, required this.transaction}): _participants = participants;
+  const _NativeMultisigSigningRequest({this.requestId, required this.encoded, required this.signingHash, required this.source, required this.network, required this.fee, required this.feeLimit, required this.nonce, required this.referenceTopoheight, required this.threshold, required  List<NativeMultisigParticipant> participants, this.signerId, required this.transaction}): _participants = participants;
   
 
 @override final  BigInt? requestId;
@@ -1293,7 +1294,7 @@ return deleteMultisig();case _:
 
 
 class NativeMultisigSigningTransaction_Transfers extends NativeMultisigSigningTransaction {
-  const NativeMultisigSigningTransaction_Transfers({required final  List<NativeMultisigSigningTransfer> transfers}): _transfers = transfers,super._();
+  const NativeMultisigSigningTransaction_Transfers({required  List<NativeMultisigSigningTransfer> transfers}): _transfers = transfers,super._();
   
 
  final  List<NativeMultisigSigningTransfer> _transfers;
@@ -1513,7 +1514,7 @@ class _$NativeMultisigSigningTransferCopyWithImpl<$Res>
 /// Create a copy of NativeMultisigSigningTransfer
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? amount = null,Object? asset = null,Object? destination = null,Object? hasExtraData = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeMultisigSigningTransfer(
 amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as BigInt,asset: null == asset ? _self.asset : asset // ignore: cast_nullable_to_non_nullable
 as String,destination: null == destination ? _self.destination : destination // ignore: cast_nullable_to_non_nullable
@@ -1773,7 +1774,7 @@ class _$NativeMultisigStateCopyWithImpl<$Res>
 /// Create a copy of NativeMultisigState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? threshold = null,Object? participants = null,Object? topoheight = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeMultisigState(
 threshold: null == threshold ? _self.threshold : threshold // ignore: cast_nullable_to_non_nullable
 as int,participants: null == participants ? _self.participants : participants // ignore: cast_nullable_to_non_nullable
 as List<NativeMultisigParticipant>,topoheight: null == topoheight ? _self.topoheight : topoheight // ignore: cast_nullable_to_non_nullable
@@ -1912,7 +1913,7 @@ return $default(_that.threshold,_that.participants,_that.topoheight);case _:
 
 
 class _NativeMultisigState implements NativeMultisigState {
-  const _NativeMultisigState({required this.threshold, required final  List<NativeMultisigParticipant> participants, required this.topoheight}): _participants = participants;
+  const _NativeMultisigState({required this.threshold, required  List<NativeMultisigParticipant> participants, required this.topoheight}): _participants = participants;
   
 
 @override final  int threshold;
@@ -2036,7 +2037,7 @@ class _$NativePreparedTransactionCopyWithImpl<$Res>
 /// Create a copy of NativePreparedTransaction
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? hash = null,Object? preparationId = null,Object? fee = null,Object? transaction = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativePreparedTransaction(
 hash: null == hash ? _self.hash : hash // ignore: cast_nullable_to_non_nullable
 as String,preparationId: null == preparationId ? _self.preparationId : preparationId // ignore: cast_nullable_to_non_nullable
 as BigInt,fee: null == fee ? _self.fee : fee // ignore: cast_nullable_to_non_nullable
@@ -2912,7 +2913,7 @@ return multisigFinalized(_that.transaction);case _:
 
 
 class NativePreparedTransactionKind_Transfers extends NativePreparedTransactionKind {
-  const NativePreparedTransactionKind_Transfers({required final  List<NativePreparedTransfer> transfers}): _transfers = transfers,super._();
+  const NativePreparedTransactionKind_Transfers({required  List<NativePreparedTransfer> transfers}): _transfers = transfers,super._();
   
 
  final  List<NativePreparedTransfer> _transfers;
@@ -3052,7 +3053,7 @@ as BigInt,
 
 
 class NativePreparedTransactionKind_MultisigSetup extends NativePreparedTransactionKind {
-  const NativePreparedTransactionKind_MultisigSetup({required this.threshold, required final  List<NativeMultisigParticipant> participants}): _participants = participants,super._();
+  const NativePreparedTransactionKind_MultisigSetup({required this.threshold, required  List<NativeMultisigParticipant> participants}): _participants = participants,super._();
   
 
  final  int threshold;
@@ -3249,7 +3250,7 @@ class _$NativePreparedTransferCopyWithImpl<$Res>
 /// Create a copy of NativePreparedTransfer
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? amount = null,Object? destination = null,Object? asset = null,Object? hasExtraData = null,Object? encryptExtraData = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativePreparedTransfer(
 amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as BigInt,destination: null == destination ? _self.destination : destination // ignore: cast_nullable_to_non_nullable
 as String,asset: null == asset ? _self.asset : asset // ignore: cast_nullable_to_non_nullable
@@ -3512,7 +3513,7 @@ class _$NativePreparedTransferExtraDataCopyWithImpl<$Res>
 /// Create a copy of NativePreparedTransferExtraData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? data = null,Object? source = null,Object? encrypted = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativePreparedTransferExtraData(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as NativeXelisDataElement,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as NativePreparedExtraDataSource,encrypted: null == encrypted ? _self.encrypted : encrypted // ignore: cast_nullable_to_non_nullable
@@ -3787,7 +3788,7 @@ class _$NativeTransactionFeePolicyCopyWithImpl<$Res>
 /// Create a copy of NativeTransactionFeePolicy
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? basisPoints = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeTransactionFeePolicy(
 basisPoints: null == basisPoints ? _self.basisPoints : basisPoints // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -4038,7 +4039,7 @@ class _$NativeTransactionTransferRequestCopyWithImpl<$Res>
 /// Create a copy of NativeTransactionTransferRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? amount = null,Object? destination = null,Object? asset = null,Object? extraData = freezed,Object? encryptExtraData = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeTransactionTransferRequest(
 amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as BigInt,destination: null == destination ? _self.destination : destination // ignore: cast_nullable_to_non_nullable
 as String,asset: null == asset ? _self.asset : asset // ignore: cast_nullable_to_non_nullable
@@ -4301,7 +4302,7 @@ class _$TransferCopyWithImpl<$Res>
 /// Create a copy of Transfer
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? floatAmount = null,Object? strAddress = null,Object? assetHash = null,Object? extraData = freezed,Object? encryptExtraData = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Transfer(
 floatAmount: null == floatAmount ? _self.floatAmount : floatAmount // ignore: cast_nullable_to_non_nullable
 as double,strAddress: null == strAddress ? _self.strAddress : strAddress // ignore: cast_nullable_to_non_nullable
 as String,assetHash: null == assetHash ? _self.assetHash : assetHash // ignore: cast_nullable_to_non_nullable
@@ -4564,7 +4565,7 @@ class _$XelisAssetMetadataCopyWithImpl<$Res>
 /// Create a copy of XelisAssetMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? ticker = null,Object? decimals = null,Object? maxSupply = null,Object? owner = null,}) {
-  return _then(_self.copyWith(
+  return _then(XelisAssetMetadata(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,ticker: null == ticker ? _self.ticker : ticker // ignore: cast_nullable_to_non_nullable
 as String,decimals: null == decimals ? _self.decimals : decimals // ignore: cast_nullable_to_non_nullable

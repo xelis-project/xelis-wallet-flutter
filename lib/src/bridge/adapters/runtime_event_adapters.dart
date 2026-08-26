@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../api/logging/log_entry.dart';
 import '../../api/errors/xelis_wallet_exception.dart';
 import '../../api/progress/progress_report.dart';
@@ -55,20 +57,51 @@ ProgressReport adaptProgressReport(generated_progress.ProgressReport report) =>
 
 Stream<XelisLogEntry> adaptLogStream(
   Stream<generated_logger.NativeLogEntry> Function() createStream,
-) => guardXelisStream(
-  createStream,
-  boundary: const XelisErrorBoundary(
-    source: XelisWalletErrorSource.xelisWalletFlutter,
-    operation: XelisWalletOperation.loggingStream,
+) => _detachGlobalSinkCancellation(
+  guardXelisStream(
+    createStream,
+    boundary: const XelisErrorBoundary(
+      source: XelisWalletErrorSource.xelisWalletFlutter,
+      operation: XelisWalletOperation.loggingStream,
+    ),
   ),
 ).map(adaptLogEntry);
 
 Stream<ProgressReport> adaptProgressStream(
   Stream<generated_progress.ProgressReport> Function() createStream,
-) => guardXelisStream(
-  createStream,
-  boundary: const XelisErrorBoundary(
-    source: XelisWalletErrorSource.xelisWalletFlutter,
-    operation: XelisWalletOperation.progressStream,
+) => _detachGlobalSinkCancellation(
+  guardXelisStream(
+    createStream,
+    boundary: const XelisErrorBoundary(
+      source: XelisWalletErrorSource.xelisWalletFlutter,
+      operation: XelisWalletOperation.progressStream,
+    ),
   ),
 ).map(adaptProgressReport);
+
+/// Starts cancellation of a replace-only process-global FRB sink without
+/// waiting for its receive-port future.
+///
+/// FRB 2.13 can leave that future pending on Web after the Dart listener has
+/// detached. Awaiting it would make a consumer's `StreamSubscription.cancel`
+/// hang indefinitely even though creating a later stream replaces the native
+/// sink. Wallet event subscriptions do not use this adapter: their explicit
+/// native cancellation and disposal ordering remains fully awaited.
+Stream<T> _detachGlobalSinkCancellation<T>(Stream<T> source) {
+  late final StreamController<T> controller;
+  late final StreamSubscription<T> subscription;
+  controller = StreamController<T>(
+    sync: true,
+    onListen: () {
+      subscription = source.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close,
+      );
+    },
+    onPause: () => subscription.pause(),
+    onResume: () => subscription.resume(),
+    onCancel: () => unawaited(subscription.cancel()),
+  );
+  return controller.stream;
+}

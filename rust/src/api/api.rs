@@ -3,7 +3,7 @@ use crate::api::error::NativeXelisError;
 use crate::api::error::NativeXelisErrorCode;
 use crate::api::logger;
 use crate::api::logger::{Level, NativeLogEntry};
-use crate::api::progress_report::{ProgressReport, PROGRESS_REPORT_STREAM_SINK};
+use crate::api::progress_report::{replace_stream_sink, ProgressReport};
 use crate::frb_generated::StreamSink;
 
 /// Initialize xelis_common configuration
@@ -46,8 +46,6 @@ pub fn create_log_stream(s: StreamSink<NativeLogEntry>) -> anyhow::Result<()> {
 pub fn create_progress_report_stream(
     stream_sink: StreamSink<ProgressReport>,
 ) -> anyhow::Result<()> {
-    let mut guard = PROGRESS_REPORT_STREAM_SINK.write();
-    *guard = Some(stream_sink);
-    drop(guard);
+    replace_stream_sink(stream_sink);
     Ok(())
 }

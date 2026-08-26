@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'address_dtos.dart';
@@ -9,6 +9,7 @@ part of 'address_dtos.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$NativeXelisAddressDescriptorCopyWithImpl<$Res>
 /// Create a copy of NativeXelisAddressDescriptor
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? encodedAddress = null,Object? baseAddress = null,Object? isMainnet = null,Object? integratedData = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(NativeXelisAddressDescriptor(
 encodedAddress: null == encodedAddress ? _self.encodedAddress : encodedAddress // ignore: cast_nullable_to_non_nullable
 as String,baseAddress: null == baseAddress ? _self.baseAddress : baseAddress // ignore: cast_nullable_to_non_nullable
 as String,isMainnet: null == isMainnet ? _self.isMainnet : isMainnet // ignore: cast_nullable_to_non_nullable
@@ -540,7 +541,7 @@ $NativeXelisDataValueCopyWith<$Res> get value {
 
 
 class NativeXelisDataElement_Array extends NativeXelisDataElement {
-  const NativeXelisDataElement_Array({required final  List<NativeXelisDataElement> values}): _values = values,super._();
+  const NativeXelisDataElement_Array({required  List<NativeXelisDataElement> values}): _values = values,super._();
   
 
  final  List<NativeXelisDataElement> _values;
@@ -612,7 +613,7 @@ as List<NativeXelisDataElement>,
 
 
 class NativeXelisDataElement_Fields extends NativeXelisDataElement {
-  const NativeXelisDataElement_Fields({required final  List<NativeXelisDataField> fields}): _fields = fields,super._();
+  const NativeXelisDataElement_Fields({required  List<NativeXelisDataField> fields}): _fields = fields,super._();
   
 
  final  List<NativeXelisDataField> _fields;
@@ -732,7 +733,7 @@ class _$NativeXelisDataFieldCopyWithImpl<$Res>
 /// Create a copy of NativeXelisDataField
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? key = null,Object? value = null,}) {
-  return _then(_self.copyWith(
+  return _then(NativeXelisDataField(
 key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
 as NativeXelisDataValue,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
 as NativeXelisDataElement,

@@ -27,7 +27,7 @@ release, then run `flutter pub get` in the consuming application.
 
 ### Requirements
 
-The consuming application needs Dart 3.10 or later and Flutter 3.38.1 or
+The consuming application needs Dart 3.13 or later and Flutter 3.47 or
 later. Native targets compile the bundled Rust runtime, so a Rust/Cargo
 toolchain is also required on build machines.
 

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-const expectedVersion = '2.12.0';
+const expectedVersion = '2.13.0';
 
 Future<void> main() async {
   final pubspec = File('pubspec.yaml');

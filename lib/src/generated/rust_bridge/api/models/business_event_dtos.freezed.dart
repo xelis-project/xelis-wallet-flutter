@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'business_event_dtos.dart';
@@ -9,6 +9,7 @@ part of 'business_event_dtos.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -1091,7 +1092,7 @@ as BigInt,
 
 
 class NativeWalletTransactionEntryData_Incoming extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_Incoming({required this.from, required final  List<NativeWalletTransferIn> transfers}): _transfers = transfers,super._();
+  const NativeWalletTransactionEntryData_Incoming({required this.from, required  List<NativeWalletTransferIn> transfers}): _transfers = transfers,super._();
   
 
  final  String from;
@@ -1165,7 +1166,7 @@ as List<NativeWalletTransferIn>,
 
 
 class NativeWalletTransactionEntryData_Outgoing extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_Outgoing({required final  List<NativeWalletTransferOut> transfers, required this.fee, required this.nonce}): _transfers = transfers,super._();
+  const NativeWalletTransactionEntryData_Outgoing({required  List<NativeWalletTransferOut> transfers, required this.fee, required this.nonce}): _transfers = transfers,super._();
   
 
  final  List<NativeWalletTransferOut> _transfers;
@@ -1241,7 +1242,7 @@ as BigInt,
 
 
 class NativeWalletTransactionEntryData_Multisig extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_Multisig({required final  List<String> participants, required this.threshold, required this.fee, required this.nonce}): _participants = participants,super._();
+  const NativeWalletTransactionEntryData_Multisig({required  List<String> participants, required this.threshold, required this.fee, required this.nonce}): _participants = participants,super._();
   
 
  final  List<String> _participants;
@@ -1319,7 +1320,7 @@ as BigInt,
 
 
 class NativeWalletTransactionEntryData_InvokeContract extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_InvokeContract({required this.contract, required final  List<NativeWalletAssetAmount> deposits, required final  List<NativeWalletContractTransferGroup> received, required this.chunkId, required this.fee, required this.maxGas, required this.nonce}): _deposits = deposits,_received = received,super._();
+  const NativeWalletTransactionEntryData_InvokeContract({required this.contract, required  List<NativeWalletAssetAmount> deposits, required  List<NativeWalletContractTransferGroup> received, required this.chunkId, required this.fee, required this.maxGas, required this.nonce}): _deposits = deposits,_received = received,super._();
   
 
  final  String contract;
@@ -1479,7 +1480,7 @@ as NativeWalletDeployInvoke?,
 
 
 class NativeWalletTransactionEntryData_IncomingContract extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_IncomingContract({required final  List<NativeWalletContractTransferGroup> transfers}): _transfers = transfers,super._();
+  const NativeWalletTransactionEntryData_IncomingContract({required  List<NativeWalletContractTransferGroup> transfers}): _transfers = transfers,super._();
   
 
  final  List<NativeWalletContractTransferGroup> _transfers;
@@ -1551,7 +1552,7 @@ as List<NativeWalletContractTransferGroup>,
 
 
 class NativeWalletTransactionEntryData_OutgoingBlob extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_OutgoingBlob({required final  List<String> destinations, required this.fee, required this.nonce, required this.data}): _destinations = destinations,super._();
+  const NativeWalletTransactionEntryData_OutgoingBlob({required  List<String> destinations, required this.fee, required this.nonce, required this.data}): _destinations = destinations,super._();
   
 
  final  List<String> _destinations;
@@ -1629,7 +1630,7 @@ as NativeWalletExtraData,
 
 
 class NativeWalletTransactionEntryData_IncomingBlob extends NativeWalletTransactionEntryData {
-  const NativeWalletTransactionEntryData_IncomingBlob({required this.from, required final  List<String> destinations, required this.data}): _destinations = destinations,super._();
+  const NativeWalletTransactionEntryData_IncomingBlob({required this.from, required  List<String> destinations, required this.data}): _destinations = destinations,super._();
   
 
  final  String from;

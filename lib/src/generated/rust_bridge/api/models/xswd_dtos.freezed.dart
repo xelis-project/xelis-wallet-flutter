@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'xswd_dtos.dart';
@@ -9,6 +9,7 @@ part of 'xswd_dtos.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$AppInfoCopyWithImpl<$Res>
 /// Create a copy of AppInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? url = freezed,Object? permissions = null,Object? isRelayer = null,}) {
-  return _then(_self.copyWith(
+  return _then(AppInfo(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -205,7 +206,7 @@ return $default(_that.id,_that.name,_that.description,_that.url,_that.permission
 
 
 class _AppInfo implements AppInfo {
-  const _AppInfo({required this.id, required this.name, required this.description, this.url, required final  Map<String, PermissionPolicy> permissions, required this.isRelayer}): _permissions = permissions;
+  const _AppInfo({required this.id, required this.name, required this.description, this.url, required  Map<String, PermissionPolicy> permissions, required this.isRelayer}): _permissions = permissions;
   
 
 @override final  String id;
@@ -335,7 +336,7 @@ class _$ApplicationDataRelayerCopyWithImpl<$Res>
 /// Create a copy of ApplicationDataRelayer
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? url = freezed,Object? permissions = null,Object? relayer = null,Object? encryptionMode = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ApplicationDataRelayer(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -490,7 +491,7 @@ return $default(_that.id,_that.name,_that.description,_that.url,_that.permission
 
 
 class _ApplicationDataRelayer implements ApplicationDataRelayer {
-  const _ApplicationDataRelayer({required this.id, required this.name, required this.description, this.url, required final  List<String> permissions, required this.relayer, this.encryptionMode}): _permissions = permissions;
+  const _ApplicationDataRelayer({required this.id, required this.name, required this.description, this.url, required  List<String> permissions, required this.relayer, this.encryptionMode}): _permissions = permissions;
   
 
 @override final  String id;
@@ -957,7 +958,7 @@ class _$XswdRequestSummaryCopyWithImpl<$Res>
 /// Create a copy of XswdRequestSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? eventType = null,Object? applicationInfo = null,}) {
-  return _then(_self.copyWith(
+  return _then(XswdRequestSummary(
 eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
 as XswdRequestType,applicationInfo: null == applicationInfo ? _self.applicationInfo : applicationInfo // ignore: cast_nullable_to_non_nullable
 as AppInfo,

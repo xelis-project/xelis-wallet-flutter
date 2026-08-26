@@ -84,9 +84,8 @@ void main() {
     final errors = <Object>[];
     final done = Completer<void>();
 
-    adaptLogStream(
-      () => source.stream,
-    ).listen(values.add, onError: errors.add, onDone: done.complete);
+    adaptLogStream(() => source.stream)
+        .listen(values.add, onError: errors.add, onDone: done.complete);
 
     source
       ..add(
@@ -116,9 +115,8 @@ void main() {
     final errors = <Object>[];
     final done = Completer<void>();
 
-    adaptLogStream(
-      () => source.stream,
-    ).listen((_) {}, onError: errors.add, onDone: done.complete);
+    adaptLogStream(() => source.stream)
+        .listen((_) {}, onError: errors.add, onDone: done.complete);
 
     source.addError(AnyhowException('logger failed\nprivate context'));
     await source.close();
@@ -141,12 +139,30 @@ void main() {
       },
     );
 
-    final subscription = adaptProgressStream(
-      () => source.stream,
-    ).listen((_) {});
+    final subscription = adaptProgressStream(() => source.stream)
+        .listen((_) {});
     await subscription.cancel();
 
     expect(wasCancelled, isTrue);
+    await source.close();
+  });
+
+  test('does not await a pending FRB global-sink cancellation', () async {
+    final underlyingCancellation = Completer<void>();
+    var wasCancelled = false;
+    final source = StreamController<generated_progress.ProgressReport>(
+      onCancel: () {
+        wasCancelled = true;
+        return underlyingCancellation.future;
+      },
+    );
+
+    final subscription = adaptProgressStream(() => source.stream)
+        .listen((_) {});
+    await subscription.cancel().timeout(const Duration(seconds: 1));
+
+    expect(wasCancelled, isTrue);
+    underlyingCancellation.complete();
     await source.close();
   });
 }
