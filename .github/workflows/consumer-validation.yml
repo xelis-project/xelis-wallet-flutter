@@ -98,6 +98,9 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
+          # The Android project is generated later outside the repository, so
+          # setup-java cannot discover Gradle manifests during this step.
+          cache-dependency-path: pubspec.yaml
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
