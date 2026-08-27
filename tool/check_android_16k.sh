@@ -12,12 +12,19 @@ if [[ -z "$android_sdk" || ! -d "$android_sdk" ]]; then
   exit 69
 fi
 
-zipalign="$(find "$android_sdk/build-tools" -type f -name zipalign -print | sort -V | tail -n 1)"
-llvm_readelf="$(find "$android_sdk/ndk" -type f -path '*/bin/llvm-readelf' -print | sort -V | tail -n 1)"
-if [[ -z "$zipalign" || -z "$llvm_readelf" ]]; then
-  echo "Could not locate zipalign and llvm-readelf in the Android SDK." >&2
+zipalign="$(find -L "$android_sdk/build-tools" -type f -name zipalign -perm -u+x -print | sort -V | tail -n 1)"
+llvm_readelf="$(find -L "$android_sdk/ndk" -type f -path '*/bin/llvm-readelf' -perm -u+x -print | sort -V | tail -n 1)"
+if [[ -z "$zipalign" ]]; then
+  echo "Could not locate zipalign under $android_sdk/build-tools." >&2
   exit 69
 fi
+if [[ -z "$llvm_readelf" ]]; then
+  echo "Could not locate llvm-readelf under $android_sdk/ndk." >&2
+  exit 69
+fi
+
+echo "Using zipalign: $zipalign"
+echo "Using llvm-readelf: $llvm_readelf"
 
 apk="$(realpath "$1")"
 "$zipalign" -c -P 16 -v 4 "$apk"
