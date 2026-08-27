@@ -1,4 +1,5 @@
-set windows-shell := ["cmd.exe", "/d", "/c"]
+[windows]
+set shell := ["powershell.exe", "-c"]
 
 default:
     @just --list
