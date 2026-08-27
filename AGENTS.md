@@ -185,7 +185,10 @@ The root library must export authored contracts only. Do not add public
 
 For Rust-only changes run `cargo fmt --check`, `cargo check --locked`, and
 focused tests. For FFI changes regenerate bindings, run the Rust checks, then
-run `dart analyze`, `flutter test`, the example widget test, and a real example
-integration test that loads and calls the Rust library. Validate every supported
-native platform on an appropriate host; Android release artifacts must retain
-16 KB ELF and ZIP alignment.
+run `dart analyze` and `flutter test`; the root suite includes a real host smoke
+that loads and calls the Rust library. Use `tool/consumer_smoke.dart` for
+release or manual consumer validation. It must generate outside the repository,
+delete only its owned temporary directory, and keep `run` limited to desktop
+targets. Validate every supported native platform on an appropriate host;
+Android release artifacts must retain 16 KB ELF and ZIP alignment. Run the
+separate Web build during release or explicit manual validation.

@@ -1908,15 +1908,13 @@ XelisWalletBroadcastResult _adaptBroadcastOutcome(
 
 XelisWalletException _adaptBroadcastFailure(
   generated_error.NativeXelisError failure,
-) =>
-    adaptXelisError(
-          failure,
-          boundary: const XelisErrorBoundary(
-            source: XelisWalletErrorSource.xelisWallet,
-            operation: XelisWalletOperation.walletTransactionBroadcast,
-          ),
-        )
-        as XelisWalletException;
+) => adaptXelisError(
+  failure,
+  boundary: const XelisErrorBoundary(
+    source: XelisWalletErrorSource.xelisWallet,
+    operation: XelisWalletOperation.walletTransactionBroadcast,
+  ),
+) as XelisWalletException;
 
 generated_wallet.HistoryPageFilter _generatedHistoryFilter(
   XelisWalletHistoryFilter filter,

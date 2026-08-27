@@ -46,23 +46,19 @@ void main() {
   });
 
   test('preserves ordered non-string field keys', () {
-    final fields =
-        XelisDataElement.fields([
-              XelisDataField(
-                key: XelisDataValue.unsigned(
-                  type: XelisUnsignedIntegerType.u8,
-                  value: BigInt.from(7),
-                ),
-                value: const XelisDataElement.value(
-                  XelisDataValue.string('first'),
-                ),
-              ),
-              const XelisDataField(
-                key: XelisDataValue.boolean(true),
-                value: XelisDataElement.value(XelisDataValue.string('second')),
-              ),
-            ])
-            as XelisDataFields;
+    final fields = XelisDataElement.fields([
+      XelisDataField(
+        key: XelisDataValue.unsigned(
+          type: XelisUnsignedIntegerType.u8,
+          value: BigInt.from(7),
+        ),
+        value: const XelisDataElement.value(XelisDataValue.string('first')),
+      ),
+      const XelisDataField(
+        key: XelisDataValue.boolean(true),
+        value: XelisDataElement.value(XelisDataValue.string('second')),
+      ),
+    ]) as XelisDataFields;
 
     expect(fields.fields.first.key, isA<XelisDataUnsigned>());
     expect(fields.fields.last.key, const XelisDataValue.boolean(true));

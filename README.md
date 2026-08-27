@@ -160,18 +160,16 @@ never display or parse `diagnosticMessage`.
 
 ## Maintainer validation
 
-After changing the Rust bridge API, package maintainers regenerate bindings and
-run:
+Validation is split so pull requests pay for only one Native Assets Flutter
+build. After changing the Rust bridge API, package maintainers regenerate
+bindings and run the host checks:
 
 ```text
 flutter pub get
 dart run tool/generate_bindings.dart
 dart analyze
 flutter test
-cd example
-flutter test
-flutter test integration_test/native_library_smoke_test.dart -d <device>
-cd ../rust
+cd rust
 cargo fmt --check
 cargo check --locked
 cargo test --locked
@@ -181,6 +179,21 @@ cargo test --locked
 edit `lib/src/generated/rust_bridge/**` or `rust/src/frb_generated.rs` manually.
 `hook/build.dart` is the authored Native Assets entrypoint and must keep its
 crate path set to `rust`.
+
+`flutter test` includes a host smoke that initializes and calls the Rust
+library. It is the lightweight pull-request boundary. Release and manual
+validation generate a clean consumer outside the repository:
+
+```text
+dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform windows --mode run
+dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform android --mode build
+```
+
+`run` is available for Linux, macOS, and Windows. Mobile consumers are built in
+release mode; Android release validation must additionally check ZIP and ELF
+alignment for 16 KB pages. The generated workspace is deleted unless `--keep`
+is provided. GitHub Actions runs the full native and Web consumer matrix only
+for release tags or an explicit manual dispatch.
 
 ## Web consumers
 

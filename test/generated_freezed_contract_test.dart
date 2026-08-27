@@ -25,11 +25,7 @@ void main() {
 
       expect(
         page,
-        const NativeAddressBookPage(
-          entries: [entry],
-          total: 1,
-          hasMore: false,
-        ),
+        const NativeAddressBookPage(entries: [entry], total: 1, hasMore: false),
       );
       expect(page.hashCode, equals(page.copyWith().hashCode));
       expect(page.copyWith(total: 2), isNot(equals(page)));
@@ -43,10 +39,7 @@ void main() {
         hasMore: false,
       );
 
-      expect(
-        () => page.entries.add(entry),
-        throwsUnsupportedError,
-      );
+      expect(() => page.entries.add(entry), throwsUnsupportedError);
     });
 
     test('preserves exhaustive union pattern matching', () {

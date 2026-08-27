@@ -10,8 +10,9 @@ import '../../generated/rust_bridge/api/wallet/runtime_events.dart'
     as generated_subscription;
 import 'xelis_error_adapter.dart';
 
-typedef NativeRuntimeSubscriptionTerminated =
-    void Function(NativeXelisWalletRuntimeEventSubscription subscription);
+typedef NativeRuntimeSubscriptionTerminated = void Function(
+  NativeXelisWalletRuntimeEventSubscription subscription,
+);
 
 /// Private bridge implementation of the authored runtime-event subscription.
 ///
@@ -319,12 +320,10 @@ XelisWalletRuntimeEvent _adaptRuntimeEvent(
 XelisWalletException _adaptEventFailure(
   generated_error.NativeXelisError failure, {
   required XelisWalletOperation operation,
-}) =>
-    adaptXelisError(
-          failure,
-          boundary: XelisErrorBoundary(
-            source: XelisWalletErrorSource.xelisWalletFlutter,
-            operation: operation,
-          ),
-        )
-        as XelisWalletException;
+}) => adaptXelisError(
+  failure,
+  boundary: XelisErrorBoundary(
+    source: XelisWalletErrorSource.xelisWalletFlutter,
+    operation: operation,
+  ),
+) as XelisWalletException;

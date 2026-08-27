@@ -37,9 +37,8 @@ void main() {
   });
 
   test('keeps derived and runtime-internal helpers out of the wallet', () {
-    final walletApi = File(
-      'lib/src/api/wallet/xelis_wallet.dart',
-    ).readAsStringSync();
+    final walletApi = File('lib/src/api/wallet/xelis_wallet.dart')
+        .readAsStringSync();
     for (final method in <String>[
       'getNonce',
       'formatCoin',

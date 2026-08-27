@@ -47,83 +47,80 @@ void main() {
       expect(delegate.preparedBurnAmount, exact);
     });
 
-    test(
-      'forwards every multisig preparation variant through authored inputs',
-      () async {
-        final setup = generated_models.NativePreparedTransaction(
-          hash: 'setup-hash',
-          preparationId: BigInt.from(3),
-          fee: BigInt.from(4),
-          transaction:
-              const generated_models.NativePreparedTransactionKind.multisigSetup(
-                threshold: 2,
-                participants: [
-                  generated_models.NativeMultisigParticipant(
-                    id: 0,
-                    address: 'participant-a',
-                  ),
-                  generated_models.NativeMultisigParticipant(
-                    id: 1,
-                    address: 'participant-b',
-                  ),
-                ],
-              ),
-        );
-        final delegate = _FakeGeneratedMultisigWallet(
-          pendingRequest: _nativeRequest(requestId: BigInt.one),
-          setupPrepared: setup,
-          participantAddressValid: true,
-        );
-        final wallet = NativeXelisWallet(delegate);
-
-        final preparedSetup = await wallet.prepareMultisigSetup(
-          threshold: 2,
-          participants: ['participant-a', 'participant-b'],
-        );
-        expect(preparedSetup.feeAtomic, BigInt.from(4));
-        expect(delegate.setupArguments?.$1, 2);
-        expect(delegate.setupArguments?.$2, ['participant-a', 'participant-b']);
-        expect(
-          wallet.isMultisigParticipantAddressValid(address: 'participant-a'),
-          isTrue,
-        );
-        expect(delegate.validatedParticipant, 'participant-a');
-
-        await wallet.prepareMultisigTransfers(
-          transfers: [
-            XelisWalletTransferRequest(
-              destination: 'destination',
-              asset: 'asset',
-              amountAtomic: BigInt.from(5),
-              extraData: 'memo',
-              encryptExtraData: false,
+    test('forwards every multisig preparation variant through authored inputs', () async {
+      final setup = generated_models.NativePreparedTransaction(
+        hash: 'setup-hash',
+        preparationId: BigInt.from(3),
+        fee: BigInt.from(4),
+        transaction:
+            const generated_models.NativePreparedTransactionKind.multisigSetup(
+              threshold: 2,
+              participants: [
+                generated_models.NativeMultisigParticipant(
+                  id: 0,
+                  address: 'participant-a',
+                ),
+                generated_models.NativeMultisigParticipant(
+                  id: 1,
+                  address: 'participant-b',
+                ),
+              ],
             ),
-          ],
-        );
-        final transfer = delegate.preparedTransfers!.single;
-        expect(transfer.destination, 'destination');
-        expect(transfer.asset, 'asset');
-        expect(transfer.amount, BigInt.from(5));
-        expect(transfer.extraData, 'memo');
-        expect(transfer.encryptExtraData, isFalse);
+      );
+      final delegate = _FakeGeneratedMultisigWallet(
+        pendingRequest: _nativeRequest(requestId: BigInt.one),
+        setupPrepared: setup,
+        participantAddressValid: true,
+      );
+      final wallet = NativeXelisWallet(delegate);
 
-        await wallet.prepareMultisigTransferAll(
-          destination: 'destination-all',
-          asset: 'asset-all',
-          extraData: 'all-memo',
-          encryptExtraData: false,
-        );
-        expect(delegate.transferAllArguments, (
-          'destination-all',
-          'asset-all',
-          'all-memo',
-          false,
-        ));
+      final preparedSetup = await wallet.prepareMultisigSetup(
+        threshold: 2,
+        participants: ['participant-a', 'participant-b'],
+      );
+      expect(preparedSetup.feeAtomic, BigInt.from(4));
+      expect(delegate.setupArguments?.$1, 2);
+      expect(delegate.setupArguments?.$2, ['participant-a', 'participant-b']);
+      expect(
+        wallet.isMultisigParticipantAddressValid(address: 'participant-a'),
+        isTrue,
+      );
+      expect(delegate.validatedParticipant, 'participant-a');
 
-        await wallet.prepareMultisigBurnAll(asset: 'asset-burn-all');
-        expect(delegate.burnAllAsset, 'asset-burn-all');
-      },
-    );
+      await wallet.prepareMultisigTransfers(
+        transfers: [
+          XelisWalletTransferRequest(
+            destination: 'destination',
+            asset: 'asset',
+            amountAtomic: BigInt.from(5),
+            extraData: 'memo',
+            encryptExtraData: false,
+          ),
+        ],
+      );
+      final transfer = delegate.preparedTransfers!.single;
+      expect(transfer.destination, 'destination');
+      expect(transfer.asset, 'asset');
+      expect(transfer.amount, BigInt.from(5));
+      expect(transfer.extraData, 'memo');
+      expect(transfer.encryptExtraData, isFalse);
+
+      await wallet.prepareMultisigTransferAll(
+        destination: 'destination-all',
+        asset: 'asset-all',
+        extraData: 'all-memo',
+        encryptExtraData: false,
+      );
+      expect(delegate.transferAllArguments, (
+        'destination-all',
+        'asset-all',
+        'all-memo',
+        false,
+      ));
+
+      await wallet.prepareMultisigBurnAll(asset: 'asset-burn-all');
+      expect(delegate.burnAllAsset, 'asset-burn-all');
+    });
 
     test('rejects reconstructed and cross-wallet pending requests', () async {
       final firstDelegate = _FakeGeneratedMultisigWallet(
@@ -170,53 +167,50 @@ void main() {
       expect(firstDelegate.cancelCalls, 1);
     });
 
-    test(
-      'binds inspected shares to finalization and consumes lifecycle',
-      () async {
-        final delegate = _FakeGeneratedMultisigWallet(
-          pendingRequest: _nativeRequest(requestId: BigInt.from(7)),
-          inspectedShare: _nativeShare(),
-          finalized: generated_models.NativePreparedTransaction(
-            hash: 'prepared-hash',
-            preparationId: BigInt.from(9),
-            fee: BigInt.from(11),
-            transaction:
-                const generated_models.NativePreparedTransactionKind.multisigFinalized(
-                  transaction: generated_models
-                      .NativeMultisigSigningTransaction.deleteMultisig(),
-                ),
-          ),
-        );
-        final wallet = NativeXelisWallet(delegate);
-        final request = await wallet.prepareMultisigDeletion();
-        final share = await wallet.inspectMultisigSignatureShare(
-          request: request,
-          encoded: 'encoded-share',
-        );
+    test('binds inspected shares to finalization and consumes lifecycle', () async {
+      final delegate = _FakeGeneratedMultisigWallet(
+        pendingRequest: _nativeRequest(requestId: BigInt.from(7)),
+        inspectedShare: _nativeShare(),
+        finalized: generated_models.NativePreparedTransaction(
+          hash: 'prepared-hash',
+          preparationId: BigInt.from(9),
+          fee: BigInt.from(11),
+          transaction:
+              const generated_models.NativePreparedTransactionKind.multisigFinalized(
+                transaction: generated_models
+                    .NativeMultisigSigningTransaction.deleteMultisig(),
+              ),
+        ),
+      );
+      final wallet = NativeXelisWallet(delegate);
+      final request = await wallet.prepareMultisigDeletion();
+      final share = await wallet.inspectMultisigSignatureShare(
+        request: request,
+        encoded: 'encoded-share',
+      );
 
-        final prepared = await wallet.finalizeMultisigTransaction(
-          request: request,
-          shares: [share],
-        );
+      final prepared = await wallet.finalizeMultisigTransaction(
+        request: request,
+        shares: [share],
+      );
 
-        expect(delegate.finalizeCalls, 1);
-        expect(delegate.finalizedRequestId, BigInt.from(7));
-        expect(delegate.finalizedSigningHash, request.signingHash);
-        expect(delegate.finalizedShares, ['encoded-share']);
-        expect(prepared.feeAtomic, BigInt.from(11));
-        expect(
-          (prepared.details as XelisWalletPreparedMultisigTransaction)
-              .transaction,
-          isA<XelisWalletMultisigDelete>(),
-        );
+      expect(delegate.finalizeCalls, 1);
+      expect(delegate.finalizedRequestId, BigInt.from(7));
+      expect(delegate.finalizedSigningHash, request.signingHash);
+      expect(delegate.finalizedShares, ['encoded-share']);
+      expect(prepared.feeAtomic, BigInt.from(11));
+      expect(
+        (prepared.details as XelisWalletPreparedMultisigTransaction)
+            .transaction,
+        isA<XelisWalletMultisigDelete>(),
+      );
 
-        await expectLater(
-          wallet.finalizeMultisigTransaction(request: request, shares: [share]),
-          throwsA(isA<XelisWalletException>()),
-        );
-        expect(delegate.finalizeCalls, 1);
-      },
-    );
+      await expectLater(
+        wallet.finalizeMultisigTransaction(request: request, shares: [share]),
+        throwsA(isA<XelisWalletException>()),
+      );
+      expect(delegate.finalizeCalls, 1);
+    });
 
     test('signs only the exact inspected participant request', () async {
       final delegate = _FakeGeneratedMultisigWallet(

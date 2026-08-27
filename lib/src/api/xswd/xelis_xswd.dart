@@ -141,10 +141,12 @@ final class XelisXswdRelayer {
       'encrypted=${encryption != null})';
 }
 
-typedef XelisXswdNotificationCallback =
-    FutureOr<void> Function(XelisXswdRequest request);
-typedef XelisXswdDecisionCallback =
-    FutureOr<XelisXswdDecision> Function(XelisXswdRequest request);
+typedef XelisXswdNotificationCallback = FutureOr<void> Function(
+  XelisXswdRequest request,
+);
+typedef XelisXswdDecisionCallback = FutureOr<XelisXswdDecision> Function(
+  XelisXswdRequest request,
+);
 
 /// Consumer callbacks used by the local XSWD server and relayer handler.
 ///

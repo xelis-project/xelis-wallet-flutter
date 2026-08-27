@@ -17,11 +17,10 @@ import 'xelis_error_adapter.dart';
 import 'xelis_network_adapter.dart';
 import 'xelis_precomputed_table_type_adapter.dart';
 
-typedef GeneratedAddressValidator =
-    bool Function({
-      required String strAddress,
-      required generated_network.Network network,
-    });
+typedef GeneratedAddressValidator = bool Function({
+  required String strAddress,
+  required generated_network.Network network,
+});
 typedef GeneratedAddressParser =
     generated_address.NativeXelisAddressDescriptor Function({
       required String address,
@@ -31,16 +30,14 @@ typedef GeneratedIntegratedAddressMaker =
       required String baseAddress,
       required generated_address.NativeXelisDataElement integratedData,
     });
-typedef GeneratedPrecomputedTablesChecker =
-    Future<bool> Function({
-      required String precomputedTablesPath,
-      required generated_precomputed.PrecomputedTableType precomputedTableType,
-    });
-typedef GeneratedPrecomputedTablesUpdater =
-    Future<void> Function({
-      required String precomputedTablesPath,
-      required generated_precomputed.PrecomputedTableType precomputedTableType,
-    });
+typedef GeneratedPrecomputedTablesChecker = Future<bool> Function({
+  required String precomputedTablesPath,
+  required generated_precomputed.PrecomputedTableType precomputedTableType,
+});
+typedef GeneratedPrecomputedTablesUpdater = Future<void> Function({
+  required String precomputedTablesPath,
+  required generated_precomputed.PrecomputedTableType precomputedTableType,
+});
 
 bool validateXelisAddress({
   required String address,

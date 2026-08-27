@@ -45,15 +45,14 @@ void main() {
   });
 
   test('creates distinct opaque support identifiers', () {
-    final first =
-        adaptXelisError(AnyhowException('first'), boundary: _seedSearchBoundary)
-            as XelisWalletException;
-    final second =
-        adaptXelisError(
-              AnyhowException('second'),
-              boundary: _seedSearchBoundary,
-            )
-            as XelisWalletException;
+    final first = adaptXelisError(
+      AnyhowException('first'),
+      boundary: _seedSearchBoundary,
+    ) as XelisWalletException;
+    final second = adaptXelisError(
+      AnyhowException('second'),
+      boundary: _seedSearchBoundary,
+    ) as XelisWalletException;
 
     final pattern = RegExp(r'^XWF-(?:[0-9A-F]{4}-){4}[0-9A-F]{4}$');
     expect(first.supportId, matches(pattern));
@@ -92,61 +91,50 @@ void main() {
 
   test('maps dedicated native recovery codes', () {
     const supportId = 'XWF-1111-2222-3333-4444-5555';
-    final authentication =
-        adaptXelisError(
-              const generated_error.NativeXelisError(
-                version: 1,
-                source: generated_error.NativeXelisErrorSource.xelisWallet,
-                code: generated_error
-                    .NativeXelisErrorCode
-                    .authenticationOrCorruptData,
-                nativeKind: 'INVALID_ENCRYPTED_VALUE',
-                diagnosticMessage: 'invalid encrypted value',
-              ),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => supportId,
-            )
-            as XelisWalletOperationException;
-    final mismatch =
-        adaptXelisError(
-              const generated_error.NativeXelisError(
-                version: 1,
-                source: generated_error.NativeXelisErrorSource.xelisWallet,
-                code: generated_error.NativeXelisErrorCode.networkMismatch,
-                nativeKind: 'NETWORK_MISMATCH',
-                diagnosticMessage: 'network mismatch',
-              ),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => supportId,
-            )
-            as XelisWalletOperationException;
-    final cancelled =
-        adaptXelisError(
-              const generated_error.NativeXelisError(
-                version: 1,
-                source: generated_error.NativeXelisErrorSource.xelisWallet,
-                code: generated_error.NativeXelisErrorCode.cancelled,
-                nativeKind: 'NETWORK_CONNECT_CANCELLED',
-                diagnosticMessage: 'connection cancelled',
-              ),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => supportId,
-            )
-            as XelisWalletOperationException;
-    final inProgress =
-        adaptXelisError(
-              const generated_error.NativeXelisError(
-                version: 1,
-                source:
-                    generated_error.NativeXelisErrorSource.xelisWalletFlutter,
-                code: generated_error.NativeXelisErrorCode.operationInProgress,
-                nativeKind: 'NETWORK_CONNECT_IN_PROGRESS',
-                diagnosticMessage: 'connection attempt in progress',
-              ),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => supportId,
-            )
-            as XelisWalletOperationException;
+    final authentication = adaptXelisError(
+      const generated_error.NativeXelisError(
+        version: 1,
+        source: generated_error.NativeXelisErrorSource.xelisWallet,
+        code: generated_error.NativeXelisErrorCode.authenticationOrCorruptData,
+        nativeKind: 'INVALID_ENCRYPTED_VALUE',
+        diagnosticMessage: 'invalid encrypted value',
+      ),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => supportId,
+    ) as XelisWalletOperationException;
+    final mismatch = adaptXelisError(
+      const generated_error.NativeXelisError(
+        version: 1,
+        source: generated_error.NativeXelisErrorSource.xelisWallet,
+        code: generated_error.NativeXelisErrorCode.networkMismatch,
+        nativeKind: 'NETWORK_MISMATCH',
+        diagnosticMessage: 'network mismatch',
+      ),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => supportId,
+    ) as XelisWalletOperationException;
+    final cancelled = adaptXelisError(
+      const generated_error.NativeXelisError(
+        version: 1,
+        source: generated_error.NativeXelisErrorSource.xelisWallet,
+        code: generated_error.NativeXelisErrorCode.cancelled,
+        nativeKind: 'NETWORK_CONNECT_CANCELLED',
+        diagnosticMessage: 'connection cancelled',
+      ),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => supportId,
+    ) as XelisWalletOperationException;
+    final inProgress = adaptXelisError(
+      const generated_error.NativeXelisError(
+        version: 1,
+        source: generated_error.NativeXelisErrorSource.xelisWalletFlutter,
+        code: generated_error.NativeXelisErrorCode.operationInProgress,
+        nativeKind: 'NETWORK_CONNECT_IN_PROGRESS',
+        diagnosticMessage: 'connection attempt in progress',
+      ),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => supportId,
+    ) as XelisWalletOperationException;
 
     expect(
       authentication.code,
@@ -182,20 +170,16 @@ void main() {
   });
 
   test('classifies public bridge failures by concrete FRB type', () {
-    final panic =
-        adaptXelisError(
-              PanicException('native panic'),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => 'XWF-AAAA-BBBB-CCCC-DDDD-EEEE',
-            )
-            as XelisWalletBridgeException;
-    final platform =
-        adaptXelisError(
-              const PlatformMismatchException(),
-              boundary: _runtimeBoundary,
-              supportIdFactory: () => 'XWF-AAAA-BBBB-CCCC-DDDD-EEEE',
-            )
-            as XelisWalletBridgeException;
+    final panic = adaptXelisError(
+      PanicException('native panic'),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => 'XWF-AAAA-BBBB-CCCC-DDDD-EEEE',
+    ) as XelisWalletBridgeException;
+    final platform = adaptXelisError(
+      const PlatformMismatchException(),
+      boundary: _runtimeBoundary,
+      supportIdFactory: () => 'XWF-AAAA-BBBB-CCCC-DDDD-EEEE',
+    ) as XelisWalletBridgeException;
     expect(panic.source, XelisWalletErrorSource.flutterRustBridge);
     expect(panic.code, XelisWalletErrorCode.nativePanic);
     expect(panic.diagnosticMessage, 'native panic');

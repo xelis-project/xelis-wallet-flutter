@@ -38,9 +38,8 @@ void main() {
         throwsRangeError,
       );
       expect(
-        XelisWalletFeePolicy.multiplier(
-          basisPoints: 100000,
-        ).multiplierBasisPoints,
+        XelisWalletFeePolicy.multiplier(basisPoints: 100000)
+            .multiplierBasisPoints,
         100000,
       );
     });

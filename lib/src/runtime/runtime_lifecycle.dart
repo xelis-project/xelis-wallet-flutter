@@ -1,6 +1,7 @@
 typedef RuntimeInitializer = Future<void> Function();
-typedef ConfiguredRuntimeInitializer<Configuration> =
-    Future<void> Function(Configuration configuration);
+typedef ConfiguredRuntimeInitializer<Configuration> = Future<void> Function(
+  Configuration configuration,
+);
 
 /// Guards a process-level initializer.
 ///

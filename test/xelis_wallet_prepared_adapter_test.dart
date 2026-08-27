@@ -296,53 +296,50 @@ void main() {
       }
     });
 
-    test(
-      'retryable retains the exact capability until a terminal result',
-      () async {
-        final delegate = _FakeGeneratedPreparedWallet(
-          preparedTransactions: [
-            _nativeTransfer(
-              hash: 'retry-hash',
-              preparationId: _aboveJavaScriptSafeInteger,
-            ),
-          ],
-          broadcastOutcomes: [
-            const generated_models.NativePreparedTransactionBroadcastOutcome.retryable(
-              failure: _nativeBroadcastFailure,
-            ),
-            const generated_models.NativePreparedTransactionBroadcastOutcome.submitted(),
-          ],
-        );
-        final wallet = NativeXelisWallet(delegate);
-        final prepared = await wallet.prepareTransfers(
-          transfers: [_request(amount: BigInt.one)],
-        );
+    test('retryable retains the exact capability until a terminal result', () async {
+      final delegate = _FakeGeneratedPreparedWallet(
+        preparedTransactions: [
+          _nativeTransfer(
+            hash: 'retry-hash',
+            preparationId: _aboveJavaScriptSafeInteger,
+          ),
+        ],
+        broadcastOutcomes: [
+          const generated_models.NativePreparedTransactionBroadcastOutcome.retryable(
+            failure: _nativeBroadcastFailure,
+          ),
+          const generated_models.NativePreparedTransactionBroadcastOutcome.submitted(),
+        ],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      final prepared = await wallet.prepareTransfers(
+        transfers: [_request(amount: BigInt.one)],
+      );
 
-        final retry = await wallet.broadcastPreparedTransaction(
-          transaction: prepared,
-        );
-        final submitted = await wallet.broadcastPreparedTransaction(
-          transaction: prepared,
-        );
+      final retry = await wallet.broadcastPreparedTransaction(
+        transaction: prepared,
+      );
+      final submitted = await wallet.broadcastPreparedTransaction(
+        transaction: prepared,
+      );
 
-        expect(retry, isA<XelisWalletBroadcastRetryable>());
-        expect(submitted, isA<XelisWalletBroadcastSubmitted>());
-        expect(delegate.broadcastCalls, hasLength(2));
-        for (final call in delegate.broadcastCalls) {
-          expect(call.preparationId, _aboveJavaScriptSafeInteger);
-          expect(call.txHash, 'retry-hash');
-        }
+      expect(retry, isA<XelisWalletBroadcastRetryable>());
+      expect(submitted, isA<XelisWalletBroadcastSubmitted>());
+      expect(delegate.broadcastCalls, hasLength(2));
+      for (final call in delegate.broadcastCalls) {
+        expect(call.preparationId, _aboveJavaScriptSafeInteger);
+        expect(call.txHash, 'retry-hash');
+      }
 
-        final consumed = await _captureXelisException(
-          () => wallet.broadcastPreparedTransaction(transaction: prepared),
-        );
-        _expectInvalidCapability(
-          consumed,
-          XelisWalletOperation.walletTransactionBroadcast,
-        );
-        expect(delegate.broadcastCalls, hasLength(2));
-      },
-    );
+      final consumed = await _captureXelisException(
+        () => wallet.broadcastPreparedTransaction(transaction: prepared),
+      );
+      _expectInvalidCapability(
+        consumed,
+        XelisWalletOperation.walletTransactionBroadcast,
+      );
+      expect(delegate.broadcastCalls, hasLength(2));
+    });
 
     test('every terminal outcome invalidates its prepared capability', () async {
       final terminalOutcomes = <generated_models.NativePreparedTransactionBroadcastOutcome>[
@@ -386,68 +383,62 @@ void main() {
       }
     });
 
-    test(
-      'rejects replacement, reconstruction, and cross-wallet use before delegate',
-      () async {
-        final delegate = _FakeGeneratedPreparedWallet(
-          preparedTransactions: [
-            _nativeTransfer(hash: 'first-hash', preparationId: BigInt.from(20)),
-            _nativeTransfer(
-              hash: 'second-hash',
-              preparationId: BigInt.from(21),
-            ),
-          ],
-        );
-        final wallet = NativeXelisWallet(delegate);
-        final first = await wallet.prepareTransfers(
-          transfers: [_request(amount: BigInt.one)],
-        );
-        final second = await wallet.prepareTransfers(
-          transfers: [_request(amount: BigInt.two)],
-        );
+    test('rejects replacement, reconstruction, and cross-wallet use before delegate', () async {
+      final delegate = _FakeGeneratedPreparedWallet(
+        preparedTransactions: [
+          _nativeTransfer(hash: 'first-hash', preparationId: BigInt.from(20)),
+          _nativeTransfer(hash: 'second-hash', preparationId: BigInt.from(21)),
+        ],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      final first = await wallet.prepareTransfers(
+        transfers: [_request(amount: BigInt.one)],
+      );
+      final second = await wallet.prepareTransfers(
+        transfers: [_request(amount: BigInt.two)],
+      );
 
-        final replaced = await _captureXelisException(
-          () => wallet.broadcastPreparedTransaction(transaction: first),
-        );
-        _expectInvalidCapability(
-          replaced,
-          XelisWalletOperation.walletTransactionBroadcast,
-        );
-        expect(delegate.broadcastCalls, isEmpty);
+      final replaced = await _captureXelisException(
+        () => wallet.broadcastPreparedTransaction(transaction: first),
+      );
+      _expectInvalidCapability(
+        replaced,
+        XelisWalletOperation.walletTransactionBroadcast,
+      );
+      expect(delegate.broadcastCalls, isEmpty);
 
-        final reconstructed = XelisWalletPreparedTransaction(
-          hash: second.hash,
-          feeAtomic: second.feeAtomic,
-          details: second.details,
-        );
-        final reconstructedError = await _captureXelisException(
-          () => wallet.broadcastPreparedTransaction(transaction: reconstructed),
-        );
-        _expectInvalidCapability(
-          reconstructedError,
-          XelisWalletOperation.walletTransactionBroadcast,
-        );
-        expect(delegate.broadcastCalls, isEmpty);
+      final reconstructed = XelisWalletPreparedTransaction(
+        hash: second.hash,
+        feeAtomic: second.feeAtomic,
+        details: second.details,
+      );
+      final reconstructedError = await _captureXelisException(
+        () => wallet.broadcastPreparedTransaction(transaction: reconstructed),
+      );
+      _expectInvalidCapability(
+        reconstructedError,
+        XelisWalletOperation.walletTransactionBroadcast,
+      );
+      expect(delegate.broadcastCalls, isEmpty);
 
-        final otherDelegate = _FakeGeneratedPreparedWallet();
-        final otherWallet = NativeXelisWallet(otherDelegate);
-        final crossWallet = await _captureXelisException(
-          () => otherWallet.broadcastPreparedTransaction(transaction: second),
-        );
-        _expectInvalidCapability(
-          crossWallet,
-          XelisWalletOperation.walletTransactionBroadcast,
-        );
-        expect(otherDelegate.broadcastCalls, isEmpty);
+      final otherDelegate = _FakeGeneratedPreparedWallet();
+      final otherWallet = NativeXelisWallet(otherDelegate);
+      final crossWallet = await _captureXelisException(
+        () => otherWallet.broadcastPreparedTransaction(transaction: second),
+      );
+      _expectInvalidCapability(
+        crossWallet,
+        XelisWalletOperation.walletTransactionBroadcast,
+      );
+      expect(otherDelegate.broadcastCalls, isEmpty);
 
-        expect(
-          await wallet.broadcastPreparedTransaction(transaction: second),
-          isA<XelisWalletBroadcastSubmitted>(),
-        );
-        expect(delegate.broadcastCalls.single.preparationId, BigInt.from(21));
-        expect(delegate.broadcastCalls.single.txHash, 'second-hash');
-      },
-    );
+      expect(
+        await wallet.broadcastPreparedTransaction(transaction: second),
+        isA<XelisWalletBroadcastSubmitted>(),
+      );
+      expect(delegate.broadcastCalls.single.preparationId, BigInt.from(21));
+      expect(delegate.broadcastCalls.single.txHash, 'second-hash');
+    });
 
     test(
       'discard succeeds once while a retryable failure retains capability',

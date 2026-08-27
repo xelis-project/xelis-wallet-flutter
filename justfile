@@ -17,20 +17,20 @@ generate:
 
 # Apply formatting to authored Rust and Dart sources.
 format:
-    cd rust && cargo fmt
-    dart format lib test tool
+    cargo fmt --manifest-path rust/Cargo.toml
+    dart format lib test tool bin hook
 
 # Fail when authored Rust or Dart sources need formatting.
 format-check:
-    cd rust && cargo fmt --check
-    dart format --output=none --set-exit-if-changed lib test tool
+    cargo fmt --manifest-path rust/Cargo.toml --check
+    dart format --output=none --set-exit-if-changed lib test tool bin hook
 
 # Fast Rust-only validation.
 rust-check:
-    cd rust && cargo check --locked
+    cargo check --manifest-path rust/Cargo.toml --locked
 
 rust-test:
-    cd rust && cargo test --locked
+    cargo test --manifest-path rust/Cargo.toml --locked
 
 # Static analysis of the Flutter package.
 analyze:
@@ -47,13 +47,13 @@ test:
     just rust-test
     flutter test
 
-# Test the consumer UI without loading a native library.
-test-example:
-    cd example && flutter test
+# Load and call the Rust library through the host Flutter test runner.
+smoke-host:
+    flutter test test/native_library_smoke_test.dart
 
-# Load and call the Rust library through the Windows consumer.
-smoke-windows:
-    cd example && flutter test integration_test/native_library_smoke_test.dart -d windows
+# Generate an isolated consumer and run or build it for one native platform.
+consumer-smoke platform mode="run":
+    dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform {{platform}} --mode {{mode}}
 
 # Full validation used before handing off a change.
 verify:
@@ -74,7 +74,7 @@ clean:
 
 # Remove Rust build outputs (rust/target).
 clean-rust:
-    cd rust && cargo clean
+    cargo clean --manifest-path rust/Cargo.toml
 
 # Remove both Flutter and Rust build outputs.
 clean-all:

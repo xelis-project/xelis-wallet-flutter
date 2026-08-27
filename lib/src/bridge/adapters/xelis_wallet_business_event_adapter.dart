@@ -15,8 +15,9 @@ import '../../generated/rust_bridge/api/wallet/business_events.dart'
 import 'xelis_error_adapter.dart';
 import 'xelis_runtime_utility_adapter.dart';
 
-typedef NativeBusinessSubscriptionTerminated =
-    void Function(NativeXelisWalletBusinessEventSubscription subscription);
+typedef NativeBusinessSubscriptionTerminated = void Function(
+  NativeXelisWalletBusinessEventSubscription subscription,
+);
 
 /// Private bridge implementation of the authored business-event subscription.
 final class NativeXelisWalletBusinessEventSubscription
@@ -581,12 +582,10 @@ XelisWalletAssetOwner _adaptAssetOwner(
 
 XelisWalletException _adaptEventFailure(
   generated_error.NativeXelisError failure,
-) =>
-    adaptXelisError(
-          failure,
-          boundary: const XelisErrorBoundary(
-            source: XelisWalletErrorSource.xelisWalletFlutter,
-            operation: XelisWalletOperation.walletBusinessEventsStream,
-          ),
-        )
-        as XelisWalletException;
+) => adaptXelisError(
+  failure,
+  boundary: const XelisErrorBoundary(
+    source: XelisWalletErrorSource.xelisWalletFlutter,
+    operation: XelisWalletOperation.walletBusinessEventsStream,
+  ),
+) as XelisWalletException;

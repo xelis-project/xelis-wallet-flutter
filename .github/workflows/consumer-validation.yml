@@ -1,0 +1,159 @@
+name: Consumer validation
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Consumer platform to validate
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
+          - android
+          - ios
+          - web
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consumer-${{ github.ref }}-${{ inputs.platform || 'all' }}
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'linux'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - name: Install Linux runner dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libblkid-dev
+      - run: flutter config --enable-linux-desktop
+      - run: flutter pub get
+      - name: Run generated Linux consumer
+        run: xvfb-run -a dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform linux --mode run
+
+  windows:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'windows'
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get
+      - name: Run generated Windows consumer
+        run: dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform windows --mode run
+
+  macos:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'macos'
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - run: flutter config --enable-macos-desktop
+      - run: flutter pub get
+      - name: Run generated macOS consumer
+        run: dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform macos --mode run
+
+  android:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'android'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - run: flutter pub get
+      - name: Build generated Android consumer
+        run: |
+          dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform android --mode build --keep | tee "$RUNNER_TEMP/consumer-smoke.log"
+          workspace="$(sed -n 's/^CONSUMER_SMOKE_WORKSPACE=//p' "$RUNNER_TEMP/consumer-smoke.log" | tail -n 1)"
+          test -n "$workspace"
+          echo "workspace=$workspace" >> "$GITHUB_ENV"
+      - name: Check Android 16 KB alignment
+        run: bash tool/check_android_16k.sh "$workspace/consumer/build/app/outputs/flutter-apk/app-release.apk"
+
+  ios:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'ios'
+    runs-on: macos-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - run: flutter pub get
+      - name: Build generated iOS consumer
+        run: dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform ios --mode build
+
+  web:
+    if: github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'web'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
+      - run: flutter pub get
+      - name: Install Web Rust toolchain
+        run: |
+          rustup toolchain install nightly --profile minimal
+          rustup component add rust-src --toolchain nightly
+          rustup target add wasm32-unknown-unknown --toolchain nightly
+          cargo install wasm-pack --locked
+      - name: Build Web consumer package
+        run: dart --packages=.dart_tool/package_config.json tool/build_web.dart --output "$RUNNER_TEMP/xwf-web/pkg"
