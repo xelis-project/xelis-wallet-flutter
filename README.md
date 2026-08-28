@@ -144,6 +144,7 @@ in `AGENTS.md` and must not be presented as consumer API.
 | Native standard and diagnostic logging | [`docs/logging.md`](docs/logging.md) |
 | Multisig request and signature-share wire protocol | [`docs/multisig-signing-protocol.md`](docs/multisig-signing-protocol.md) |
 | XSWD lifecycle, callbacks, relayers, and redaction | [`docs/xswd-api.md`](docs/xswd-api.md) |
+| Adaptation status versus the locked XELIS core | [`docs/upstream-compatibility.md`](docs/upstream-compatibility.md) |
 
 The façade also exposes seed dictionary search, address validation and parsing,
 integrated-address creation, and precomputed-table helpers. Integrated address

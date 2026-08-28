@@ -42,6 +42,7 @@ in the published documentation.
 - Native logging policy and consumer guidance: `docs/logging.md`
 - Multisig wire contract: `docs/multisig-signing-protocol.md`
 - XSWD lifecycle, callbacks, and redaction contract: `docs/xswd-api.md`
+- Core capability alignment matrix: `docs/upstream-compatibility.md`
 
 ## Generated files
 
@@ -177,6 +178,11 @@ The root library must export authored contracts only. Do not add public
 - Do not change wallet storage behavior, lifecycle ordering, error exposure,
   transaction review binding, or XSWD callbacks without focused tests and
   consumer validation.
+- Preserve valid upstream capabilities unless the stable Flutter boundary
+  requires a documented representation, lifecycle, or opt-in adaptation.
+  Package safety defaults must not silently become application business rules.
+- Keep `docs/upstream-compatibility.md` current when a public contract is
+  exact, adapted, opt-in, intentionally unsupported, or leaves an upstream gap.
 - Rename the native library only as an atomic Rust, FRB, platform, and consumer
   migration.
 - Keep native build-backend migrations separate from public API changes.
