@@ -15,9 +15,12 @@ Every monetary value crossing the supported Dart API uses atomic units:
   responsibility;
 - no supported transaction method converts through `double`, `f64`, or JSON.
 
-`XelisWalletFeePolicy` expresses a multiplier in basis points. `10000` is 1x,
-`15000` is 1.5x, and `20000` is 2x. The supported range is 1x through 10x. Rust
-calculates the target fee with checked integer arithmetic and rounds upward.
+`XelisWalletFeePolicy` exposes `automatic`, `fixed`, `tip`, and `multiplier`.
+Automatic uses the native estimate, fixed uses the exact supplied fee, tip adds
+to the estimate with checked arithmetic, and multiplier applies basis points.
+`10000` is 1x and multiplier division rounds upward. Fixed and tip accept zero;
+the multiplier must be positive. Every policy value is bounded by `u64::MAX`
+and crosses Web as `BigInt`, never as a JavaScript `Number`.
 The fee returned by `estimateTransferFees()` is advisory. A review screen must
 always display `XelisWalletPreparedTransaction.feeAtomic`, which is the fee
 encoded in the transaction that will actually be submitted.

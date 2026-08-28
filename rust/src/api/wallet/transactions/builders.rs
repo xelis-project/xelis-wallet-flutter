@@ -20,7 +20,6 @@ use crate::api::models::wallet_dtos::{
 use super::super::{amounts, XelisWallet};
 
 const FEE_BASIS_POINTS_SCALE: u128 = 10_000;
-const MAX_FEE_BASIS_POINTS: u32 = 100_000;
 
 fn invalid_transaction_input(
     native_kind: &'static str,
@@ -37,32 +36,40 @@ pub(in crate::api::wallet) fn apply_fee_policy(
     base_fee: u64,
     policy: NativeTransactionFeePolicy,
 ) -> std::result::Result<u64, NativeXelisError> {
-    if u128::from(policy.basis_points) < FEE_BASIS_POINTS_SCALE
-        || policy.basis_points > MAX_FEE_BASIS_POINTS
-    {
-        return Err(invalid_transaction_input(
-            "TRANSACTION_FEE_POLICY_INVALID",
-            "Fee basis points must be between 10000 and 100000",
-        ));
-    }
-
-    let numerator = u128::from(base_fee)
-        .checked_mul(u128::from(policy.basis_points))
-        .and_then(|value| value.checked_add(FEE_BASIS_POINTS_SCALE - 1))
-        .ok_or_else(|| {
+    match policy {
+        NativeTransactionFeePolicy::Automatic => Ok(base_fee),
+        NativeTransactionFeePolicy::Fixed(fee) => Ok(fee),
+        NativeTransactionFeePolicy::Tip(tip) => base_fee.checked_add(tip).ok_or_else(|| {
             invalid_transaction_input(
                 "TRANSACTION_FEE_OVERFLOW",
                 "Adjusted transaction fee exceeds the supported range",
             )
-        })?;
-    let adjusted = numerator / FEE_BASIS_POINTS_SCALE;
-
-    u64::try_from(adjusted).map_err(|_| {
-        invalid_transaction_input(
-            "TRANSACTION_FEE_OVERFLOW",
-            "Adjusted transaction fee exceeds the supported range",
-        )
-    })
+        }),
+        NativeTransactionFeePolicy::Multiplier(basis_points) => {
+            if basis_points == 0 {
+                return Err(invalid_transaction_input(
+                    "TRANSACTION_FEE_POLICY_INVALID",
+                    "Fee multiplier basis points must be positive",
+                ));
+            }
+            let numerator = u128::from(base_fee)
+                .checked_mul(u128::from(basis_points))
+                .and_then(|value| value.checked_add(FEE_BASIS_POINTS_SCALE - 1))
+                .ok_or_else(|| {
+                    invalid_transaction_input(
+                        "TRANSACTION_FEE_OVERFLOW",
+                        "Adjusted transaction fee exceeds the supported range",
+                    )
+                })?;
+            let adjusted = numerator / FEE_BASIS_POINTS_SCALE;
+            u64::try_from(adjusted).map_err(|_| {
+                invalid_transaction_input(
+                    "TRANSACTION_FEE_OVERFLOW",
+                    "Adjusted transaction fee exceeds the supported range",
+                )
+            })
+        }
+    }
 }
 
 pub(in crate::api::wallet) fn parse_transaction_asset(

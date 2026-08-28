@@ -25,11 +25,13 @@ pub enum BroadcastTransactionOutcome {
 
 /// Exact fee policy used by the stable prepared-transaction API.
 ///
-/// `10_000` basis points represents the automatically estimated fee (1x).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[frb(dart_metadata=("freezed"))]
-pub struct NativeTransactionFeePolicy {
-    pub basis_points: u32,
+pub enum NativeTransactionFeePolicy {
+    Automatic,
+    Fixed(u64),
+    Tip(u64),
+    Multiplier(u64),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

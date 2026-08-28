@@ -27,6 +27,40 @@ const _nativeBroadcastFailure = generated_error.NativeXelisError(
 
 void main() {
   group('prepared transaction adapter', () {
+    test('maps all authored fee policies without numeric conversion', () async {
+      final delegate = _FakeGeneratedPreparedWallet();
+      final wallet = NativeXelisWallet(delegate);
+      final cases = <(XelisWalletFeePolicy, String, BigInt?)>[
+        (XelisWalletFeePolicy.automatic, 'automatic', null),
+        (
+          XelisWalletFeePolicy.fixed(feeAtomic: _maxUnsigned64),
+          'fixed',
+          _maxUnsigned64,
+        ),
+        (
+          XelisWalletFeePolicy.tip(tipAtomic: _aboveJavaScriptSafeInteger),
+          'tip',
+          _aboveJavaScriptSafeInteger,
+        ),
+        (
+          XelisWalletFeePolicy.multiplier(basisPoints: _maxUnsigned64),
+          'multiplier',
+          _maxUnsigned64,
+        ),
+      ];
+
+      for (final (policy, expectedKind, expectedValue) in cases) {
+        await wallet.estimateTransferFees(
+          transfers: [_request(amount: BigInt.one)],
+          feePolicy: policy,
+        );
+        expect(_feePolicyProjection(delegate.estimatedFeePolicy), (
+          expectedKind,
+          expectedValue,
+        ));
+      }
+    });
+
     test(
       'preserves exact u64 values, basis points, and safe projection',
       () async {
@@ -50,7 +84,9 @@ void main() {
           amountAtomic: _maxUnsigned64,
           extraData: secretExtraData,
         );
-        final policy = XelisWalletFeePolicy.multiplier(basisPoints: 15_001);
+        final policy = XelisWalletFeePolicy.multiplier(
+          basisPoints: BigInt.from(15_001),
+        );
 
         final estimated = await wallet.estimateTransferFees(
           transfers: [request],
@@ -63,9 +99,15 @@ void main() {
 
         expect(estimated, _maxUnsigned64);
         expect(delegate.estimatedTransfers.single.amount, _maxUnsigned64);
-        expect(delegate.estimatedFeePolicy?.basisPoints, 15_001);
+        expect(
+          _feeMultiplier(delegate.estimatedFeePolicy),
+          BigInt.from(15_001),
+        );
         expect(delegate.preparedTransfers.single.amount, _maxUnsigned64);
-        expect(delegate.preparedTransferFeePolicy?.basisPoints, 15_001);
+        expect(
+          _feeMultiplier(delegate.preparedTransferFeePolicy),
+          BigInt.from(15_001),
+        );
         expect(delegate.preparedTransfers.single.extraData, secretExtraData);
         expect(prepared.hash, 'transfer-hash');
         expect(prepared.feeAtomic, _aboveJavaScriptSafeInteger);
@@ -182,12 +224,14 @@ void main() {
         final prepared = await wallet.prepareBurn(
           asset: 'burn-asset',
           amountAtomic: _aboveJavaScriptSafeInteger,
-          feePolicy: XelisWalletFeePolicy.multiplier(basisPoints: 20_000),
+          feePolicy: XelisWalletFeePolicy.multiplier(
+            basisPoints: BigInt.from(20_000),
+          ),
         );
 
         expect(delegate.lastBurnAmount, _aboveJavaScriptSafeInteger);
         expect(delegate.lastBurnAsset, 'burn-asset');
-        expect(delegate.lastBurnFeePolicy?.basisPoints, 20_000);
+        expect(_feeMultiplier(delegate.lastBurnFeePolicy), BigInt.from(20_000));
         expect(prepared.feeAtomic, _aboveJavaScriptSafeInteger);
         final burn = prepared.details as XelisWalletPreparedBurn;
         expect(burn.asset, 'burn-asset');
@@ -224,20 +268,30 @@ void main() {
           asset: 'all-asset',
           extraData: 'private all payload',
           encryptExtraData: false,
-          feePolicy: XelisWalletFeePolicy.multiplier(basisPoints: 30_000),
+          feePolicy: XelisWalletFeePolicy.multiplier(
+            basisPoints: BigInt.from(30_000),
+          ),
         );
         await wallet.prepareBurnAll(
           asset: 'burn-all-asset',
-          feePolicy: XelisWalletFeePolicy.multiplier(basisPoints: 40_000),
+          feePolicy: XelisWalletFeePolicy.multiplier(
+            basisPoints: BigInt.from(40_000),
+          ),
         );
 
         expect(delegate.lastTransferAllDestination, 'xel:all-destination');
         expect(delegate.lastTransferAllAsset, 'all-asset');
         expect(delegate.lastTransferAllExtraData, 'private all payload');
         expect(delegate.lastTransferAllEncryptExtraData, isFalse);
-        expect(delegate.lastTransferAllFeePolicy?.basisPoints, 30_000);
+        expect(
+          _feeMultiplier(delegate.lastTransferAllFeePolicy),
+          BigInt.from(30_000),
+        );
         expect(delegate.lastBurnAllAsset, 'burn-all-asset');
-        expect(delegate.lastBurnAllFeePolicy?.basisPoints, 40_000);
+        expect(
+          _feeMultiplier(delegate.lastBurnAllFeePolicy),
+          BigInt.from(40_000),
+        );
       },
     );
 
@@ -535,6 +589,36 @@ void main() {
     );
   });
 }
+
+BigInt? _feeMultiplier(generated_models.NativeTransactionFeePolicy? policy) =>
+    switch (policy) {
+      generated_models.NativeTransactionFeePolicy_Multiplier(:final field0) =>
+        field0,
+      null => null,
+      _ => throw StateError('Expected a multiplier fee policy.'),
+    };
+
+(String, BigInt?) _feePolicyProjection(
+  generated_models.NativeTransactionFeePolicy? policy,
+) => switch (policy) {
+  generated_models.NativeTransactionFeePolicy_Automatic() => (
+    'automatic',
+    null,
+  ),
+  generated_models.NativeTransactionFeePolicy_Fixed(:final field0) => (
+    'fixed',
+    field0,
+  ),
+  generated_models.NativeTransactionFeePolicy_Tip(:final field0) => (
+    'tip',
+    field0,
+  ),
+  generated_models.NativeTransactionFeePolicy_Multiplier(:final field0) => (
+    'multiplier',
+    field0,
+  ),
+  null => throw StateError('Missing fee policy.'),
+};
 
 XelisWalletTransferRequest _request({required BigInt amount}) =>
     XelisWalletTransferRequest(

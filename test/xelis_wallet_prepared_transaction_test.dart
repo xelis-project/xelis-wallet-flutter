@@ -5,22 +5,25 @@ import 'package:xelis_wallet_flutter/xelis_wallet_flutter.dart';
 
 void main() {
   group('XelisWalletFeePolicy', () {
-    test('uses an exact 10000 basis-point automatic policy', () {
-      expect(
-        XelisWalletFeePolicy.automatic.multiplierBasisPoints,
-        XelisWalletFeePolicy.basisPointsScale,
-      );
+    test('keeps automatic as the compatible static policy', () {
+      expect(XelisWalletFeePolicy.automatic, isA<XelisWalletAutomaticFeePolicy>());
       expect(XelisWalletFeePolicy.basisPointsScale, 10000);
     });
 
-    test('represents the supported UI multipliers without floating point', () {
-      final normal = XelisWalletFeePolicy.multiplier(basisPoints: 10000);
-      final priority = XelisWalletFeePolicy.multiplier(basisPoints: 15000);
-      final fastest = XelisWalletFeePolicy.multiplier(basisPoints: 20000);
+    test('represents all fee modes without floating point', () {
+      final normal = XelisWalletFeePolicy.multiplier(
+        basisPoints: BigInt.from(10000),
+      );
+      final priority = XelisWalletFeePolicy.multiplier(
+        basisPoints: BigInt.from(15000),
+      ) as XelisWalletMultiplierFeePolicy;
+      final fixed = XelisWalletFeePolicy.fixed(feeAtomic: BigInt.zero);
+      final tip = XelisWalletFeePolicy.tip(tipAtomic: BigInt.zero);
 
-      expect(normal, XelisWalletFeePolicy.automatic);
-      expect(priority.multiplierBasisPoints, 15000);
-      expect(fastest.multiplierBasisPoints, 20000);
+      expect(normal, isA<XelisWalletMultiplierFeePolicy>());
+      expect(priority.basisPoints, BigInt.from(15000));
+      expect(fixed, isA<XelisWalletFixedFeePolicy>());
+      expect(tip, isA<XelisWalletTipFeePolicy>());
 
       final source = File(
         'lib/src/api/transactions/xelis_wallet_prepared_transaction.dart',
@@ -28,19 +31,21 @@ void main() {
       expect(RegExp(r'\bdouble\b').hasMatch(source), isFalse);
     });
 
-    test('rejects multipliers outside the reviewed bounds', () {
+    test('accepts the u64 range and requires a positive multiplier', () {
       expect(
-        () => XelisWalletFeePolicy.multiplier(basisPoints: 9999),
+        () => XelisWalletFeePolicy.multiplier(basisPoints: BigInt.zero),
         throwsRangeError,
       );
       expect(
-        () => XelisWalletFeePolicy.multiplier(basisPoints: 100001),
+        () => XelisWalletFeePolicy.fixed(feeAtomic: BigInt.one << 64),
         throwsRangeError,
       );
+      final maximum = XelisWalletFeePolicy.multiplier(
+        basisPoints: (BigInt.one << 64) - BigInt.one,
+      );
       expect(
-        XelisWalletFeePolicy.multiplier(basisPoints: 100000)
-            .multiplierBasisPoints,
-        100000,
+        (maximum as XelisWalletMultiplierFeePolicy).basisPoints,
+        (BigInt.one << 64) - BigInt.one,
       );
     });
   });

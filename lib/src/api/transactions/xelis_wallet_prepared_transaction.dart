@@ -8,56 +8,111 @@ import '../multisig/xelis_wallet_multisig.dart';
 /// The multiplier is expressed in basis points so no floating-point value
 /// crosses the public Dart API. One multiplier unit is one ten-thousandth:
 /// `10000` is 1x, `15000` is 1.5x, and `20000` is 2x.
-final class XelisWalletFeePolicy {
-  const XelisWalletFeePolicy._(this.multiplierBasisPoints);
+sealed class XelisWalletFeePolicy {
+  const XelisWalletFeePolicy();
 
   /// Number of basis points representing the automatically calculated fee.
   static const basisPointsScale = 10000;
 
-  /// Lowest supported multiplier. Fees cannot be reduced below automatic.
-  static const minMultiplierBasisPoints = basisPointsScale;
-
-  /// Highest supported multiplier, currently 10x the automatic fee.
-  ///
-  /// Keeping this bound in the public contract prevents accidental extreme
-  /// fees while leaving ample room for application-owned priority choices.
-  static const maxMultiplierBasisPoints = 100000;
-
   /// Uses the native wallet's automatically calculated fee without a boost.
-  static const automatic = XelisWalletFeePolicy._(basisPointsScale);
+  static const automatic = XelisWalletAutomaticFeePolicy();
+
+  /// Uses exactly [feeAtomic] atomic units as the transaction fee.
+  factory XelisWalletFeePolicy.fixed({required BigInt feeAtomic}) {
+    _requireUnsigned64FeeValue(feeAtomic, 'feeAtomic', allowZero: true);
+    return XelisWalletFixedFeePolicy._(feeAtomic);
+  }
+
+  /// Adds [tipAtomic] atomic units to the native fee estimate.
+  factory XelisWalletFeePolicy.tip({required BigInt tipAtomic}) {
+    _requireUnsigned64FeeValue(tipAtomic, 'tipAtomic', allowZero: true);
+    return XelisWalletTipFeePolicy._(tipAtomic);
+  }
 
   /// Creates an exact fixed-point multiplier expressed in basis points.
   ///
   /// [basisPoints] must be between [minMultiplierBasisPoints] and
   /// [maxMultiplierBasisPoints], inclusive.
-  factory XelisWalletFeePolicy.multiplier({required int basisPoints}) {
-    if (basisPoints < minMultiplierBasisPoints ||
-        basisPoints > maxMultiplierBasisPoints) {
-      throw RangeError.range(
-        basisPoints,
-        minMultiplierBasisPoints,
-        maxMultiplierBasisPoints,
-        'basisPoints',
-      );
-    }
-    return XelisWalletFeePolicy._(basisPoints);
+  factory XelisWalletFeePolicy.multiplier({
+    required BigInt basisPoints,
+  }) {
+    _requireUnsigned64FeeValue(basisPoints, 'basisPoints', allowZero: false);
+    return XelisWalletMultiplierFeePolicy._(basisPoints);
   }
+}
+
+final _maximumUnsigned64 = (BigInt.one << 64) - BigInt.one;
+
+void _requireUnsigned64FeeValue(
+  BigInt value,
+  String name, {
+  required bool allowZero,
+}) {
+  final minimum = allowZero ? BigInt.zero : BigInt.one;
+  if (value < minimum || value > _maximumUnsigned64) {
+    throw RangeError(
+      '$name must be between $minimum and $_maximumUnsigned64; received $value.',
+    );
+  }
+}
+
+final class XelisWalletAutomaticFeePolicy extends XelisWalletFeePolicy {
+  const XelisWalletAutomaticFeePolicy();
+
+  @override
+  String toString() => 'XelisWalletFeePolicy.automatic';
+}
+
+final class XelisWalletFixedFeePolicy extends XelisWalletFeePolicy {
+  const XelisWalletFixedFeePolicy._(this.feeAtomic);
+
+  final BigInt feeAtomic;
+
+  @override
+  bool operator ==(Object other) =>
+      other is XelisWalletFixedFeePolicy && other.feeAtomic == feeAtomic;
+
+  @override
+  int get hashCode => feeAtomic.hashCode;
+
+  @override
+  String toString() => 'XelisWalletFeePolicy.fixed(feeAtomic: $feeAtomic)';
+}
+
+final class XelisWalletTipFeePolicy extends XelisWalletFeePolicy {
+  const XelisWalletTipFeePolicy._(this.tipAtomic);
+
+  final BigInt tipAtomic;
+
+  @override
+  bool operator ==(Object other) =>
+      other is XelisWalletTipFeePolicy && other.tipAtomic == tipAtomic;
+
+  @override
+  int get hashCode => tipAtomic.hashCode;
+
+  @override
+  String toString() => 'XelisWalletFeePolicy.tip(tipAtomic: $tipAtomic)';
+}
+
+final class XelisWalletMultiplierFeePolicy extends XelisWalletFeePolicy {
+  const XelisWalletMultiplierFeePolicy._(this.basisPoints);
 
   /// Exact fixed-point multiplier sent to the native wallet.
-  final int multiplierBasisPoints;
+  final BigInt basisPoints;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is XelisWalletFeePolicy &&
-          other.multiplierBasisPoints == multiplierBasisPoints;
+      other is XelisWalletMultiplierFeePolicy &&
+          other.basisPoints == basisPoints;
 
   @override
-  int get hashCode => multiplierBasisPoints.hashCode;
+  int get hashCode => basisPoints.hashCode;
 
   @override
   String toString() =>
-      'XelisWalletFeePolicy(multiplierBasisPoints=$multiplierBasisPoints)';
+      'XelisWalletFeePolicy.multiplier(basisPoints: $basisPoints)';
 }
 
 /// One exact transfer requested from the native wallet.
