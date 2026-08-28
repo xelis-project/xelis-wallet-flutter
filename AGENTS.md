@@ -52,9 +52,12 @@ Never edit these files manually:
 - `rust/src/frb_generated.rs`
 
 Regenerate them with `flutter_rust_bridge_codegen generate`.
-Prefer `dart run tool/generate_bindings.dart`, which clears only the two known
+Prefer `dart tool/generate_bindings.dart`, which bypasses package Native Asset
+hooks until the bridge has been regenerated. It clears only the two known
 generated output locations first so obsolete FRB files cannot survive a module
-move, then regenerates the required Freezed parts.
+move, then regenerates the required Freezed parts. Do not use `dart run` for
+this bootstrap script: stale or missing Rust bindings can otherwise prevent the
+script itself from starting.
 
 Native Android, iOS, Linux, macOS, and Windows builds use Flutter Native Assets.
 Keep `hook/build.dart` pointed at the `rust` crate, keep

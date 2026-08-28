@@ -40,8 +40,9 @@ Future<void> main() async {
   final bridgeProcess = await Process.start(
     'flutter_rust_bridge_codegen',
     // Versions are pinned and checked above. Skipping the redundant tool-side
-    // dependency probe also avoids recursively acquiring Flutter's batch lock
-    // when this script itself runs through Dart's native build hooks.
+    // dependency probe avoids nested Flutter tooling and its Windows batch
+    // lock. Invoke this bootstrap script as `dart tool/generate_bindings.dart`
+    // so stale generated Rust code is not compiled by Native Asset hooks first.
     const ['generate', '--no-deps-check'],
     mode: ProcessStartMode.inheritStdio,
   );

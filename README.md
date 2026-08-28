@@ -167,7 +167,7 @@ bindings and run the host checks:
 
 ```text
 flutter pub get
-dart run tool/generate_bindings.dart
+dart tool/generate_bindings.dart
 dart analyze
 flutter test
 cd rust
@@ -176,7 +176,9 @@ cargo check --locked
 cargo test --locked
 ```
 
-`dart run tool/generate_bindings.dart` is the supported generation path. Do not
+`dart tool/generate_bindings.dart` is the supported generation path. Direct
+script execution deliberately avoids running Native Asset hooks against stale
+or missing generated Rust bindings before the generator can start. Do not
 edit `lib/src/generated/rust_bridge/**` or `rust/src/frb_generated.rs` manually.
 `hook/build.dart` is the authored Native Assets entrypoint and must keep its
 crate path set to `rust`.
