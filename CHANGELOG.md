@@ -31,7 +31,7 @@
   consumer source contracts remain unchanged.
 - **Build:** Replaced the vendored Cargokit FFI-plugin integration with Flutter
   Native Assets using `flutter_rust_bridge_hooks` 2.13.0. Native consumers now
-  build the pinned Rust 1.93.1 toolchain through Rustup; authored APIs, wallet
+  build the pinned Rust 1.94.1 toolchain through Rustup; authored APIs, wallet
   storage, XELIS revisions, and the separate Web build remain unchanged.
 - Web cancellation of the process-global native log and progress streams now
   completes after initiating the FRB listener detachment. Pull-driven wallet

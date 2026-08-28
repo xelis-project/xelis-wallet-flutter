@@ -28,7 +28,7 @@ release, then run `flutter pub get` in the consuming application.
 
 The consuming application needs Dart 3.13 or later and Flutter 3.47 or later.
 Native targets compile the bundled Rust runtime through Flutter Native Assets,
-so build machines must install Rustup. The package pins Rust 1.93.1 and its
+so build machines must install Rustup. The package pins Rust 1.94.1 and its
 supported targets in `rust/rust-toolchain.toml`; Rustup installs those exact
 components for reproducible builds.
 
