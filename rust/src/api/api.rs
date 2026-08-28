@@ -2,7 +2,7 @@ use crate::api::error::NativeXelisError;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::api::error::NativeXelisErrorCode;
 use crate::api::logger;
-use crate::api::logger::{Level, NativeLogEntry};
+use crate::api::logger::{Level, NativeLogEntry, NativeLogScope};
 use crate::api::progress_report::{replace_stream_sink, ProgressReport};
 use crate::frb_generated::StreamSink;
 
@@ -33,9 +33,9 @@ pub fn initialize_crypto_provider() -> std::result::Result<(), NativeXelisError>
 
 pub fn set_up_rust_logger(
     minimum_level: Level,
-    diagnostic_mode: bool,
+    scope: NativeLogScope,
 ) -> std::result::Result<(), NativeXelisError> {
-    logger::init_logger(minimum_level, diagnostic_mode)
+    logger::init_logger(minimum_level, scope)
 }
 
 pub fn create_log_stream(s: StreamSink<NativeLogEntry>) -> anyhow::Result<()> {

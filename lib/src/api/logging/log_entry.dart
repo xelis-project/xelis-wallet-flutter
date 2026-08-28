@@ -1,6 +1,13 @@
 /// Severity of a log record emitted by the native XELIS runtime.
 enum XelisLogLevel { error, warn, info, debug, trace }
 
+/// Process-wide native log visibility selected before logger initialization.
+enum XelisNativeLogScope {
+  standard,
+  packageDiagnostic,
+  unsafeUpstreamDiagnostic,
+}
+
 /// Native component that emitted a XELIS log record.
 enum XelisLogSource {
   xelisWalletFlutter,
@@ -29,16 +36,14 @@ final class XelisLogEntry {
 
   /// Rust log target.
   ///
-  /// In standard mode this is the package-owned, stable target. Diagnostic
-  /// mode may expose detailed package module targets whose spelling is not API.
+  /// Safe scopes expose package-owned targets only. The unsafe upstream scope
+  /// can also expose `xelis_wallet` and `xelis_common` module targets.
   final String target;
 
   /// Native diagnostic text.
   ///
-  /// Standard mode only forwards package-authored safe records. Diagnostic
-  /// mode can include local paths, amounts, hashes, or other package-owned
-  /// context and must only be retained or displayed in an explicit developer
-  /// workflow. Free-form upstream dependency messages are never forwarded.
+  /// The unsafe upstream scope carries no XWF redaction guarantee and is only
+  /// suitable for an explicit local diagnostic workflow.
   final String message;
 
   @override

@@ -2,7 +2,7 @@ use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
 pub use log::Level;
 use log::{Log, Metadata, Record};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 
 use crate::api::error::{NativeXelisError, NativeXelisErrorCode};
@@ -18,12 +18,20 @@ lazy_static! {
 }
 
 static SEND_TO_DART_LOGGER: SendToDartLogger = SendToDartLogger;
-static DIAGNOSTIC_MODE: AtomicBool = AtomicBool::new(false);
+static LOG_SCOPE: AtomicU8 = AtomicU8::new(NativeLogScope::Standard as u8);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum NativeLogScope {
+    Standard = 0,
+    PackageDiagnostic = 1,
+    UnsafeUpstreamDiagnostic = 2,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct LoggerConfiguration {
     minimum_level: Level,
-    diagnostic_mode: bool,
+    scope: NativeLogScope,
 }
 
 /// A native log record forwarded through the private generated bridge.
@@ -50,11 +58,11 @@ pub enum _Level {
 #[frb(ignore)]
 pub(crate) fn init_logger(
     minimum_level: Level,
-    diagnostic_mode: bool,
+    scope: NativeLogScope,
 ) -> std::result::Result<(), NativeXelisError> {
     let requested = LoggerConfiguration {
         minimum_level,
-        diagnostic_mode,
+        scope,
     };
     let mut configuration = LOGGER_CONFIGURATION.lock();
 
@@ -78,7 +86,7 @@ pub(crate) fn init_logger(
         )
     })?;
 
-    DIAGNOSTIC_MODE.store(diagnostic_mode, Ordering::Release);
+    LOG_SCOPE.store(scope as u8, Ordering::Release);
     log::set_max_level(minimum_level.to_level_filter());
     *configuration = Some(requested);
     Ok(())
@@ -105,12 +113,25 @@ impl SendToDartLogger {
 
     fn accepts(
         metadata: &Metadata,
-        diagnostic_mode: bool,
+        scope: NativeLogScope,
         maximum_level: log::LevelFilter,
     ) -> bool {
         metadata.level().to_level_filter() <= maximum_level
-            && (metadata.target() == CONSUMER_LOG_TARGET
-                || (diagnostic_mode && metadata.target().starts_with("xelis_wallet_flutter::")))
+            && match scope {
+                NativeLogScope::Standard => metadata.target() == CONSUMER_LOG_TARGET,
+                NativeLogScope::PackageDiagnostic => {
+                    metadata.target() == CONSUMER_LOG_TARGET
+                        || metadata.target().starts_with("xelis_wallet_flutter::")
+                }
+                NativeLogScope::UnsafeUpstreamDiagnostic => {
+                    metadata.target() == CONSUMER_LOG_TARGET
+                        || metadata.target().starts_with("xelis_wallet_flutter::")
+                        || metadata.target() == "xelis_wallet"
+                        || metadata.target().starts_with("xelis_wallet::")
+                        || metadata.target() == "xelis_common"
+                        || metadata.target().starts_with("xelis_common::")
+                }
+            }
     }
 }
 
@@ -118,7 +139,11 @@ impl Log for SendToDartLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         Self::accepts(
             metadata,
-            DIAGNOSTIC_MODE.load(Ordering::Acquire),
+            match LOG_SCOPE.load(Ordering::Acquire) {
+                0 => NativeLogScope::Standard,
+                1 => NativeLogScope::PackageDiagnostic,
+                _ => NativeLogScope::UnsafeUpstreamDiagnostic,
+            },
             log::max_level(),
         )
     }
@@ -182,32 +207,48 @@ mod tests {
     fn standard_mode_only_accepts_explicit_consumer_records() {
         assert!(SendToDartLogger::accepts(
             &metadata(Level::Info, CONSUMER_LOG_TARGET),
-            false,
+            NativeLogScope::Standard,
             log::LevelFilter::Trace,
         ));
         assert!(!SendToDartLogger::accepts(
             &metadata(Level::Error, "xelis_wallet::network"),
-            false,
+            NativeLogScope::Standard,
             log::LevelFilter::Trace,
         ));
     }
 
     #[test]
-    fn diagnostic_mode_accepts_package_targets_but_rejects_dependencies() {
+    fn package_diagnostic_scope_accepts_package_targets_but_rejects_dependencies() {
         assert!(SendToDartLogger::accepts(
             &metadata(Level::Debug, "xelis_wallet_flutter::api::wallet"),
-            true,
+            NativeLogScope::PackageDiagnostic,
             log::LevelFilter::Debug,
         ));
         assert!(!SendToDartLogger::accepts(
             &metadata(Level::Error, "xelis_wallet::api::rpc"),
-            true,
+            NativeLogScope::PackageDiagnostic,
             log::LevelFilter::Debug,
         ));
         assert!(!SendToDartLogger::accepts(
             &metadata(Level::Error, "xelis_common::rpc"),
-            true,
+            NativeLogScope::PackageDiagnostic,
             log::LevelFilter::Debug,
+        ));
+    }
+
+    #[test]
+    fn unsafe_scope_accepts_only_selected_upstream_targets() {
+        for target in ["xelis_wallet", "xelis_wallet::api", "xelis_common::rpc"] {
+            assert!(SendToDartLogger::accepts(
+                &metadata(Level::Info, target),
+                NativeLogScope::UnsafeUpstreamDiagnostic,
+                log::LevelFilter::Trace,
+            ));
+        }
+        assert!(!SendToDartLogger::accepts(
+            &metadata(Level::Info, "reqwest::connect"),
+            NativeLogScope::UnsafeUpstreamDiagnostic,
+            log::LevelFilter::Trace,
         ));
     }
 }

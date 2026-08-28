@@ -52,13 +52,13 @@ abstract final class XelisWalletFlutter {
     ),
   );
   static final ConfiguredRuntimeLifecycle<
-    ({XelisLogLevel minimumLevel, bool diagnosticMode})
+    ({XelisLogLevel minimumLevel, XelisNativeLogScope scope})
   >
   _rustLoggerLifecycle = ConfiguredRuntimeLifecycle(
     initializeRuntime: (configuration) => guardXelisFuture(
       () => generated_api.setUpRustLogger(
         minimumLevel: adaptLogLevel(configuration.minimumLevel),
-        diagnosticMode: configuration.diagnosticMode,
+        scope: adaptLogScope(configuration.scope),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWalletFlutter,
@@ -91,20 +91,19 @@ abstract final class XelisWalletFlutter {
   /// Installs the Rust logger used by [createRustLogStream].
   ///
   /// Standard mode only forwards safe records explicitly authored for package
-  /// consumers. [diagnosticMode] also forwards audited package-module records,
-  /// which can include paths, amounts, hashes, or other operational context.
-  /// Free-form upstream dependency records remain excluded. Keep diagnostic
-  /// mode local to an explicit development/debugging workflow.
+  /// consumers. [XelisNativeLogScope.packageDiagnostic] also forwards package
+  /// module records. [XelisNativeLogScope.unsafeUpstreamDiagnostic] additionally
+  /// forwards selected upstream XELIS targets without a redaction guarantee.
   ///
   /// The first successful configuration is process-wide and immutable.
   static Future<void> initializeRustLogger({
     XelisLogLevel minimumLevel = XelisLogLevel.info,
-    bool diagnosticMode = false,
+    XelisNativeLogScope scope = XelisNativeLogScope.standard,
   }) {
     _ensureInitialized();
     return _rustLoggerLifecycle.initialize((
       minimumLevel: minimumLevel,
-      diagnosticMode: diagnosticMode,
+      scope: scope,
     ));
   }
 

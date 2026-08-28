@@ -30,6 +30,15 @@ generated_logger.Level adaptLogLevel(XelisLogLevel level) => switch (level) {
   XelisLogLevel.trace => generated_logger.Level.trace,
 };
 
+generated_logger.NativeLogScope adaptLogScope(XelisNativeLogScope scope) =>
+    switch (scope) {
+      XelisNativeLogScope.standard => generated_logger.NativeLogScope.standard,
+      XelisNativeLogScope.packageDiagnostic =>
+        generated_logger.NativeLogScope.packageDiagnostic,
+      XelisNativeLogScope.unsafeUpstreamDiagnostic =>
+        generated_logger.NativeLogScope.unsafeUpstreamDiagnostic,
+    };
+
 XelisLogSource classifyLogSource(String target) {
   if (target == 'xelis_wallet_flutter' ||
       target.startsWith('xelis_wallet_flutter::')) {

@@ -27,14 +27,14 @@ application shuts down. Recreating the stream replaces the native sink; this is
 supported for development hot reload, but it should not be used as a broadcast
 mechanism.
 
-## Standard and diagnostic modes
+## Log scopes
 
 Initialization requires a deliberate policy:
 
 ```dart
 await XelisWalletFlutter.initializeRustLogger(
   minimumLevel: XelisLogLevel.warn,
-  diagnosticMode: false,
+  scope: XelisNativeLogScope.standard,
 );
 
 final subscription = XelisWalletFlutter.createRustLogStream().listen(
@@ -46,27 +46,30 @@ The first successful logger configuration is immutable for the lifetime of the
 process. Calls with the same configuration are idempotent and concurrent calls
 share one initialization. A later call with different values fails explicitly.
 
-| Mode | Records forwarded | Intended use |
+| Scope | Records forwarded | Intended use |
 | --- | --- | --- |
-| Standard (`diagnosticMode: false`) | Only records explicitly authored with the package-owned `xelis_wallet_flutter` target | Production-safe support events |
-| Diagnostic (`diagnosticMode: true`) | Package-owned module targets allowed by `minimumLevel` | Local development and deliberate debugging |
+| `standard` | Exact package-owned `xelis_wallet_flutter` target | Production-safe support events |
+| `packageDiagnostic` | Standard plus `xelis_wallet_flutter::*` module targets | Local package debugging |
+| `unsafeUpstreamDiagnostic` | Package targets plus `xelis_wallet::*` and `xelis_common::*` | Explicit local upstream diagnosis only |
 
 Standard mode does not attempt to redact arbitrary strings from dependencies.
 It excludes them before they cross the bridge. This is safer than parsing a
 formatted message after its structure has already been lost.
 
-Diagnostic mode can include local paths, addresses, amounts, balances, asset or
+Package diagnostic scope can include local paths, addresses, amounts, balances, asset or
 transaction hashes, and daemon failures emitted by this package's audited Rust
 wrapper. Those values can be essential when reproducing a problem, but they
 must not be retained, exported, or displayed to users by default.
 
-Free-form records from `xelis_wallet`, `xelis_common`, and other dependencies
-remain excluded even in diagnostic mode. Upstream debug messages can contain a
+Free-form records from `xelis_wallet` and `xelis_common` cross the bridge only
+in `unsafeUpstreamDiagnostic`; other dependencies remain excluded. Upstream
+debug messages can contain a
 complete signed transaction, signature material, encryption context, or raw
 payload. Their layer and error category must cross a structured error/support
 contract instead of the free-form log stream.
 
-The following data must never be logged in either mode:
+XWF makes no redaction promise for the unsafe upstream scope. The following
+data must never be deliberately logged by package or consumer code:
 
 - seed words or mnemonic candidates;
 - private keys, passwords, tokens, credentials, or encryption keys;
@@ -98,17 +101,18 @@ wording for retry decisions, error categories, or localized messages.
 
 A production consumer should:
 
-1. keep diagnostic mode disabled;
+1. keep the `standard` scope;
 2. disable console output unless explicitly required;
 3. bound any in-memory history;
 4. accept only package-authored support events;
 5. keep Riverpod/application state values out of logs;
 6. show localized UI text instead of native messages.
 
-A debug consumer may enable diagnostic mode and a lower minimum level. It
+A debug consumer may enable `packageDiagnostic` and a lower minimum level. It
 should make that policy obvious at its integration point and still sanitize
-endpoints and externally controlled payloads. Diagnostic mode never broadens
-the allowlist to arbitrary upstream Rust targets.
+endpoints and externally controlled payloads. `unsafeUpstreamDiagnostic` must
+be an obvious, temporary local-only choice and never broadens the allowlist
+beyond the two selected XELIS crates.
 
 Stable error codes, operations, and support correlation identifiers belong to
 the structured exception contract described in
