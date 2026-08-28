@@ -162,8 +162,8 @@ The lossless `payload` preserves every unsigned width,
 field key. `payloadKind` lets consumers identify the top-level shape without
 revealing or decoding the value.
 
-Passive business events always redact `payload` and `payloadKind` to `null`,
-both in Rust and again in the private Dart adapter.
+Business events default to redacting `payload` and `payloadKind` to `null`.
+Their subscription may opt into metadata or detailed typed payloads.
 `hasPayload` can therefore be `true` while all detail fields are `null`. The
 upstream `PlaintextExtraData.shared_key` never crosses either bridge boundary
 and has no field in the authored Dart model.

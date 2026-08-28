@@ -251,6 +251,14 @@ fn maps_all_ten_transaction_variants_and_redacts_extra_data() {
     assert!(!debug.contains("private application payload"));
     assert!(!debug.contains("shared_key"));
 
+    let metadata = extra_data(&plaintext, ExtraDataProjection::Metadata).unwrap();
+    assert!(metadata.has_payload);
+    assert_eq!(
+        metadata.payload_kind,
+        Some(NativeWalletExtraDataPayloadKind::String)
+    );
+    assert!(metadata.payload.is_none());
+
     let detailed = extra_data(&plaintext, ExtraDataProjection::Detailed).unwrap();
     assert!(detailed.has_payload);
     assert_eq!(

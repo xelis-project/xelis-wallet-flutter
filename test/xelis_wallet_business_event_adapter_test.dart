@@ -481,8 +481,31 @@ void main() {
         'subscription.dispose',
         'wallet.close',
       ]);
+      expect(
+        delegateWallet.lastDisclosure,
+        generated_event.NativeWalletExtraDataDisclosure.redacted,
+      );
     },
   );
+
+  test('business subscription forwards its fixed disclosure level', () async {
+    final delegateSubscription = _FakeGeneratedBusinessSubscription();
+    final delegateWallet = _FakeGeneratedWallet(
+      subscription: delegateSubscription,
+      calls: <String>[],
+    );
+    final wallet = NativeXelisWallet(delegateWallet);
+
+    final subscription = await wallet.subscribeBusinessEvents(
+      extraDataDisclosure: XelisWalletExtraDataDisclosure.detailed,
+    );
+
+    expect(
+      delegateWallet.lastDisclosure,
+      generated_event.NativeWalletExtraDataDisclosure.detailed,
+    );
+    await subscription.cancel();
+  });
 }
 
 generated_error.NativeXelisError _nativeFailure({
@@ -581,6 +604,7 @@ final class _FakeGeneratedWallet implements generated_wallet_api.XelisWallet {
 
   final generated_subscription.WalletBusinessEventSubscription subscription;
   final List<String> calls;
+  generated_event.NativeWalletExtraDataDisclosure? lastDisclosure;
   bool _isDisposed = false;
 
   @override
@@ -588,8 +612,12 @@ final class _FakeGeneratedWallet implements generated_wallet_api.XelisWallet {
 
   @override
   Future<generated_subscription.WalletBusinessEventSubscription>
-  subscribeBusinessEvents() async {
+  subscribeBusinessEvents({
+    required generated_event.NativeWalletExtraDataDisclosure
+    extraDataDisclosure,
+  }) async {
     calls.add('wallet.subscribe');
+    lastDisclosure = extraDataDisclosure;
     return subscription;
   }
 

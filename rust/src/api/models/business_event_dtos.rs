@@ -6,6 +6,13 @@ use super::{
 /// Version of the package-owned business-event contract.
 pub const NATIVE_WALLET_BUSINESS_EVENT_VERSION: u16 = 1;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NativeWalletExtraDataDisclosure {
+    Redacted,
+    Metadata,
+    Detailed,
+}
+
 /// One ordered event read from a session-scoped wallet subscription.
 #[derive(Clone, Debug)]
 pub struct NativeWalletBusinessEventFrame {

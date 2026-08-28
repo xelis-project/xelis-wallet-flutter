@@ -249,8 +249,13 @@ final class XelisWalletExtraData {
   final XelisWalletExtraDataPayloadKind? payloadKind;
 }
 
-/// Amount of extra-data information requested by an explicit wallet read.
+/// Amount of extra-data information requested by a wallet read or subscription.
 enum XelisWalletExtraDataDisclosure {
+  /// Returns only the flag and payload-presence bit.
+  ///
+  /// This matches the passive business-event behavior from XWF 0.2.
+  redacted,
+
   /// Returns flag, payload presence, and top-level kind without payload data.
   metadata,
 

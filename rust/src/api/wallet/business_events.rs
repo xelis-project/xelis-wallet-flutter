@@ -29,10 +29,10 @@ use crate::api::{
             NativeWalletAsset, NativeWalletAssetAmount, NativeWalletBusinessEvent,
             NativeWalletBusinessEventFrame, NativeWalletBusinessStreamCloseReason,
             NativeWalletContractTransferGroup, NativeWalletDeployInvoke, NativeWalletExtraData,
-            NativeWalletExtraDataFlag, NativeWalletExtraDataPayloadKind,
-            NativeWalletPendingTransaction, NativeWalletTransactionEntry,
-            NativeWalletTransactionEntryData, NativeWalletTransferIn, NativeWalletTransferOut,
-            NATIVE_WALLET_BUSINESS_EVENT_VERSION,
+            NativeWalletExtraDataDisclosure, NativeWalletExtraDataFlag,
+            NativeWalletExtraDataPayloadKind, NativeWalletPendingTransaction,
+            NativeWalletTransactionEntry, NativeWalletTransactionEntryData, NativeWalletTransferIn,
+            NativeWalletTransferOut, NATIVE_WALLET_BUSINESS_EVENT_VERSION,
         },
     },
 };
@@ -47,6 +47,7 @@ struct WalletBusinessEventSubscriptionState {
 #[frb(opaque)]
 pub struct WalletBusinessEventSubscription {
     generation: u64,
+    extra_data_projection: ExtraDataProjection,
     state: Mutex<WalletBusinessEventSubscriptionState>,
     cancellation: watch::Sender<bool>,
     cancelled: AtomicBool,
@@ -67,9 +68,19 @@ impl Drop for NextEventGuard<'_> {
 impl WalletBusinessEventSubscription {
     #[frb(ignore)]
     fn new(generation: u64, receiver: Receiver<Event>) -> Self {
+        Self::new_with_projection(generation, receiver, ExtraDataProjection::Redacted)
+    }
+
+    #[frb(ignore)]
+    fn new_with_projection(
+        generation: u64,
+        receiver: Receiver<Event>,
+        extra_data_projection: ExtraDataProjection,
+    ) -> Self {
         let (cancellation, cancellation_receiver) = watch::channel(false);
         Self {
             generation,
+            extra_data_projection,
             state: Mutex::new(WalletBusinessEventSubscriptionState {
                 receiver,
                 cancellation: cancellation_receiver,
@@ -119,7 +130,10 @@ impl WalletBusinessEventSubscription {
 
             match received {
                 Ok(event) => {
-                    if let Some(event) = business_event_from_wallet_event(event)? {
+                    if let Some(event) = business_event_from_wallet_event_with_projection(
+                        event,
+                        self.extra_data_projection,
+                    )? {
                         return Ok(Some(next_frame(self.generation, next_sequence, event)?));
                     }
                 }
@@ -224,17 +238,25 @@ fn next_business_event_generation(current_generation: &mut u64) -> Result<u64, N
     Ok(next_generation)
 }
 
+#[cfg(test)]
 fn business_event_from_wallet_event(
     event: Event,
 ) -> Result<Option<NativeWalletBusinessEvent>, NativeXelisError> {
+    business_event_from_wallet_event_with_projection(event, ExtraDataProjection::Redacted)
+}
+
+fn business_event_from_wallet_event_with_projection(
+    event: Event,
+    extra_data_projection: ExtraDataProjection,
+) -> Result<Option<NativeWalletBusinessEvent>, NativeXelisError> {
     let event = match event {
         Event::NewTransaction(transaction) => Some(NativeWalletBusinessEvent::NewTransaction {
-            transaction: transaction_entry(transaction, ExtraDataProjection::Redacted)
+            transaction: transaction_entry(transaction, extra_data_projection)
                 .map_err(business_event_projection_error)?,
         }),
         Event::NewPendingTransaction(transaction) => {
             Some(NativeWalletBusinessEvent::NewPendingTransaction {
-                transaction: pending_transaction(transaction, ExtraDataProjection::Redacted)
+                transaction: pending_transaction(transaction, extra_data_projection)
                     .map_err(business_event_projection_error)?,
             })
         }
@@ -518,6 +540,7 @@ impl XelisWallet {
     /// Opens a session-scoped business-event cursor.
     pub async fn subscribe_business_events(
         &self,
+        extra_data_disclosure: NativeWalletExtraDataDisclosure,
     ) -> Result<WalletBusinessEventSubscription, NativeXelisError> {
         let receiver = self.wallet.subscribe_events().await;
         let generation = {
@@ -525,7 +548,16 @@ impl XelisWallet {
             next_business_event_generation(&mut *generation)?
         };
 
-        Ok(WalletBusinessEventSubscription::new(generation, receiver))
+        let extra_data_projection = match extra_data_disclosure {
+            NativeWalletExtraDataDisclosure::Redacted => ExtraDataProjection::Redacted,
+            NativeWalletExtraDataDisclosure::Metadata => ExtraDataProjection::Metadata,
+            NativeWalletExtraDataDisclosure::Detailed => ExtraDataProjection::Detailed,
+        };
+        Ok(WalletBusinessEventSubscription::new_with_projection(
+            generation,
+            receiver,
+            extra_data_projection,
+        ))
     }
 }
 
