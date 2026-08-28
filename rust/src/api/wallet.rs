@@ -2,6 +2,7 @@ use flutter_rust_bridge::frb;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use self::multisig::PendingMultisigStore;
 use super::error::NativeXelisError;
@@ -11,10 +12,11 @@ use anyhow::Result;
 use futures::lock::Mutex as AsyncMutex;
 use parking_lot::{Mutex, RwLock};
 use xelis_common::network::Network;
-use xelis_common::tokio::sync::Mutex as TokioMutex;
+use xelis_common::tokio::sync::{Mutex as TokioMutex, Notify};
 use xelis_common::transaction::builder::UnsignedTransaction;
 use xelis_common::transaction::MultiSigPayload;
 pub use xelis_common::transaction::Transaction;
+use xelis_wallet::daemon_api::DaemonAPI;
 pub use xelis_wallet::precomputed_tables::PrecomputedTablesShared;
 pub use xelis_wallet::transaction_builder::TransactionBuilderState;
 use xelis_wallet::wallet::Wallet;
@@ -39,14 +41,20 @@ struct PendingMultisigTransaction {
 #[frb(ignore)]
 struct WalletConnectionAttempt {
     cancelled: AtomicBool,
+    completed: AtomicBool,
     activation: TokioMutex<()>,
+    api: TokioMutex<Option<Arc<DaemonAPI>>>,
+    completion: Notify,
 }
 
 impl WalletConnectionAttempt {
     fn new() -> Self {
         Self {
             cancelled: AtomicBool::new(false),
+            completed: AtomicBool::new(false),
             activation: TokioMutex::new(()),
+            api: TokioMutex::new(None),
+            completion: Notify::new(),
         }
     }
 
@@ -56,6 +64,24 @@ impl WalletConnectionAttempt {
 
     fn is_cancelled(&self) -> bool {
         self.cancelled.load(Ordering::Acquire)
+    }
+
+    fn complete(&self) {
+        self.completed.store(true, Ordering::Release);
+        self.completion.notify_waiters();
+    }
+
+    async fn wait_completed(&self) {
+        loop {
+            if self.completed.load(Ordering::Acquire) {
+                return;
+            }
+            let notified = self.completion.notified();
+            if self.completed.load(Ordering::Acquire) {
+                return;
+            }
+            notified.await;
+        }
     }
 }
 
@@ -70,6 +96,12 @@ struct WalletConnectionAttemptState {
 #[frb(ignore)]
 struct WalletConnectionAttempts {
     state: Mutex<WalletConnectionAttemptState>,
+}
+
+#[frb(ignore)]
+struct ActiveWalletConnection {
+    api: Arc<DaemonAPI>,
+    timeout: Duration,
 }
 
 impl WalletConnectionAttempts {
@@ -92,6 +124,7 @@ impl WalletConnectionAttempts {
 pub struct XelisWallet {
     wallet: Arc<Wallet>,
     connection_attempts: Arc<WalletConnectionAttempts>,
+    active_connection: TokioMutex<Option<ActiveWalletConnection>>,
     runtime_event_generation: Mutex<u64>,
     business_event_generation: Mutex<u64>,
     asset_resolution: AsyncMutex<()>,

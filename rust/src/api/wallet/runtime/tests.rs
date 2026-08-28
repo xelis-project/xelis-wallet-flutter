@@ -86,6 +86,18 @@ fn connection_attempt_registry_cancels_the_published_token_and_can_close() {
     assert_eq!(error.code, NativeXelisErrorCode::Cancelled);
 }
 
+#[tokio::test]
+async fn connection_attempt_guard_publishes_worker_completion() {
+    let attempts = Arc::new(WalletConnectionAttempts::default());
+    let guard = ConnectionAttemptGuard::acquire(attempts).unwrap();
+    let attempt = guard.attempt();
+
+    assert!(!attempt.completed.load(std::sync::atomic::Ordering::Acquire));
+    drop(guard);
+    attempt.wait_completed().await;
+    assert!(attempt.completed.load(std::sync::atomic::Ordering::Acquire));
+}
+
 #[test]
 fn offline_mode_accepts_states_that_are_already_disconnected() {
     assert!(normalize_offline_mode_result(Err(WalletError::NotOnlineMode)).is_ok());

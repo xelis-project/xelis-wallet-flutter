@@ -5,9 +5,13 @@ use std::time::Duration;
 
 use super::super::precomputed_tables::PrecomputedTableType;
 use super::multisig::PendingMultisigStore;
-use super::{WalletConnectionAttempt, WalletConnectionAttempts, XelisWallet};
+use super::{
+    ActiveWalletConnection, WalletConnectionAttempt, WalletConnectionAttempts, XelisWallet,
+};
 use crate::api::error::{NativeXelisError, NativeXelisErrorCode};
-use crate::api::models::runtime_dtos::WalletDaemonInfo;
+use crate::api::models::runtime_dtos::{
+    NativeWalletConnectionOptions, NativeWalletReconnectPolicy, WalletDaemonInfo,
+};
 use anyhow::{anyhow, bail, Result};
 use flutter_rust_bridge::frb;
 use log::info;
@@ -29,7 +33,7 @@ use xelis_wallet::{
 mod table_cache;
 
 static MT_PARAMS: StateMutex<Option<(usize, usize)>> = StateMutex::new(None);
-const ONLINE_MODE_TIMEOUT: Duration = Duration::from_secs(20);
+const DEFAULT_ONLINE_MODE_TIMEOUT: Duration = Duration::from_secs(20);
 const DAEMON_EVENT_CAPACITY: usize = 64;
 
 fn invalid_daemon_address() -> NativeXelisError {
@@ -91,7 +95,7 @@ fn network_connect_timeout() -> NativeXelisError {
     NativeXelisError::xelis_wallet_flutter(
         NativeXelisErrorCode::Network,
         "NETWORK_CONNECT_TIMEOUT",
-        "Native wallet connection exceeded the 20-second caller limit",
+        "Native wallet connection exceeded its configured caller limit",
     )
 }
 
@@ -145,6 +149,7 @@ impl ConnectionAttemptGuard {
 
 impl Drop for ConnectionAttemptGuard {
     fn drop(&mut self) {
+        self.attempt.complete();
         let mut state = self.attempts.state.lock();
         if state
             .current
@@ -168,27 +173,29 @@ async fn connect_wallet(
     wallet: &Arc<Wallet>,
     daemon_address: &str,
     attempt: &WalletConnectionAttempt,
+    timeout_duration: Duration,
+    reconnect_policy: NativeWalletReconnectPolicy,
 ) -> std::result::Result<Arc<DaemonAPI>, NativeXelisError> {
     let rpc_endpoint = daemon_rpc_endpoint(daemon_address)?;
     let api = Arc::new(
-        DaemonAPI::with(
-            rpc_endpoint,
-            Some(ONLINE_MODE_TIMEOUT),
-            DAEMON_EVENT_CAPACITY,
-        )
-        .await
-        .map_err(|error| {
-            NativeXelisError::from_wallet_operation(
-                error,
-                NativeXelisErrorCode::Network,
-                "DAEMON_CONNECT_FAILED",
-            )
-        })?,
+        DaemonAPI::with(rpc_endpoint, Some(timeout_duration), DAEMON_EVENT_CAPACITY)
+            .await
+            .map_err(|error| {
+                NativeXelisError::from_wallet_operation(
+                    error,
+                    NativeXelisErrorCode::Network,
+                    "DAEMON_CONNECT_FAILED",
+                )
+            })?,
     );
+    *attempt.api.lock().await = Some(Arc::clone(&api));
 
-    // Reconnect policy belongs to the consuming application. The wallet
-    // network handler is also started with `auto_reconnect = false` below.
-    api.client().set_auto_reconnect_delay(None).await;
+    if matches!(
+        reconnect_policy,
+        NativeWalletReconnectPolicy::ApplicationManaged
+    ) {
+        api.client().set_auto_reconnect_delay(None).await;
+    }
     if attempt.is_cancelled() {
         disconnect_daemon_api(api.as_ref()).await;
         return Err(network_connect_cancelled());
@@ -223,7 +230,13 @@ async fn connect_wallet(
             return Err(network_connect_cancelled());
         }
         if let Err(error) = wallet
-            .set_online_mode_with_api(Arc::clone(&api), false)
+            .set_online_mode_with_api(
+                Arc::clone(&api),
+                matches!(
+                    reconnect_policy,
+                    NativeWalletReconnectPolicy::UpstreamManagedExperimental
+                ),
+            )
             .await
         {
             disconnect_daemon_api(api.as_ref()).await;
@@ -433,6 +446,7 @@ pub(super) async fn create_xelis_wallet(
     Ok(XelisWallet {
         wallet: xelis_wallet,
         connection_attempts: Arc::new(WalletConnectionAttempts::default()),
+        active_connection: Default::default(),
         runtime_event_generation: Default::default(),
         business_event_generation: Default::default(),
         asset_resolution: Default::default(),
@@ -499,6 +513,7 @@ pub(super) async fn open_xelis_wallet(
     Ok(XelisWallet {
         wallet: xelis_wallet,
         connection_attempts: Arc::new(WalletConnectionAttempts::default()),
+        active_connection: Default::default(),
         runtime_event_generation: Default::default(),
         business_event_generation: Default::default(),
         asset_resolution: Default::default(),
@@ -510,10 +525,16 @@ pub(super) async fn open_xelis_wallet(
 impl XelisWallet {
     async fn cancel_connection_attempt(&self, terminal: bool) {
         if let Some(attempt) = self.connection_attempts.cancel_current(terminal) {
+            if let Some(api) = attempt.api.lock().await.clone() {
+                api.client().set_auto_reconnect_delay(None).await;
+                disconnect_daemon_api(api.as_ref()).await;
+            }
             // Synchronize with the only check-and-activate region. Once this
             // barrier is acquired, the cancelled worker can no longer install
             // a handler after offline/close has applied its postcondition.
-            let _activation_barrier = attempt.activation.lock().await;
+            let activation_barrier = attempt.activation.lock().await;
+            drop(activation_barrier);
+            attempt.wait_completed().await;
         }
     }
 
@@ -537,7 +558,16 @@ impl XelisWallet {
     pub async fn online_mode(
         &self,
         daemon_address: String,
+        options: NativeWalletConnectionOptions,
     ) -> std::result::Result<(), NativeXelisError> {
+        if options.timeout_millis == 0 {
+            return Err(NativeXelisError::xelis_wallet_flutter(
+                NativeXelisErrorCode::InvalidInput,
+                "NETWORK_TIMEOUT_INVALID",
+                "Connection timeout must be positive",
+            ));
+        }
+        let timeout_duration = Duration::from_millis(options.timeout_millis);
         // The consuming application owns reconnect attempts. The upstream
         // auto-reconnect loop can sleep after sync errors and miss stop signals,
         // which blocks logout/close when a daemon is on the wrong network.
@@ -549,25 +579,38 @@ impl XelisWallet {
         if self.wallet.is_online().await {
             return Err(NativeXelisError::from(WalletError::AlreadyOnlineMode));
         }
+        if let Some(stale) = self.active_connection.lock().await.take() {
+            stale.api.client().set_auto_reconnect_delay(None).await;
+            disconnect_daemon_api(stale.api.as_ref()).await;
+            normalize_offline_mode_result(self.wallet.set_offline_mode().await)?;
+        }
         if attempt.is_cancelled() {
             return Err(network_connect_cancelled());
         }
         let worker_attempt = Arc::clone(&attempt);
         let (result_sender, result_receiver) = oneshot::channel();
         let (accepted_sender, accepted_receiver) = oneshot::channel();
-        let (completed_sender, completed_receiver) = oneshot::channel();
+        let (finalized_sender, finalized_receiver) = oneshot::channel();
         let wallet = Arc::clone(&self.wallet);
         spawn_task("wallet-connect", async move {
             let attempt_guard = attempt_guard;
-            match connect_wallet(&wallet, &daemon_address, &worker_attempt).await {
+            match connect_wallet(
+                &wallet,
+                &daemon_address,
+                &worker_attempt,
+                timeout_duration,
+                options.reconnect_policy,
+            )
+            .await
+            {
                 Ok(api) => {
-                    let delivered = result_sender.send(Ok(())).is_ok();
+                    let delivered = result_sender.send(Ok(Arc::clone(&api))).is_ok();
                     let accepted = delivered && accepted_receiver.await.is_ok();
-                    if !accepted || worker_attempt.is_cancelled() {
+                    let finalized = accepted && finalized_receiver.await.is_ok();
+                    if !finalized || worker_attempt.is_cancelled() {
                         rollback_connection(&wallet, &api).await;
                     }
                     drop(attempt_guard);
-                    let _ = completed_sender.send(());
                 }
                 Err(error) => {
                     drop(attempt_guard);
@@ -576,24 +619,44 @@ impl XelisWallet {
             }
         });
 
-        match timeout(ONLINE_MODE_TIMEOUT, result_receiver).await {
-            Ok(Ok(Ok(()))) => {
+        match timeout(timeout_duration, result_receiver).await {
+            Ok(Ok(Ok(api))) => {
                 accepted_sender
                     .send(())
                     .map_err(|_| network_connect_worker_failed())?;
-                completed_receiver
-                    .await
-                    .map_err(|_| network_connect_worker_failed())?;
                 if attempt.is_cancelled() {
+                    drop(finalized_sender);
+                    attempt.wait_completed().await;
                     Err(network_connect_cancelled())
                 } else {
-                    Ok(())
+                    let mut active_connection = self.active_connection.lock().await;
+                    if attempt.is_cancelled() {
+                        drop(active_connection);
+                        drop(finalized_sender);
+                        attempt.wait_completed().await;
+                        Err(network_connect_cancelled())
+                    } else {
+                        *active_connection = Some(ActiveWalletConnection {
+                            api,
+                            timeout: timeout_duration,
+                        });
+                        finalized_sender
+                            .send(())
+                            .map_err(|_| network_connect_worker_failed())?;
+                        drop(active_connection);
+                        attempt.wait_completed().await;
+                        if attempt.is_cancelled() {
+                            Err(network_connect_cancelled())
+                        } else {
+                            Ok(())
+                        }
+                    }
                 }
             }
             Ok(Ok(Err(error))) => Err(error),
             Ok(Err(_)) => Err(network_connect_worker_failed()),
             Err(_) => {
-                attempt.cancel();
+                self.cancel_connection_attempt(false).await;
                 Err(network_connect_timeout())
             }
         }
@@ -601,13 +664,28 @@ impl XelisWallet {
 
     pub async fn offline_mode(&self) -> std::result::Result<(), NativeXelisError> {
         self.cancel_connection_attempt(false).await;
+        let active = self.active_connection.lock().await.take();
+        let timeout_duration = active
+            .as_ref()
+            .map_or(DEFAULT_ONLINE_MODE_TIMEOUT, |connection| connection.timeout);
+        if let Some(connection) = active {
+            connection.api.client().set_auto_reconnect_delay(None).await;
+            disconnect_daemon_api(connection.api.as_ref()).await;
+        }
         // With application-owned reconnection, the upstream handler runs with
         // auto-reconnect disabled. A failed worker emits SyncError then Offline,
         // disconnects its daemon API, and only afterwards returns its original
         // DaemonAPIError. `set_offline_mode` removes that finished handler before
         // awaiting it, so replaying the old error here would make an idempotent
         // disconnect look like a fresh failure and could stop the next retry.
-        normalize_offline_mode_result(self.wallet.set_offline_mode().await)
+        match timeout(timeout_duration, self.wallet.set_offline_mode()).await {
+            Ok(result) => normalize_offline_mode_result(result),
+            Err(_) => Err(NativeXelisError::xelis_wallet_flutter(
+                NativeXelisErrorCode::Network,
+                "NETWORK_DISCONNECT_TIMEOUT",
+                "Native wallet disconnection exceeded its configured caller limit",
+            )),
+        }
     }
 
     pub async fn is_online(&self) -> bool {
@@ -631,6 +709,11 @@ impl XelisWallet {
 
     pub async fn close(&self) {
         self.cancel_connection_attempt(true).await;
+        let active = self.active_connection.lock().await.take();
+        if let Some(connection) = active {
+            connection.api.client().set_auto_reconnect_delay(None).await;
+            disconnect_daemon_api(connection.api.as_ref()).await;
+        }
         self.wallet.close().await;
     }
 

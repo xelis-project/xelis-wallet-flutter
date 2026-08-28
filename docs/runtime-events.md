@@ -70,7 +70,9 @@ For every connection or reconnection, use this order:
 4. Call and await `wallet.subscribeRuntimeEvents()`.
 5. Start listening and capture wallet identity, request ID, and subscription
    generation in every handler.
-6. Call and await `wallet.setOnline()`.
+6. Call and await `wallet.setOnline()`. Application-managed reconnection and a
+   20-second timeout are the defaults; upstream-managed reconnection is an
+   explicit experimental option.
 7. After every asynchronous handler step, recheck all captured identities
    before mutating application state.
 
@@ -134,8 +136,12 @@ described in [`error-handling.md`](error-handling.md) and
 [`logging.md`](logging.md), but must still exclude seeds, keys, passwords,
 tokens, and signing material.
 
+The subscription fixes its extra-data disclosure for its full lifetime:
+`redacted` (default) exposes flag and presence, `metadata` also exposes the
+top-level kind, and `detailed` exposes the complete typed payload. Detailed
+events are active sensitive data and require explicit consumer handling.
+
 All transaction, balance, topology, timestamp, fee, nonce, gas, supply, and
-asset-owner `u64` values cross FFI directly and remain `BigInt`. Passive
-business events expose only the typed extra-data flag and `hasPayload` marker;
-`PlaintextExtraData.shared_key` and decrypted payloads never enter this public
-event contract.
+asset-owner `u64` values cross FFI directly and remain `BigInt`.
+`PlaintextExtraData.shared_key` never enters the public contract at any
+disclosure level.

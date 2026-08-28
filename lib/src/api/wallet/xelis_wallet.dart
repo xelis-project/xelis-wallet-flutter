@@ -12,6 +12,21 @@ import '../transactions/xelis_wallet_prepared_transaction.dart';
 import '../transactions/xelis_wallet_transaction.dart';
 import '../xswd/xelis_xswd.dart';
 
+enum XelisWalletReconnectPolicy {
+  applicationManaged,
+  upstreamManagedExperimental,
+}
+
+final class XelisWalletConnectionOptions {
+  const XelisWalletConnectionOptions({
+    this.timeout = const Duration(seconds: 20),
+    this.reconnectPolicy = XelisWalletReconnectPolicy.applicationManaged,
+  });
+
+  final Duration timeout;
+  final XelisWalletReconnectPolicy reconnectPolicy;
+}
+
 /// Stable Dart handle for one opened native XELIS wallet.
 ///
 /// The underlying Flutter Rust Bridge opaque handle is deliberately private.
@@ -54,7 +69,10 @@ abstract interface class XelisWallet {
   /// The address must use `http`, `https`, `ws`, or `wss`, include a host, and
   /// contain no credentials, path, query, or fragment. The native boundary
   /// verifies that the daemon network matches [network] before starting sync.
-  Future<void> setOnline({required String daemonAddress});
+  Future<void> setOnline({
+    required String daemonAddress,
+    XelisWalletConnectionOptions options = const XelisWalletConnectionOptions(),
+  });
 
   /// Stops this wallet's daemon connection.
   ///
@@ -114,7 +132,10 @@ abstract interface class XelisWallet {
   /// Unlike [subscribeRuntimeEvents], this subscription remains active while
   /// the wallet is offline and across connection rotations. Consumers must
   /// cancel it only when replacing or closing the wallet session.
-  Future<XelisWalletBusinessEventSubscription> subscribeBusinessEvents();
+  Future<XelisWalletBusinessEventSubscription> subscribeBusinessEvents({
+    XelisWalletExtraDataDisclosure extraDataDisclosure =
+        XelisWalletExtraDataDisclosure.redacted,
+  });
 
   /// Reads the native XELIS balance in atomic units.
   ///

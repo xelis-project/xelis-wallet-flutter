@@ -1,5 +1,17 @@
 use xelis_common::{api::daemon::GetInfoResult, network::Network};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NativeWalletReconnectPolicy {
+    ApplicationManaged,
+    UpstreamManagedExperimental,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NativeWalletConnectionOptions {
+    pub timeout_millis: u64,
+    pub reconnect_policy: NativeWalletReconnectPolicy,
+}
+
 /// Bridge-owned snapshot of the daemon information used by wallet consumers.
 ///
 /// The exhaustive destructuring in `From<GetInfoResult>` intentionally makes

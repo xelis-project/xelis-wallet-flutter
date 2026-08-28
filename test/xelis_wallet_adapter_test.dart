@@ -137,8 +137,22 @@ void main() {
       final delegate = _FakeGeneratedWallet(online: true, syncing: true);
       final wallet = NativeXelisWallet(delegate);
 
-      await wallet.setOnline(daemonAddress: 'https://node.xelis.io/');
+      await wallet.setOnline(
+        daemonAddress: 'https://node.xelis.io/',
+        options: const XelisWalletConnectionOptions(
+          timeout: Duration(seconds: 37),
+          reconnectPolicy:
+              XelisWalletReconnectPolicy.upstreamManagedExperimental,
+        ),
+      );
       expect(delegate.lastDaemonAddress, 'https://node.xelis.io/');
+      expect(delegate.lastConnectionOptions?.timeoutMillis, BigInt.from(37000));
+      expect(
+        delegate.lastConnectionOptions?.reconnectPolicy,
+        generated_runtime
+            .NativeWalletReconnectPolicy
+            .upstreamManagedExperimental,
+      );
 
       expect(await wallet.isOnline(), isTrue);
       expect(await wallet.isSyncing(), isTrue);
@@ -152,6 +166,49 @@ void main() {
       await wallet.setOffline();
       expect(delegate.offlineCount, 1);
     });
+
+    test(
+      'uses safe connection defaults and rejects non-positive timeouts',
+      () async {
+        final delegate = _FakeGeneratedWallet();
+        final wallet = NativeXelisWallet(delegate);
+
+        await wallet.setOnline(daemonAddress: 'https://node.xelis.io');
+        expect(
+          delegate.lastConnectionOptions?.timeoutMillis,
+          BigInt.from(20000),
+        );
+        expect(
+          delegate.lastConnectionOptions?.reconnectPolicy,
+          generated_runtime.NativeWalletReconnectPolicy.applicationManaged,
+        );
+
+        for (final timeout in [
+          Duration.zero,
+          const Duration(microseconds: -1),
+        ]) {
+          expect(
+            () => wallet.setOnline(
+              daemonAddress: 'https://node.xelis.io',
+              options: XelisWalletConnectionOptions(timeout: timeout),
+            ),
+            throwsA(
+              isA<XelisWalletException>()
+                  .having(
+                    (error) => error.code,
+                    'code',
+                    XelisWalletErrorCode.invalidInput,
+                  )
+                  .having(
+                    (error) => error.nativeKind,
+                    'nativeKind',
+                    'NETWORK_TIMEOUT_INVALID',
+                  ),
+            ),
+          );
+        }
+      },
+    );
 
     test(
       'maps every daemon-info field without losing large integers',
@@ -324,6 +381,7 @@ final class _FakeGeneratedWallet implements generated_wallet.XelisWallet {
   int disposeCount = 0;
   BigInt? lastLanguageIndex;
   String? lastDaemonAddress;
+  generated_runtime.NativeWalletConnectionOptions? lastConnectionOptions;
   BigInt? lastRescanTopoheight;
   int offlineCount = 0;
   bool _isDisposed = false;
@@ -361,8 +419,12 @@ final class _FakeGeneratedWallet implements generated_wallet.XelisWallet {
   }
 
   @override
-  Future<void> onlineMode({required String daemonAddress}) async {
+  Future<void> onlineMode({
+    required String daemonAddress,
+    required generated_runtime.NativeWalletConnectionOptions options,
+  }) async {
     lastDaemonAddress = daemonAddress;
+    lastConnectionOptions = options;
     if (onlineError case final error?) {
       throw error;
     }

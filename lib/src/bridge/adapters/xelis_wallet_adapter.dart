@@ -17,6 +17,10 @@ import '../../api/xswd/xelis_xswd.dart';
 import '../../generated/rust_bridge/api/error.dart' as generated_error;
 import '../../generated/rust_bridge/api/models/address_book_v2.dart'
     as generated_address_book;
+import '../../generated/rust_bridge/api/models/business_event_dtos.dart'
+    as generated_business;
+import '../../generated/rust_bridge/api/models/runtime_dtos.dart'
+    as generated_runtime;
 import '../../generated/rust_bridge/api/models/wallet_dtos.dart'
     as generated_wallet;
 import '../../generated/rust_bridge/api/wallet.dart' as generated;
@@ -193,10 +197,45 @@ final class NativeXelisWallet implements XelisWallet {
   }
 
   @override
-  Future<void> setOnline({required String daemonAddress}) {
+  Future<void> setOnline({
+    required String daemonAddress,
+    XelisWalletConnectionOptions options = const XelisWalletConnectionOptions(),
+  }) {
     _ensureActive();
+    final timeoutMillis = options.timeout.inMilliseconds;
+    if (options.timeout.inMicroseconds <= 0 || timeoutMillis <= 0) {
+      throw xelisOperationPreconditionException(
+        operation: XelisWalletOperation.walletNetworkConnect,
+        code: XelisWalletErrorCode.invalidInput,
+        nativeKind: 'NETWORK_TIMEOUT_INVALID',
+        diagnosticMessage:
+            'The connection timeout must be positive and at least one millisecond.',
+      );
+    }
+    final timeoutMillisBigInt = BigInt.from(timeoutMillis);
+    if (timeoutMillisBigInt > _maxUnsigned64) {
+      throw xelisOperationPreconditionException(
+        operation: XelisWalletOperation.walletNetworkConnect,
+        code: XelisWalletErrorCode.invalidInput,
+        nativeKind: 'NETWORK_TIMEOUT_INVALID',
+        diagnosticMessage: 'The connection timeout exceeds the u64 range.',
+      );
+    }
     return guardXelisFuture(
-      () => _delegate.onlineMode(daemonAddress: daemonAddress),
+      () => _delegate.onlineMode(
+        daemonAddress: daemonAddress,
+        options: generated_runtime.NativeWalletConnectionOptions(
+          timeoutMillis: timeoutMillisBigInt,
+          reconnectPolicy: switch (options.reconnectPolicy) {
+            XelisWalletReconnectPolicy.applicationManaged =>
+              generated_runtime.NativeWalletReconnectPolicy.applicationManaged,
+            XelisWalletReconnectPolicy.upstreamManagedExperimental =>
+              generated_runtime
+                  .NativeWalletReconnectPolicy
+                  .upstreamManagedExperimental,
+          },
+        ),
+      ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
         operation: XelisWalletOperation.walletNetworkConnect,
@@ -243,9 +282,15 @@ final class NativeXelisWallet implements XelisWallet {
   @override
   Future<void> startXswd({required XelisXswdCallbacks callbacks}) async {
     _ensureActive();
+    const operation = XelisWalletOperation.walletXswdStart;
+    final generatedLimits = generatedXswdLimitsFromXelis(
+      callbacks,
+      operation: operation,
+    );
     final generatedCallbacks = generatedXswdCallbacksFromXelis(callbacks);
     await guardXelisFuture(
       () => _delegate.startXswd(
+        projectionLimits: generatedLimits,
         cancelRequestDartCallback: generatedCallbacks.cancelRequest,
         requestApplicationDartCallback: generatedCallbacks.applicationRequest,
         requestPermissionDartCallback: generatedCallbacks.permissionRequest,
@@ -255,7 +300,7 @@ final class NativeXelisWallet implements XelisWallet {
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
-        operation: XelisWalletOperation.walletXswdStart,
+        operation: operation,
       ),
     );
   }
@@ -307,10 +352,15 @@ final class NativeXelisWallet implements XelisWallet {
       relayer,
       operation: operation,
     );
+    final generatedLimits = generatedXswdLimitsFromXelis(
+      callbacks,
+      operation: operation,
+    );
     final generatedCallbacks = generatedXswdCallbacksFromXelis(callbacks);
     await guardXelisFuture(
       () => _delegate.addXswdRelayer(
         appData: generatedRelayer,
+        projectionLimits: generatedLimits,
         cancelRequestDartCallback: generatedCallbacks.cancelRequest,
         requestApplicationDartCallback: generatedCallbacks.applicationRequest,
         requestPermissionDartCallback: generatedCallbacks.permissionRequest,
@@ -411,10 +461,22 @@ final class NativeXelisWallet implements XelisWallet {
   }
 
   @override
-  Future<XelisWalletBusinessEventSubscription> subscribeBusinessEvents() async {
+  Future<XelisWalletBusinessEventSubscription> subscribeBusinessEvents({
+    XelisWalletExtraDataDisclosure extraDataDisclosure =
+        XelisWalletExtraDataDisclosure.redacted,
+  }) async {
     _ensureActive();
     final delegate = await guardXelisFuture(
-      _delegate.subscribeBusinessEvents,
+      () => _delegate.subscribeBusinessEvents(
+        extraDataDisclosure: switch (extraDataDisclosure) {
+          XelisWalletExtraDataDisclosure.redacted =>
+            generated_business.NativeWalletExtraDataDisclosure.redacted,
+          XelisWalletExtraDataDisclosure.metadata =>
+            generated_business.NativeWalletExtraDataDisclosure.metadata,
+          XelisWalletExtraDataDisclosure.detailed =>
+            generated_business.NativeWalletExtraDataDisclosure.detailed,
+        },
+      ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWalletFlutter,
         operation: XelisWalletOperation.walletBusinessEventsSubscribe,
@@ -1809,9 +1871,16 @@ void _requirePositiveUnsigned64(
 
 generated_wallet.NativeTransactionFeePolicy _generatedFeePolicy(
   XelisWalletFeePolicy policy,
-) => generated_wallet.NativeTransactionFeePolicy(
-  basisPoints: policy.multiplierBasisPoints,
-);
+) => switch (policy) {
+  XelisWalletAutomaticFeePolicy() =>
+    const generated_wallet.NativeTransactionFeePolicy.automatic(),
+  XelisWalletFixedFeePolicy(:final feeAtomic) =>
+    generated_wallet.NativeTransactionFeePolicy.fixed(feeAtomic),
+  XelisWalletTipFeePolicy(:final tipAtomic) =>
+    generated_wallet.NativeTransactionFeePolicy.tip(tipAtomic),
+  XelisWalletMultiplierFeePolicy(:final basisPoints) =>
+    generated_wallet.NativeTransactionFeePolicy.multiplier(basisPoints),
+};
 
 List<generated_wallet.NativeTransactionTransferRequest>
 _generatedTransferRequests(
