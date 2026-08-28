@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - **Breaking:** Replaced `XelisXswdRequest.payloadJson` with the typed,
   deeply immutable `XelisXswdValue` projection for XWF 0.3.0. Native `i64` and
@@ -25,13 +25,22 @@
 - Added `XelisWalletConnectionOptions` with a configurable positive timeout
   and opt-in experimental upstream-managed reconnection. Application-managed
   reconnection and a 20-second timeout remain the defaults.
+- **Build:** Updated the pinned Rust toolchain from 1.93.1 to 1.94.1 while
+  retaining the same declared components and supported native targets.
+- **Build:** Changed the supported binding-generation command to
+  `dart tool/generate_bindings.dart`. Direct script execution prevents stale or
+  missing generated Rust bindings from triggering Native Asset hooks before
+  the generator can start.
+
+## 0.2.0
+
 - **Breaking:** Raised the minimum toolchain to Dart 3.13 and Flutter 3.47
   while migrating the private generated boundary to Freezed 4 and
   `flutter_rust_bridge` 2.13.0. Authored Dart APIs, wallet storage, and
   consumer source contracts remain unchanged.
 - **Build:** Replaced the vendored Cargokit FFI-plugin integration with Flutter
   Native Assets using `flutter_rust_bridge_hooks` 2.13.0. Native consumers now
-  build the pinned Rust 1.94.1 toolchain through Rustup; authored APIs, wallet
+  build the pinned Rust 1.93.1 toolchain through Rustup; authored APIs, wallet
   storage, XELIS revisions, and the separate Web build remain unchanged.
 - Web cancellation of the process-global native log and progress streams now
   completes after initiating the FRB listener detachment. Pull-driven wallet
