@@ -97,7 +97,7 @@ class XelisWalletFlutterBridge
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1687053449;
+  int get rustContentHash => 1026549697;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -199,15 +199,20 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   Future<void> crateApiWalletXelisWalletAddXswdRelayer({
     required XelisWallet that,
     required ApplicationDataRelayer appData,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 
@@ -548,6 +553,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   Future<void> crateApiWalletXelisWalletOnlineMode({
     required XelisWallet that,
     required String daemonAddress,
+    required NativeWalletConnectionOptions options,
   });
 
   Future<NativePreparedTransaction>
@@ -611,22 +617,30 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   Future<void> crateApiWalletXelisWalletStartXswd({
     required XelisWallet that,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 
   Future<void> crateApiWalletXelisWalletStopXswd({required XelisWallet that});
 
   Future<WalletBusinessEventSubscription>
-  crateApiWalletXelisWalletSubscribeBusinessEvents({required XelisWallet that});
+  crateApiWalletXelisWalletSubscribeBusinessEvents({
+    required XelisWallet that,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
+  });
 
   Future<WalletRuntimeEventSubscription>
   crateApiWalletXelisWalletSubscribeRuntimeEvents({required XelisWallet that});
@@ -706,6 +720,9 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
     required NativeXelisDataElement integratedData,
   });
 
+  Future<NativeXswdProjectionLimits>
+  crateApiModelsXswdDtosNativeXswdProjectionLimitsDefault();
+
   Future<XelisWallet> crateApiWalletOpenXelisWallet({
     required String name,
     required String directory,
@@ -740,26 +757,12 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   Future<void> crateApiApiSetUpRustLogger({
     required Level minimumLevel,
-    required bool diagnosticMode,
+    required NativeLogScope scope,
   });
 
   Future<void> crateApiWalletUpdateTables({
     required String precomputedTablesPath,
     required PrecomputedTableType precomputedTableType,
-  });
-
-  Future<void> crateApiXswdImpXswdHandler({
-    required UnboundedReceiverXswdEvent receiver,
-    required FutureOr<void> Function(XswdRequestSummary)
-    cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
-    appDisconnectDartCallback,
   });
 
   bool crateApiModelsXswdDtosXswdRequestSummaryIsAppDisconnect({
@@ -779,14 +782,6 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   });
 
   bool crateApiModelsXswdDtosXswdRequestSummaryIsPrefetchPermissionsRequest({
-    required XswdRequestSummary that,
-  });
-
-  String? crateApiModelsXswdDtosXswdRequestSummaryPermissionJson({
-    required XswdRequestSummary that,
-  });
-
-  String? crateApiModelsXswdDtosXswdRequestSummaryPrefetchPermissionsJson({
     required XswdRequestSummary that,
   });
 
@@ -863,15 +858,6 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_TransactionTypeBuilderPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UnboundedReceiverXswdEvent;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UnboundedReceiverXswdEvent;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_UnboundedReceiverXswdEventPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_WalletBusinessEventSubscription;
@@ -1575,15 +1561,20 @@ class XelisWalletFlutterBridgeApiImpl
   Future<void> crateApiWalletXelisWalletAddXswdRelayer({
     required XelisWallet that,
     required ApplicationDataRelayer appData,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   }) {
     return handler.executeNormal(
@@ -1595,23 +1586,27 @@ class XelisWalletFlutterBridgeApiImpl
             serializer,
           );
           sse_encode_box_autoadd_application_data_relayer(appData, serializer);
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+          sse_encode_box_autoadd_native_xswd_projection_limits(
+            projectionLimits,
+            serializer,
+          );
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
             cancelRequestDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestApplicationDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestPermissionDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestPrefetchPermissionsDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
             appDisconnectDartCallback,
             serializer,
           );
@@ -1630,6 +1625,7 @@ class XelisWalletFlutterBridgeApiImpl
         argValues: [
           that,
           appData,
+          projectionLimits,
           cancelRequestDartCallback,
           requestApplicationDartCallback,
           requestPermissionDartCallback,
@@ -1647,6 +1643,7 @@ class XelisWalletFlutterBridgeApiImpl
         argNames: [
           "that",
           "appData",
+          "projectionLimits",
           "cancelRequestDartCallback",
           "requestApplicationDartCallback",
           "requestPermissionDartCallback",
@@ -4131,6 +4128,7 @@ class XelisWalletFlutterBridgeApiImpl
   Future<void> crateApiWalletXelisWalletOnlineMode({
     required XelisWallet that,
     required String daemonAddress,
+    required NativeWalletConnectionOptions options,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -4141,6 +4139,10 @@ class XelisWalletFlutterBridgeApiImpl
             serializer,
           );
           sse_encode_String(daemonAddress, serializer);
+          sse_encode_box_autoadd_native_wallet_connection_options(
+            options,
+            serializer,
+          );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -4153,7 +4155,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletOnlineModeConstMeta,
-        argValues: [that, daemonAddress],
+        argValues: [that, daemonAddress, options],
         apiImpl: this,
       ),
     );
@@ -4162,7 +4164,7 @@ class XelisWalletFlutterBridgeApiImpl
   TaskConstMeta get kCrateApiWalletXelisWalletOnlineModeConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_online_mode",
-        argNames: ["that", "daemonAddress"],
+        argNames: ["that", "daemonAddress", "options"],
       );
 
   @override
@@ -4570,15 +4572,20 @@ class XelisWalletFlutterBridgeApiImpl
   @override
   Future<void> crateApiWalletXelisWalletStartXswd({
     required XelisWallet that,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   }) {
     return handler.executeNormal(
@@ -4589,23 +4596,27 @@ class XelisWalletFlutterBridgeApiImpl
             that,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+          sse_encode_box_autoadd_native_xswd_projection_limits(
+            projectionLimits,
+            serializer,
+          );
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
             cancelRequestDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestApplicationDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestPermissionDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
             requestPrefetchPermissionsDartCallback,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
             appDisconnectDartCallback,
             serializer,
           );
@@ -4623,6 +4634,7 @@ class XelisWalletFlutterBridgeApiImpl
         constMeta: kCrateApiWalletXelisWalletStartXswdConstMeta,
         argValues: [
           that,
+          projectionLimits,
           cancelRequestDartCallback,
           requestApplicationDartCallback,
           requestPermissionDartCallback,
@@ -4639,6 +4651,7 @@ class XelisWalletFlutterBridgeApiImpl
         debugName: "XelisWallet_start_xswd",
         argNames: [
           "that",
+          "projectionLimits",
           "cancelRequestDartCallback",
           "requestApplicationDartCallback",
           "requestPermissionDartCallback",
@@ -4685,6 +4698,7 @@ class XelisWalletFlutterBridgeApiImpl
   Future<WalletBusinessEventSubscription>
   crateApiWalletXelisWalletSubscribeBusinessEvents({
     required XelisWallet that,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -4692,6 +4706,10 @@ class XelisWalletFlutterBridgeApiImpl
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerXelisWallet(
             that,
+            serializer,
+          );
+          sse_encode_native_wallet_extra_data_disclosure(
+            extraDataDisclosure,
             serializer,
           );
           pdeCallFfi(
@@ -4707,7 +4725,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletSubscribeBusinessEventsConstMeta,
-        argValues: [that],
+        argValues: [that, extraDataDisclosure],
         apiImpl: this,
       ),
     );
@@ -4717,7 +4735,7 @@ class XelisWalletFlutterBridgeApiImpl
   get kCrateApiWalletXelisWalletSubscribeBusinessEventsConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_subscribe_business_events",
-        argNames: ["that"],
+        argNames: ["that", "extraDataDisclosure"],
       );
 
   @override
@@ -5413,6 +5431,39 @@ class XelisWalletFlutterBridgeApiImpl
       );
 
   @override
+  Future<NativeXswdProjectionLimits>
+  crateApiModelsXswdDtosNativeXswdProjectionLimitsDefault() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 129,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_native_xswd_projection_limits,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiModelsXswdDtosNativeXswdProjectionLimitsDefaultConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiModelsXswdDtosNativeXswdProjectionLimitsDefaultConstMeta =>
+      const TaskConstMeta(
+        debugName: "native_xswd_projection_limits_default",
+        argNames: [],
+      );
+
+  @override
   Future<XelisWallet> crateApiWalletOpenXelisWallet({
     required String name,
     required String directory,
@@ -5437,7 +5488,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 129,
+            funcId: 130,
             port: port_,
           );
         },
@@ -5485,7 +5536,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 130,
+            funcId: 131,
           )!;
         },
         codec: SseCodec(
@@ -5514,7 +5565,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 131,
+            funcId: 132,
             port: port_,
           );
         },
@@ -5548,7 +5599,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 132,
+            funcId: 133,
             port: port_,
           );
         },
@@ -5582,7 +5633,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 133,
+            funcId: 134,
             port: port_,
           );
         },
@@ -5614,7 +5665,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 134,
+            funcId: 135,
           )!;
         },
         codec: SseCodec(
@@ -5645,7 +5696,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 135,
+            funcId: 136,
           )!;
         },
         codec: SseCodec(
@@ -5667,18 +5718,18 @@ class XelisWalletFlutterBridgeApiImpl
   @override
   Future<void> crateApiApiSetUpRustLogger({
     required Level minimumLevel,
-    required bool diagnosticMode,
+    required NativeLogScope scope,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_level(minimumLevel, serializer);
-          sse_encode_bool(diagnosticMode, serializer);
+          sse_encode_native_log_scope(scope, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 136,
+            funcId: 137,
             port: port_,
           );
         },
@@ -5687,7 +5738,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiApiSetUpRustLoggerConstMeta,
-        argValues: [minimumLevel, diagnosticMode],
+        argValues: [minimumLevel, scope],
         apiImpl: this,
       ),
     );
@@ -5695,7 +5746,7 @@ class XelisWalletFlutterBridgeApiImpl
 
   TaskConstMeta get kCrateApiApiSetUpRustLoggerConstMeta => const TaskConstMeta(
     debugName: "set_up_rust_logger",
-    argNames: ["minimumLevel", "diagnosticMode"],
+    argNames: ["minimumLevel", "scope"],
   );
 
   @override
@@ -5715,7 +5766,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 137,
+            funcId: 138,
             port: port_,
           );
         },
@@ -5733,85 +5784,6 @@ class XelisWalletFlutterBridgeApiImpl
   TaskConstMeta get kCrateApiWalletUpdateTablesConstMeta => const TaskConstMeta(
     debugName: "update_tables",
     argNames: ["precomputedTablesPath", "precomputedTableType"],
-  );
-
-  @override
-  Future<void> crateApiXswdImpXswdHandler({
-    required UnboundedReceiverXswdEvent receiver,
-    required FutureOr<void> Function(XswdRequestSummary)
-    cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-    requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
-    appDisconnectDartCallback,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-            receiver,
-            serializer,
-          );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
-            cancelRequestDartCallback,
-            serializer,
-          );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-            requestApplicationDartCallback,
-            serializer,
-          );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-            requestPermissionDartCallback,
-            serializer,
-          );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-            requestPrefetchPermissionsDartCallback,
-            serializer,
-          );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
-            appDisconnectDartCallback,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 138,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiXswdImpXswdHandlerConstMeta,
-        argValues: [
-          receiver,
-          cancelRequestDartCallback,
-          requestApplicationDartCallback,
-          requestPermissionDartCallback,
-          requestPrefetchPermissionsDartCallback,
-          appDisconnectDartCallback,
-        ],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiXswdImpXswdHandlerConstMeta => const TaskConstMeta(
-    debugName: "xswd_handler",
-    argNames: [
-      "receiver",
-      "cancelRequestDartCallback",
-      "requestApplicationDartCallback",
-      "requestPermissionDartCallback",
-      "requestPrefetchPermissionsDartCallback",
-      "appDisconnectDartCallback",
-    ],
   );
 
   @override
@@ -5984,82 +5956,14 @@ class XelisWalletFlutterBridgeApiImpl
         argNames: ["that"],
       );
 
-  @override
-  String? crateApiModelsXswdDtosXswdRequestSummaryPermissionJson({
-    required XswdRequestSummary that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_xswd_request_summary(that, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 144,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiModelsXswdDtosXswdRequestSummaryPermissionJsonConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiModelsXswdDtosXswdRequestSummaryPermissionJsonConstMeta =>
-      const TaskConstMeta(
-        debugName: "xswd_request_summary_permission_json",
-        argNames: ["that"],
-      );
-
-  @override
-  String? crateApiModelsXswdDtosXswdRequestSummaryPrefetchPermissionsJson({
-    required XswdRequestSummary that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_xswd_request_summary(that, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 145,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiModelsXswdDtosXswdRequestSummaryPrefetchPermissionsJsonConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiModelsXswdDtosXswdRequestSummaryPrefetchPermissionsJsonConstMeta =>
-      const TaskConstMeta(
-        debugName: "xswd_request_summary_prefetch_permissions_json",
-        argNames: ["that"],
-      );
-
   Future<void> Function(int, dynamic)
-  encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
-    FutureOr<void> Function(XswdRequestSummary) raw,
+  encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
+    FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary) raw,
   ) {
     return (callId, rawArg0) async {
       final arg0 = dco_decode_xswd_request_summary(rawArg0);
 
-      Box<void>? rawOutput;
+      Box<XswdDecisionCallbackOutcome>? rawOutput;
       Box<AnyhowException>? rawError;
       try {
         rawOutput = Box(await raw(arg0));
@@ -6071,7 +5975,7 @@ class XelisWalletFlutterBridgeApiImpl
       assert((rawOutput != null) ^ (rawError != null));
       if (rawOutput != null) {
         serializer.buffer.putUint8(0);
-        sse_encode_unit(rawOutput.value, serializer);
+        sse_encode_xswd_decision_callback_outcome(rawOutput.value, serializer);
       } else {
         serializer.buffer.putUint8(1);
         sse_encode_AnyhowException(rawError!.value, serializer);
@@ -6088,13 +5992,13 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   Future<void> Function(int, dynamic)
-  encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-    FutureOr<UserPermissionDecision> Function(XswdRequestSummary) raw,
+  encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary) raw,
   ) {
     return (callId, rawArg0) async {
       final arg0 = dco_decode_xswd_request_summary(rawArg0);
 
-      Box<UserPermissionDecision>? rawOutput;
+      Box<XswdNotificationCallbackOutcome>? rawOutput;
       Box<AnyhowException>? rawError;
       try {
         rawOutput = Box(await raw(arg0));
@@ -6106,7 +6010,10 @@ class XelisWalletFlutterBridgeApiImpl
       assert((rawOutput != null) ^ (rawError != null));
       if (rawOutput != null) {
         serializer.buffer.putUint8(0);
-        sse_encode_user_permission_decision(rawOutput.value, serializer);
+        sse_encode_xswd_notification_callback_outcome(
+          rawOutput.value,
+          serializer,
+        );
       } else {
         serializer.buffer.putUint8(1);
         sse_encode_AnyhowException(rawError!.value, serializer);
@@ -6193,14 +6100,6 @@ class XelisWalletFlutterBridgeApiImpl
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_TransactionTypeBuilder => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilder;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UnboundedReceiverXswdEvent => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UnboundedReceiverXswdEvent => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_WalletBusinessEventSubscription => wire
@@ -6304,17 +6203,6 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return TransactionTypeBuilderImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  UnboundedReceiverXswdEvent
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UnboundedReceiverXswdEventImpl.frbInternalDcoDecode(
       raw as List<dynamic>,
     );
   }
@@ -6436,8 +6324,8 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  FutureOr<void> Function(XswdRequestSummary)
-  dco_decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+  FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
+  dco_decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -6445,8 +6333,8 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-  dco_decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+  FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary)
+  dco_decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -6580,17 +6468,6 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return TransactionTypeBuilderImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  UnboundedReceiverXswdEvent
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UnboundedReceiverXswdEventImpl.frbInternalDcoDecode(
       raw as List<dynamic>,
     );
   }
@@ -6754,6 +6631,12 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
   HistoryPageFilter dco_decode_box_autoadd_history_page_filter(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_history_page_filter(raw);
@@ -6806,6 +6689,13 @@ class XelisWalletFlutterBridgeApiImpl
   dco_decode_box_autoadd_native_wallet_business_event_frame(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_native_wallet_business_event_frame(raw);
+  }
+
+  @protected
+  NativeWalletConnectionOptions
+  dco_decode_box_autoadd_native_wallet_connection_options(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_native_wallet_connection_options(raw);
   }
 
   @protected
@@ -6872,6 +6762,19 @@ class XelisWalletFlutterBridgeApiImpl
   NativeXelisError dco_decode_box_autoadd_native_xelis_error(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_native_xelis_error(raw);
+  }
+
+  @protected
+  NativeXswdPayload dco_decode_box_autoadd_native_xswd_payload(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_native_xswd_payload(raw);
+  }
+
+  @protected
+  NativeXswdProjectionLimits
+  dco_decode_box_autoadd_native_xswd_projection_limits(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_native_xswd_projection_limits(raw);
   }
 
   @protected
@@ -7145,6 +7048,16 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  List<NativeXswdPayloadToken> dco_decode_list_native_xswd_payload_token(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_native_xswd_payload_token)
+        .toList();
+  }
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
@@ -7268,6 +7181,12 @@ class XelisWalletFlutterBridgeApiImpl
       target: dco_decode_String(arr[1]),
       message: dco_decode_String(arr[2]),
     );
+  }
+
+  @protected
+  NativeLogScope dco_decode_native_log_scope(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return NativeLogScope.values[raw as int];
   }
 
   @protected
@@ -7516,10 +7435,18 @@ class XelisWalletFlutterBridgeApiImpl
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return NativeTransactionFeePolicy(basisPoints: dco_decode_u_32(arr[0]));
+    switch (raw[0]) {
+      case 0:
+        return NativeTransactionFeePolicy_Automatic();
+      case 1:
+        return NativeTransactionFeePolicy_Fixed(dco_decode_u_64(raw[1]));
+      case 2:
+        return NativeTransactionFeePolicy_Tip(dco_decode_u_64(raw[1]));
+      case 3:
+        return NativeTransactionFeePolicy_Multiplier(dco_decode_u_64(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -7637,6 +7564,20 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeWalletConnectionOptions dco_decode_native_wallet_connection_options(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return NativeWalletConnectionOptions(
+      timeoutMillis: dco_decode_u_64(arr[0]),
+      reconnectPolicy: dco_decode_native_wallet_reconnect_policy(arr[1]),
+    );
+  }
+
+  @protected
   NativeWalletContractTransferGroup
   dco_decode_native_wallet_contract_transfer_group(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -7679,6 +7620,13 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeWalletExtraDataDisclosure
+  dco_decode_native_wallet_extra_data_disclosure(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return NativeWalletExtraDataDisclosure.values[raw as int];
+  }
+
+  @protected
   NativeWalletExtraDataFlag dco_decode_native_wallet_extra_data_flag(
     dynamic raw,
   ) {
@@ -7706,6 +7654,14 @@ class XelisWalletFlutterBridgeApiImpl
       timestampMillis: dco_decode_u_64(arr[1]),
       entry: dco_decode_native_wallet_transaction_entry_data(arr[2]),
     );
+  }
+
+  @protected
+  NativeWalletReconnectPolicy dco_decode_native_wallet_reconnect_policy(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return NativeWalletReconnectPolicy.values[raw as int];
   }
 
   @protected
@@ -8007,6 +7963,57 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeXswdPayload dco_decode_native_xswd_payload(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return NativeXswdPayload(
+      tokens: dco_decode_list_native_xswd_payload_token(arr[0]),
+    );
+  }
+
+  @protected
+  NativeXswdPayloadToken dco_decode_native_xswd_payload_token(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return NativeXswdPayloadToken(
+      kind: dco_decode_native_xswd_payload_token_kind(arr[0]),
+      boolValue: dco_decode_opt_box_autoadd_bool(arr[1]),
+      textValue: dco_decode_opt_String(arr[2]),
+      floatValue: dco_decode_opt_box_autoadd_f_64(arr[3]),
+      length: dco_decode_opt_box_autoadd_u_32(arr[4]),
+    );
+  }
+
+  @protected
+  NativeXswdPayloadTokenKind dco_decode_native_xswd_payload_token_kind(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return NativeXswdPayloadTokenKind.values[raw as int];
+  }
+
+  @protected
+  NativeXswdProjectionLimits dco_decode_native_xswd_projection_limits(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return NativeXswdProjectionLimits(
+      maxDepth: dco_decode_u_32(arr[0]),
+      maxTokens: dco_decode_u_32(arr[1]),
+      maxContainerMembers: dco_decode_u_32(arr[2]),
+      maxTextBytes: dco_decode_u_32(arr[3]),
+      maxTotalTextBytes: dco_decode_u_32(arr[4]),
+    );
+  }
+
+  @protected
   Network dco_decode_network(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return Network.values[raw as int];
@@ -8041,6 +8048,12 @@ class XelisWalletFlutterBridgeApiImpl
   EncryptionMode? dco_decode_opt_box_autoadd_encryption_mode(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_encryption_mode(raw);
+  }
+
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
   }
 
   @protected
@@ -8298,12 +8311,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  UserPermissionDecision dco_decode_user_permission_decision(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UserPermissionDecision.values[raw as int];
-  }
-
-  @protected
   BigInt dco_decode_usize(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeU64(raw);
@@ -8392,6 +8399,22 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  XswdDecisionCallbackOutcome dco_decode_xswd_decision_callback_outcome(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return XswdDecisionCallbackOutcome.values[raw as int];
+  }
+
+  @protected
+  XswdNotificationCallbackOutcome dco_decode_xswd_notification_callback_outcome(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return XswdNotificationCallbackOutcome.values[raw as int];
+  }
+
+  @protected
   XswdRequestSummary dco_decode_xswd_request_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -8410,9 +8433,13 @@ class XelisWalletFlutterBridgeApiImpl
       case 0:
         return XswdRequestType_Application();
       case 1:
-        return XswdRequestType_Permission(dco_decode_String(raw[1]));
+        return XswdRequestType_Permission(
+          dco_decode_box_autoadd_native_xswd_payload(raw[1]),
+        );
       case 2:
-        return XswdRequestType_PrefetchPermissions(dco_decode_String(raw[1]));
+        return XswdRequestType_PrefetchPermissions(
+          dco_decode_box_autoadd_native_xswd_payload(raw[1]),
+        );
       case 3:
         return XswdRequestType_CancelRequest();
       case 4:
@@ -8520,18 +8547,6 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return TransactionTypeBuilderImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  UnboundedReceiverXswdEvent
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UnboundedReceiverXswdEventImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -8836,18 +8851,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  UnboundedReceiverXswdEvent
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UnboundedReceiverXswdEventImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   WalletBusinessEventSubscription
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscription(
     SseDeserializer deserializer,
@@ -9015,6 +9018,12 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_f_64(deserializer));
+  }
+
+  @protected
   HistoryPageFilter sse_decode_box_autoadd_history_page_filter(
     SseDeserializer deserializer,
   ) {
@@ -9077,6 +9086,15 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_native_wallet_business_event_frame(deserializer));
+  }
+
+  @protected
+  NativeWalletConnectionOptions
+  sse_decode_box_autoadd_native_wallet_connection_options(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_native_wallet_connection_options(deserializer));
   }
 
   @protected
@@ -9153,6 +9171,23 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_native_xelis_error(deserializer));
+  }
+
+  @protected
+  NativeXswdPayload sse_decode_box_autoadd_native_xswd_payload(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_native_xswd_payload(deserializer));
+  }
+
+  @protected
+  NativeXswdProjectionLimits
+  sse_decode_box_autoadd_native_xswd_projection_limits(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_native_xswd_projection_limits(deserializer));
   }
 
   @protected
@@ -9524,6 +9559,20 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  List<NativeXswdPayloadToken> sse_decode_list_native_xswd_payload_token(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <NativeXswdPayloadToken>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_native_xswd_payload_token(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -9687,6 +9736,13 @@ class XelisWalletFlutterBridgeApiImpl
       target: var_target,
       message: var_message,
     );
+  }
+
+  @protected
+  NativeLogScope sse_decode_native_log_scope(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return NativeLogScope.values[inner];
   }
 
   @protected
@@ -9998,8 +10054,23 @@ class XelisWalletFlutterBridgeApiImpl
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_basisPoints = sse_decode_u_32(deserializer);
-    return NativeTransactionFeePolicy(basisPoints: var_basisPoints);
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        return NativeTransactionFeePolicy_Automatic();
+      case 1:
+        var var_field0 = sse_decode_u_64(deserializer);
+        return NativeTransactionFeePolicy_Fixed(var_field0);
+      case 2:
+        var var_field0 = sse_decode_u_64(deserializer);
+        return NativeTransactionFeePolicy_Tip(var_field0);
+      case 3:
+        var var_field0 = sse_decode_u_64(deserializer);
+        return NativeTransactionFeePolicy_Multiplier(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -10140,6 +10211,21 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeWalletConnectionOptions sse_decode_native_wallet_connection_options(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_timeoutMillis = sse_decode_u_64(deserializer);
+    var var_reconnectPolicy = sse_decode_native_wallet_reconnect_policy(
+      deserializer,
+    );
+    return NativeWalletConnectionOptions(
+      timeoutMillis: var_timeoutMillis,
+      reconnectPolicy: var_reconnectPolicy,
+    );
+  }
+
+  @protected
   NativeWalletContractTransferGroup
   sse_decode_native_wallet_contract_transfer_group(
     SseDeserializer deserializer,
@@ -10188,6 +10274,14 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeWalletExtraDataDisclosure
+  sse_decode_native_wallet_extra_data_disclosure(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return NativeWalletExtraDataDisclosure.values[inner];
+  }
+
+  @protected
   NativeWalletExtraDataFlag sse_decode_native_wallet_extra_data_flag(
     SseDeserializer deserializer,
   ) {
@@ -10221,6 +10315,15 @@ class XelisWalletFlutterBridgeApiImpl
       timestampMillis: var_timestampMillis,
       entry: var_entry,
     );
+  }
+
+  @protected
+  NativeWalletReconnectPolicy sse_decode_native_wallet_reconnect_policy(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return NativeWalletReconnectPolicy.values[inner];
   }
 
   @protected
@@ -10617,6 +10720,62 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  NativeXswdPayload sse_decode_native_xswd_payload(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_tokens = sse_decode_list_native_xswd_payload_token(deserializer);
+    return NativeXswdPayload(tokens: var_tokens);
+  }
+
+  @protected
+  NativeXswdPayloadToken sse_decode_native_xswd_payload_token(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_native_xswd_payload_token_kind(deserializer);
+    var var_boolValue = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_textValue = sse_decode_opt_String(deserializer);
+    var var_floatValue = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_length = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return NativeXswdPayloadToken(
+      kind: var_kind,
+      boolValue: var_boolValue,
+      textValue: var_textValue,
+      floatValue: var_floatValue,
+      length: var_length,
+    );
+  }
+
+  @protected
+  NativeXswdPayloadTokenKind sse_decode_native_xswd_payload_token_kind(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return NativeXswdPayloadTokenKind.values[inner];
+  }
+
+  @protected
+  NativeXswdProjectionLimits sse_decode_native_xswd_projection_limits(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_maxDepth = sse_decode_u_32(deserializer);
+    var var_maxTokens = sse_decode_u_32(deserializer);
+    var var_maxContainerMembers = sse_decode_u_32(deserializer);
+    var var_maxTextBytes = sse_decode_u_32(deserializer);
+    var var_maxTotalTextBytes = sse_decode_u_32(deserializer);
+    return NativeXswdProjectionLimits(
+      maxDepth: var_maxDepth,
+      maxTokens: var_maxTokens,
+      maxContainerMembers: var_maxContainerMembers,
+      maxTextBytes: var_maxTextBytes,
+      maxTotalTextBytes: var_maxTotalTextBytes,
+    );
+  }
+
+  @protected
   Network sse_decode_network(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -10669,6 +10828,17 @@ class XelisWalletFlutterBridgeApiImpl
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_encryption_mode(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_f_64(deserializer));
     } else {
       return null;
     }
@@ -10988,15 +11158,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  UserPermissionDecision sse_decode_user_permission_decision(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return UserPermissionDecision.values[inner];
-  }
-
-  @protected
   BigInt sse_decode_usize(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getBigUint64();
@@ -11116,6 +11277,24 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  XswdDecisionCallbackOutcome sse_decode_xswd_decision_callback_outcome(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return XswdDecisionCallbackOutcome.values[inner];
+  }
+
+  @protected
+  XswdNotificationCallbackOutcome sse_decode_xswd_notification_callback_outcome(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return XswdNotificationCallbackOutcome.values[inner];
+  }
+
+  @protected
   XswdRequestSummary sse_decode_xswd_request_summary(
     SseDeserializer deserializer,
   ) {
@@ -11137,10 +11316,14 @@ class XelisWalletFlutterBridgeApiImpl
       case 0:
         return XswdRequestType_Application();
       case 1:
-        var var_field0 = sse_decode_String(deserializer);
+        var var_field0 = sse_decode_box_autoadd_native_xswd_payload(
+          deserializer,
+        );
         return XswdRequestType_Permission(var_field0);
       case 2:
-        var var_field0 = sse_decode_String(deserializer);
+        var var_field0 = sse_decode_box_autoadd_native_xswd_payload(
+          deserializer,
+        );
         return XswdRequestType_PrefetchPermissions(var_field0);
       case 3:
         return XswdRequestType_CancelRequest();
@@ -11260,19 +11443,6 @@ class XelisWalletFlutterBridgeApiImpl
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as TransactionTypeBuilderImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    UnboundedReceiverXswdEvent self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UnboundedReceiverXswdEventImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
@@ -11443,13 +11613,13 @@ class XelisWalletFlutterBridgeApiImpl
 
   @protected
   void
-  sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
-    FutureOr<void> Function(XswdRequestSummary) self,
+  sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
+    FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary) self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_DartOpaque(
-      encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+      encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
         self,
       ),
       serializer,
@@ -11458,13 +11628,13 @@ class XelisWalletFlutterBridgeApiImpl
 
   @protected
   void
-  sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-    FutureOr<UserPermissionDecision> Function(XswdRequestSummary) self,
+  sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary) self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_DartOpaque(
-      encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+      encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
         self,
       ),
       serializer,
@@ -11653,19 +11823,6 @@ class XelisWalletFlutterBridgeApiImpl
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    UnboundedReceiverXswdEvent self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UnboundedReceiverXswdEventImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscription(
     WalletBusinessEventSubscription self,
     SseSerializer serializer,
@@ -11844,6 +12001,12 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_history_page_filter(
     HistoryPageFilter self,
     SseSerializer serializer,
@@ -11910,6 +12073,15 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_native_wallet_business_event_frame(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_native_wallet_connection_options(
+    NativeWalletConnectionOptions self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_native_wallet_connection_options(self, serializer);
   }
 
   @protected
@@ -11991,6 +12163,24 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_native_xelis_error(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_native_xswd_payload(
+    NativeXswdPayload self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_native_xswd_payload(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_native_xswd_projection_limits(
+    NativeXswdProjectionLimits self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_native_xswd_projection_limits(self, serializer);
   }
 
   @protected
@@ -12312,6 +12502,18 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_list_native_xswd_payload_token(
+    List<NativeXswdPayloadToken> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_native_xswd_payload_token(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -12449,6 +12651,15 @@ class XelisWalletFlutterBridgeApiImpl
     sse_encode_level(self.level, serializer);
     sse_encode_String(self.target, serializer);
     sse_encode_String(self.message, serializer);
+  }
+
+  @protected
+  void sse_encode_native_log_scope(
+    NativeLogScope self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
   }
 
   @protected
@@ -12686,7 +12897,19 @@ class XelisWalletFlutterBridgeApiImpl
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_32(self.basisPoints, serializer);
+    switch (self) {
+      case NativeTransactionFeePolicy_Automatic():
+        sse_encode_i_32(0, serializer);
+      case NativeTransactionFeePolicy_Fixed(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_u_64(field0, serializer);
+      case NativeTransactionFeePolicy_Tip(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_u_64(field0, serializer);
+      case NativeTransactionFeePolicy_Multiplier(field0: final field0):
+        sse_encode_i_32(3, serializer);
+        sse_encode_u_64(field0, serializer);
+    }
   }
 
   @protected
@@ -12804,6 +13027,16 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_native_wallet_connection_options(
+    NativeWalletConnectionOptions self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.timeoutMillis, serializer);
+    sse_encode_native_wallet_reconnect_policy(self.reconnectPolicy, serializer);
+  }
+
+  @protected
   void sse_encode_native_wallet_contract_transfer_group(
     NativeWalletContractTransferGroup self,
     SseSerializer serializer,
@@ -12842,6 +13075,15 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_native_wallet_extra_data_disclosure(
+    NativeWalletExtraDataDisclosure self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_native_wallet_extra_data_flag(
     NativeWalletExtraDataFlag self,
     SseSerializer serializer,
@@ -12868,6 +13110,15 @@ class XelisWalletFlutterBridgeApiImpl
     sse_encode_String(self.hash, serializer);
     sse_encode_u_64(self.timestampMillis, serializer);
     sse_encode_native_wallet_transaction_entry_data(self.entry, serializer);
+  }
+
+  @protected
+  void sse_encode_native_wallet_reconnect_policy(
+    NativeWalletReconnectPolicy self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
   }
 
   @protected
@@ -13203,6 +13454,50 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_native_xswd_payload(
+    NativeXswdPayload self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_native_xswd_payload_token(self.tokens, serializer);
+  }
+
+  @protected
+  void sse_encode_native_xswd_payload_token(
+    NativeXswdPayloadToken self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_native_xswd_payload_token_kind(self.kind, serializer);
+    sse_encode_opt_box_autoadd_bool(self.boolValue, serializer);
+    sse_encode_opt_String(self.textValue, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.floatValue, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.length, serializer);
+  }
+
+  @protected
+  void sse_encode_native_xswd_payload_token_kind(
+    NativeXswdPayloadTokenKind self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_native_xswd_projection_limits(
+    NativeXswdProjectionLimits self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.maxDepth, serializer);
+    sse_encode_u_32(self.maxTokens, serializer);
+    sse_encode_u_32(self.maxContainerMembers, serializer);
+    sse_encode_u_32(self.maxTextBytes, serializer);
+    sse_encode_u_32(self.maxTotalTextBytes, serializer);
+  }
+
+  @protected
   void sse_encode_network(Network self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -13255,6 +13550,16 @@ class XelisWalletFlutterBridgeApiImpl
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_encryption_mode(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_f_64(self, serializer);
     }
   }
 
@@ -13560,15 +13865,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  void sse_encode_user_permission_decision(
-    UserPermissionDecision self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
   void sse_encode_usize(BigInt self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putBigUint64(self);
@@ -13659,6 +13955,24 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void sse_encode_xswd_decision_callback_outcome(
+    XswdDecisionCallbackOutcome self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_xswd_notification_callback_outcome(
+    XswdNotificationCallbackOutcome self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_xswd_request_summary(
     XswdRequestSummary self,
     SseSerializer serializer,
@@ -13679,10 +13993,10 @@ class XelisWalletFlutterBridgeApiImpl
         sse_encode_i_32(0, serializer);
       case XswdRequestType_Permission(field0: final field0):
         sse_encode_i_32(1, serializer);
-        sse_encode_String(field0, serializer);
+        sse_encode_box_autoadd_native_xswd_payload(field0, serializer);
       case XswdRequestType_PrefetchPermissions(field0: final field0):
         sse_encode_i_32(2, serializer);
-        sse_encode_String(field0, serializer);
+        sse_encode_box_autoadd_native_xswd_payload(field0, serializer);
       case XswdRequestType_CancelRequest():
         sse_encode_i_32(3, serializer);
       case XswdRequestType_AppDisconnect():
@@ -14003,35 +14317,6 @@ class TransactionTypeBuilderImpl extends RustOpaque
 }
 
 @sealed
-class UnboundedReceiverXswdEventImpl extends RustOpaque
-    implements UnboundedReceiverXswdEvent {
-  // Not to be used by end users
-  UnboundedReceiverXswdEventImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  UnboundedReceiverXswdEventImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_UnboundedReceiverXswdEvent,
-    rustArcDecrementStrongCount: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UnboundedReceiverXswdEvent,
-    rustArcDecrementStrongCountPtr: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UnboundedReceiverXswdEventPtr,
-  );
-}
-
-@sealed
 class WalletBusinessEventSubscriptionImpl extends RustOpaque
     implements WalletBusinessEventSubscription {
   // Not to be used by end users
@@ -14157,20 +14442,26 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
 
   Future<void> addXswdRelayer({
     required ApplicationDataRelayer appData,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   }) => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletAddXswdRelayer(
         that: this,
         appData: appData,
+        projectionLimits: projectionLimits,
         cancelRequestDartCallback: cancelRequestDartCallback,
         requestApplicationDartCallback: requestApplicationDartCallback,
         requestPermissionDartCallback: requestPermissionDartCallback,
@@ -14641,10 +14932,14 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
   Future<void> offlineMode() => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletOfflineMode(that: this);
 
-  Future<void> onlineMode({required String daemonAddress}) =>
+  Future<void> onlineMode({
+    required String daemonAddress,
+    required NativeWalletConnectionOptions options,
+  }) =>
       XelisWalletFlutterBridge.instance.api.crateApiWalletXelisWalletOnlineMode(
         that: this,
         daemonAddress: daemonAddress,
+        options: options,
       );
 
   Future<NativePreparedTransaction> prepareBurnAllTransaction({
@@ -14728,19 +15023,25 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
       );
 
   Future<void> startXswd({
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   }) =>
       XelisWalletFlutterBridge.instance.api.crateApiWalletXelisWalletStartXswd(
         that: this,
+        projectionLimits: projectionLimits,
         cancelRequestDartCallback: cancelRequestDartCallback,
         requestApplicationDartCallback: requestApplicationDartCallback,
         requestPermissionDartCallback: requestPermissionDartCallback,
@@ -14753,9 +15054,13 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
       .crateApiWalletXelisWalletStopXswd(that: this);
 
   /// Opens a session-scoped business-event cursor.
-  Future<WalletBusinessEventSubscription> subscribeBusinessEvents() =>
-      XelisWalletFlutterBridge.instance.api
-          .crateApiWalletXelisWalletSubscribeBusinessEvents(that: this);
+  Future<WalletBusinessEventSubscription> subscribeBusinessEvents({
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
+  }) => XelisWalletFlutterBridge.instance.api
+      .crateApiWalletXelisWalletSubscribeBusinessEvents(
+        that: this,
+        extraDataDisclosure: extraDataDisclosure,
+      );
 
   /// Opens a generation-scoped runtime event cursor after its upstream
   /// receiver has been registered.

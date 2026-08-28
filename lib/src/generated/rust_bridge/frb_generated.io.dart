@@ -80,10 +80,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilderPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_UnboundedReceiverXswdEventPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEventPtr;
-
-  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_WalletBusinessEventSubscriptionPtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscriptionPtr;
 
@@ -143,12 +139,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   TransactionTypeBuilder
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilder(
-    dynamic raw,
-  );
-
-  @protected
-  UnboundedReceiverXswdEvent
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
     dynamic raw,
   );
 
@@ -225,14 +215,14 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
-  FutureOr<void> Function(XswdRequestSummary)
-  dco_decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+  FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
+  dco_decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
     dynamic raw,
   );
 
   @protected
-  FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-  dco_decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+  FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary)
+  dco_decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
     dynamic raw,
   );
 
@@ -311,12 +301,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
-  UnboundedReceiverXswdEvent
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    dynamic raw,
-  );
-
-  @protected
   WalletBusinessEventSubscription
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscription(
     dynamic raw,
@@ -389,6 +373,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   EncryptionMode dco_decode_box_autoadd_encryption_mode(dynamic raw);
 
   @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw);
+
+  @protected
   HistoryPageFilter dco_decode_box_autoadd_history_page_filter(dynamic raw);
 
   @protected
@@ -416,6 +403,10 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   NativeWalletBusinessEventFrame
   dco_decode_box_autoadd_native_wallet_business_event_frame(dynamic raw);
+
+  @protected
+  NativeWalletConnectionOptions
+  dco_decode_box_autoadd_native_wallet_connection_options(dynamic raw);
 
   @protected
   NativeWalletDeployInvoke dco_decode_box_autoadd_native_wallet_deploy_invoke(
@@ -455,6 +446,13 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeXelisError dco_decode_box_autoadd_native_xelis_error(dynamic raw);
+
+  @protected
+  NativeXswdPayload dco_decode_box_autoadd_native_xswd_payload(dynamic raw);
+
+  @protected
+  NativeXswdProjectionLimits
+  dco_decode_box_autoadd_native_xswd_projection_limits(dynamic raw);
 
   @protected
   PrecomputedTableType dco_decode_box_autoadd_precomputed_table_type(
@@ -575,6 +573,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  List<NativeXswdPayloadToken> dco_decode_list_native_xswd_payload_token(
+    dynamic raw,
+  );
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -619,6 +622,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeLogEntry dco_decode_native_log_entry(dynamic raw);
+
+  @protected
+  NativeLogScope dco_decode_native_log_scope(dynamic raw);
 
   @protected
   NativeMultisigParticipant dco_decode_native_multisig_participant(dynamic raw);
@@ -707,6 +713,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   dco_decode_native_wallet_business_stream_close_reason(dynamic raw);
 
   @protected
+  NativeWalletConnectionOptions dco_decode_native_wallet_connection_options(
+    dynamic raw,
+  );
+
+  @protected
   NativeWalletContractTransferGroup
   dco_decode_native_wallet_contract_transfer_group(dynamic raw);
 
@@ -715,6 +726,10 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeWalletExtraData dco_decode_native_wallet_extra_data(dynamic raw);
+
+  @protected
+  NativeWalletExtraDataDisclosure
+  dco_decode_native_wallet_extra_data_disclosure(dynamic raw);
 
   @protected
   NativeWalletExtraDataFlag dco_decode_native_wallet_extra_data_flag(
@@ -727,6 +742,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeWalletPendingTransaction dco_decode_native_wallet_pending_transaction(
+    dynamic raw,
+  );
+
+  @protected
+  NativeWalletReconnectPolicy dco_decode_native_wallet_reconnect_policy(
     dynamic raw,
   );
 
@@ -786,6 +806,22 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  NativeXswdPayload dco_decode_native_xswd_payload(dynamic raw);
+
+  @protected
+  NativeXswdPayloadToken dco_decode_native_xswd_payload_token(dynamic raw);
+
+  @protected
+  NativeXswdPayloadTokenKind dco_decode_native_xswd_payload_token_kind(
+    dynamic raw,
+  );
+
+  @protected
+  NativeXswdProjectionLimits dco_decode_native_xswd_projection_limits(
+    dynamic raw,
+  );
+
+  @protected
   Network dco_decode_network(dynamic raw);
 
   @protected
@@ -802,6 +838,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   EncryptionMode? dco_decode_opt_box_autoadd_encryption_mode(dynamic raw);
+
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
   @protected
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
@@ -905,9 +944,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void dco_decode_unit(dynamic raw);
 
   @protected
-  UserPermissionDecision dco_decode_user_permission_decision(dynamic raw);
-
-  @protected
   BigInt dco_decode_usize(dynamic raw);
 
   @protected
@@ -921,6 +957,16 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   XelisMaxSupplyMode dco_decode_xelis_max_supply_mode(dynamic raw);
+
+  @protected
+  XswdDecisionCallbackOutcome dco_decode_xswd_decision_callback_outcome(
+    dynamic raw,
+  );
+
+  @protected
+  XswdNotificationCallbackOutcome dco_decode_xswd_notification_callback_outcome(
+    dynamic raw,
+  );
 
   @protected
   XswdRequestSummary dco_decode_xswd_request_summary(dynamic raw);
@@ -976,12 +1022,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   TransactionTypeBuilder
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilder(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  UnboundedReceiverXswdEvent
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
     SseDeserializer deserializer,
   );
 
@@ -1134,12 +1174,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
-  UnboundedReceiverXswdEvent
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   WalletBusinessEventSubscription
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscription(
     SseDeserializer deserializer,
@@ -1214,6 +1248,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
   HistoryPageFilter sse_decode_box_autoadd_history_page_filter(
     SseDeserializer deserializer,
   );
@@ -1251,6 +1288,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   NativeWalletBusinessEventFrame
   sse_decode_box_autoadd_native_wallet_business_event_frame(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeWalletConnectionOptions
+  sse_decode_box_autoadd_native_wallet_connection_options(
     SseDeserializer deserializer,
   );
 
@@ -1300,6 +1343,17 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeXelisError sse_decode_box_autoadd_native_xelis_error(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeXswdPayload sse_decode_box_autoadd_native_xswd_payload(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeXswdProjectionLimits
+  sse_decode_box_autoadd_native_xswd_projection_limits(
     SseDeserializer deserializer,
   );
 
@@ -1438,6 +1492,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  List<NativeXswdPayloadToken> sse_decode_list_native_xswd_payload_token(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -1494,6 +1553,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeLogEntry sse_decode_native_log_entry(SseDeserializer deserializer);
+
+  @protected
+  NativeLogScope sse_decode_native_log_scope(SseDeserializer deserializer);
 
   @protected
   NativeMultisigParticipant sse_decode_native_multisig_participant(
@@ -1600,6 +1662,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  NativeWalletConnectionOptions sse_decode_native_wallet_connection_options(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   NativeWalletContractTransferGroup
   sse_decode_native_wallet_contract_transfer_group(
     SseDeserializer deserializer,
@@ -1616,6 +1683,10 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  NativeWalletExtraDataDisclosure
+  sse_decode_native_wallet_extra_data_disclosure(SseDeserializer deserializer);
+
+  @protected
   NativeWalletExtraDataFlag sse_decode_native_wallet_extra_data_flag(
     SseDeserializer deserializer,
   );
@@ -1628,6 +1699,11 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   NativeWalletPendingTransaction sse_decode_native_wallet_pending_transaction(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeWalletReconnectPolicy sse_decode_native_wallet_reconnect_policy(
     SseDeserializer deserializer,
   );
 
@@ -1705,6 +1781,26 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  NativeXswdPayload sse_decode_native_xswd_payload(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeXswdPayloadToken sse_decode_native_xswd_payload_token(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeXswdPayloadTokenKind sse_decode_native_xswd_payload_token_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NativeXswdProjectionLimits sse_decode_native_xswd_projection_limits(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Network sse_decode_network(SseDeserializer deserializer);
 
   @protected
@@ -1723,6 +1819,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   EncryptionMode? sse_decode_opt_box_autoadd_encryption_mode(
     SseDeserializer deserializer,
   );
+
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
@@ -1838,11 +1937,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
-  UserPermissionDecision sse_decode_user_permission_decision(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
@@ -1858,6 +1952,16 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   XelisMaxSupplyMode sse_decode_xelis_max_supply_mode(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  XswdDecisionCallbackOutcome sse_decode_xswd_decision_callback_outcome(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  XswdNotificationCallbackOutcome sse_decode_xswd_notification_callback_outcome(
     SseDeserializer deserializer,
   );
 
@@ -1928,13 +2032,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilder(
     TransactionTypeBuilder self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    UnboundedReceiverXswdEvent self,
     SseSerializer serializer,
   );
 
@@ -2024,15 +2121,15 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
-    FutureOr<void> Function(XswdRequestSummary) self,
+  sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
+    FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary) self,
     SseSerializer serializer,
   );
 
   @protected
   void
-  sse_encode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
-    FutureOr<UserPermissionDecision> Function(XswdRequestSummary) self,
+  sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary) self,
     SseSerializer serializer,
   );
 
@@ -2128,13 +2225,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    UnboundedReceiverXswdEvent self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWalletBusinessEventSubscription(
     WalletBusinessEventSubscription self,
     SseSerializer serializer,
@@ -2222,6 +2312,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_history_page_filter(
     HistoryPageFilter self,
     SseSerializer serializer,
@@ -2263,6 +2356,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   void sse_encode_box_autoadd_native_wallet_business_event_frame(
     NativeWalletBusinessEventFrame self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_native_wallet_connection_options(
+    NativeWalletConnectionOptions self,
     SseSerializer serializer,
   );
 
@@ -2317,6 +2416,18 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   void sse_encode_box_autoadd_native_xelis_error(
     NativeXelisError self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_native_xswd_payload(
+    NativeXswdPayload self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_native_xswd_projection_limits(
+    NativeXswdProjectionLimits self,
     SseSerializer serializer,
   );
 
@@ -2477,6 +2588,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  void sse_encode_list_native_xswd_payload_token(
+    List<NativeXswdPayloadToken> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -2548,6 +2665,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   void sse_encode_native_log_entry(
     NativeLogEntry self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_native_log_scope(
+    NativeLogScope self,
     SseSerializer serializer,
   );
 
@@ -2678,6 +2801,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  void sse_encode_native_wallet_connection_options(
+    NativeWalletConnectionOptions self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_native_wallet_contract_transfer_group(
     NativeWalletContractTransferGroup self,
     SseSerializer serializer,
@@ -2696,6 +2825,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  void sse_encode_native_wallet_extra_data_disclosure(
+    NativeWalletExtraDataDisclosure self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_native_wallet_extra_data_flag(
     NativeWalletExtraDataFlag self,
     SseSerializer serializer,
@@ -2710,6 +2845,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   void sse_encode_native_wallet_pending_transaction(
     NativeWalletPendingTransaction self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_native_wallet_reconnect_policy(
+    NativeWalletReconnectPolicy self,
     SseSerializer serializer,
   );
 
@@ -2804,6 +2945,30 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  void sse_encode_native_xswd_payload(
+    NativeXswdPayload self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_native_xswd_payload_token(
+    NativeXswdPayloadToken self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_native_xswd_payload_token_kind(
+    NativeXswdPayloadTokenKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_native_xswd_projection_limits(
+    NativeXswdProjectionLimits self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_network(Network self, SseSerializer serializer);
 
   @protected
@@ -2824,6 +2989,9 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
     EncryptionMode? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
@@ -2956,12 +3124,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void sse_encode_unit(void self, SseSerializer serializer);
 
   @protected
-  void sse_encode_user_permission_decision(
-    UserPermissionDecision self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_usize(BigInt self, SseSerializer serializer);
 
   @protected
@@ -2985,6 +3147,18 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   void sse_encode_xelis_max_supply_mode(
     XelisMaxSupplyMode self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_xswd_decision_callback_outcome(
+    XswdDecisionCallbackOutcome self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_xswd_notification_callback_outcome(
+    XswdNotificationCallbackOutcome self,
     SseSerializer serializer,
   );
 
@@ -3320,40 +3494,6 @@ class XelisWalletFlutterBridgeWire implements BaseWire {
       );
   late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilder =
       _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransactionTypeBuilderPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEventPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_xelis_wallet_flutter_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent',
-      );
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent =
-      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEventPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEventPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_xelis_wallet_flutter_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent',
-      );
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent =
-      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEventPtr
           .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void

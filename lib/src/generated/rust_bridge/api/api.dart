@@ -22,10 +22,10 @@ Future<void> initializeCryptoProvider() =>
 
 Future<void> setUpRustLogger({
   required Level minimumLevel,
-  required bool diagnosticMode,
+  required NativeLogScope scope,
 }) => XelisWalletFlutterBridge.instance.api.crateApiApiSetUpRustLogger(
   minimumLevel: minimumLevel,
-  diagnosticMode: diagnosticMode,
+  scope: scope,
 );
 
 Stream<NativeLogEntry> createLogStream() =>

@@ -228,13 +228,18 @@ sealed class NativePreparedTransferExtraData
   }) = _NativePreparedTransferExtraData;
 }
 
-/// Exact fee policy used by the stable prepared-transaction API.
-///
-/// `10_000` basis points represents the automatically estimated fee (1x).
 @freezed
 sealed class NativeTransactionFeePolicy with _$NativeTransactionFeePolicy {
-  const factory NativeTransactionFeePolicy({required int basisPoints}) =
-      _NativeTransactionFeePolicy;
+  const NativeTransactionFeePolicy._();
+
+  const factory NativeTransactionFeePolicy.automatic() =
+      NativeTransactionFeePolicy_Automatic;
+  const factory NativeTransactionFeePolicy.fixed(BigInt field0) =
+      NativeTransactionFeePolicy_Fixed;
+  const factory NativeTransactionFeePolicy.tip(BigInt field0) =
+      NativeTransactionFeePolicy_Tip;
+  const factory NativeTransactionFeePolicy.multiplier(BigInt field0) =
+      NativeTransactionFeePolicy_Multiplier;
 }
 
 @freezed

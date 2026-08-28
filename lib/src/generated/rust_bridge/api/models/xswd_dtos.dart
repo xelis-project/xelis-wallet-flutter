@@ -9,7 +9,9 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'xswd_dtos.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `add_text`, `array_start`, `bool`, `code`, `code`, `float`, `integer`, `new`, `null`, `object_key`, `object_start`, `project_value`, `project`, `push`, `string`, `validate_container_length`, `validate`, `with_kind`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `PayloadProjection`, `UserPermissionDecision`, `XswdPayloadProjectionError`, `XswdProjectionLimitsError`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `new`
 
 @freezed
@@ -47,9 +49,130 @@ sealed class EncryptionMode with _$EncryptionMode {
       EncryptionMode_Chacha20Poly1305;
 }
 
+/// Private, lossless token stream used only by the generated bridge adapter.
+///
+/// A flat stream avoids recursive generated types and lets native code enforce
+/// all resource limits before any payload data crosses FRB.
+class NativeXswdPayload {
+  final List<NativeXswdPayloadToken> tokens;
+
+  const NativeXswdPayload({required this.tokens});
+
+  @override
+  int get hashCode => tokens.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NativeXswdPayload &&
+          runtimeType == other.runtimeType &&
+          tokens == other.tokens;
+}
+
+/// Private token whose generated Dart `toString` cannot expose scalar data.
+class NativeXswdPayloadToken {
+  final NativeXswdPayloadTokenKind kind;
+  final bool? boolValue;
+  final String? textValue;
+  final double? floatValue;
+  final int? length;
+
+  const NativeXswdPayloadToken({
+    required this.kind,
+    this.boolValue,
+    this.textValue,
+    this.floatValue,
+    this.length,
+  });
+
+  @override
+  int get hashCode =>
+      kind.hashCode ^
+      boolValue.hashCode ^
+      textValue.hashCode ^
+      floatValue.hashCode ^
+      length.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NativeXswdPayloadToken &&
+          runtimeType == other.runtimeType &&
+          kind == other.kind &&
+          boolValue == other.boolValue &&
+          textValue == other.textValue &&
+          floatValue == other.floatValue &&
+          length == other.length;
+}
+
+enum NativeXswdPayloadTokenKind {
+  null_,
+  bool,
+  stringValue,
+  integer,
+  float,
+  arrayStart,
+  objectStart,
+  objectKey,
+}
+
+class NativeXswdProjectionLimits {
+  final int maxDepth;
+  final int maxTokens;
+  final int maxContainerMembers;
+  final int maxTextBytes;
+  final int maxTotalTextBytes;
+
+  const NativeXswdProjectionLimits({
+    required this.maxDepth,
+    required this.maxTokens,
+    required this.maxContainerMembers,
+    required this.maxTextBytes,
+    required this.maxTotalTextBytes,
+  });
+
+  static Future<NativeXswdProjectionLimits> default_() =>
+      XelisWalletFlutterBridge.instance.api
+          .crateApiModelsXswdDtosNativeXswdProjectionLimitsDefault();
+
+  @override
+  int get hashCode =>
+      maxDepth.hashCode ^
+      maxTokens.hashCode ^
+      maxContainerMembers.hashCode ^
+      maxTextBytes.hashCode ^
+      maxTotalTextBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NativeXswdProjectionLimits &&
+          runtimeType == other.runtimeType &&
+          maxDepth == other.maxDepth &&
+          maxTokens == other.maxTokens &&
+          maxContainerMembers == other.maxContainerMembers &&
+          maxTextBytes == other.maxTextBytes &&
+          maxTotalTextBytes == other.maxTotalTextBytes;
+}
+
 enum PermissionPolicy { ask, accept, reject }
 
-enum UserPermissionDecision { accept, reject, alwaysAccept, alwaysReject }
+enum XswdDecisionCallbackOutcome {
+  accept,
+  reject,
+  alwaysAccept,
+  alwaysReject,
+  invalidPayload,
+  timeout,
+  exception,
+}
+
+enum XswdNotificationCallbackOutcome {
+  completed,
+  invalidPayload,
+  timeout,
+  exception,
+}
 
 @freezed
 sealed class XswdRequestSummary with _$XswdRequestSummary {
@@ -74,14 +197,6 @@ sealed class XswdRequestSummary with _$XswdRequestSummary {
       .crateApiModelsXswdDtosXswdRequestSummaryIsPrefetchPermissionsRequest(
         that: this,
       );
-
-  String? permissionJson() => XelisWalletFlutterBridge.instance.api
-      .crateApiModelsXswdDtosXswdRequestSummaryPermissionJson(that: this);
-
-  String? prefetchPermissionsJson() => XelisWalletFlutterBridge.instance.api
-      .crateApiModelsXswdDtosXswdRequestSummaryPrefetchPermissionsJson(
-        that: this,
-      );
 }
 
 @freezed
@@ -89,9 +204,9 @@ sealed class XswdRequestType with _$XswdRequestType {
   const XswdRequestType._();
 
   const factory XswdRequestType.application() = XswdRequestType_Application;
-  const factory XswdRequestType.permission(String field0) =
+  const factory XswdRequestType.permission(NativeXswdPayload field0) =
       XswdRequestType_Permission;
-  const factory XswdRequestType.prefetchPermissions(String field0) =
+  const factory XswdRequestType.prefetchPermissions(NativeXswdPayload field0) =
       XswdRequestType_PrefetchPermissions;
   const factory XswdRequestType.cancelRequest() = XswdRequestType_CancelRequest;
   const factory XswdRequestType.appDisconnect() = XswdRequestType_AppDisconnect;

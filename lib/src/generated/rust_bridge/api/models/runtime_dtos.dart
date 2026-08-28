@@ -8,7 +8,33 @@ import 'network.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `from`
+
+class NativeWalletConnectionOptions {
+  final BigInt timeoutMillis;
+  final NativeWalletReconnectPolicy reconnectPolicy;
+
+  const NativeWalletConnectionOptions({
+    required this.timeoutMillis,
+    required this.reconnectPolicy,
+  });
+
+  @override
+  int get hashCode => timeoutMillis.hashCode ^ reconnectPolicy.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NativeWalletConnectionOptions &&
+          runtimeType == other.runtimeType &&
+          timeoutMillis == other.timeoutMillis &&
+          reconnectPolicy == other.reconnectPolicy;
+}
+
+enum NativeWalletReconnectPolicy {
+  applicationManaged,
+  upstreamManagedExperimental,
+}
 
 /// Bridge-owned snapshot of the daemon information used by wallet consumers.
 ///

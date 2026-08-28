@@ -48,7 +48,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1687053449;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1026549697;
 
 // Section: executor
 
@@ -914,11 +914,12 @@ fn wire__crate__api__wallet__XelisWallet_add_xswd_relayer_impl(
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>>>::sse_decode(&mut deserializer);
 let api_app_data = <crate::api::models::xswd_dtos::ApplicationDataRelayer>::sse_decode(&mut deserializer);
-let api_cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_app_disconnect_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context| async move {
+let api_projection_limits = <crate::api::models::xswd_dtos::NativeXswdProjectionLimits>::sse_decode(&mut deserializer);
+let api_cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api_request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api_request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api_request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api_app_disconnect_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context| async move {
                     transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move || async move {
                         let mut api_that_guard = None;
 let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false)]);
@@ -929,7 +930,7 @@ let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decod
             }
         }
         let api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::wallet::XelisWallet::add_xswd_relayer(&*api_that_guard, api_app_data, api_cancel_request_dart_callback, api_request_application_dart_callback, api_request_permission_dart_callback, api_request_prefetch_permissions_dart_callback, api_app_disconnect_dart_callback).await?;   std::result::Result::Ok(output_ok)
+ let output_ok = crate::api::wallet::XelisWallet::add_xswd_relayer(&*api_that_guard, api_app_data, api_projection_limits, api_cancel_request_dart_callback, api_request_application_dart_callback, api_request_permission_dart_callback, api_request_prefetch_permissions_dart_callback, api_app_disconnect_dart_callback).await?;   std::result::Result::Ok(output_ok)
                     })().await)
                 } })
 }
@@ -4654,6 +4655,10 @@ fn wire__crate__api__wallet__XelisWallet_online_mode_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>,
             >>::sse_decode(&mut deserializer);
             let api_daemon_address = <String>::sse_decode(&mut deserializer);
+            let api_options =
+                <crate::api::models::runtime_dtos::NativeWalletConnectionOptions>::sse_decode(
+                    &mut deserializer,
+                );
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, crate::api::error::NativeXelisError>(
@@ -4678,6 +4683,7 @@ fn wire__crate__api__wallet__XelisWallet_online_mode_impl(
                         let output_ok = crate::api::wallet::XelisWallet::online_mode(
                             &*api_that_guard,
                             api_daemon_address,
+                            api_options,
                         )
                         .await?;
                         std::result::Result::Ok(output_ok)
@@ -5275,11 +5281,12 @@ fn wire__crate__api__wallet__XelisWallet_start_xswd_impl(
             let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>>>::sse_decode(&mut deserializer);
-let api__cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api__request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api__request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api__request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api__app_disconnect_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context| async move {
+let api_projection_limits = <crate::api::models::xswd_dtos::NativeXswdProjectionLimits>::sse_decode(&mut deserializer);
+let api__cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api__request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api__request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api__request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api__app_disconnect_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context| async move {
                     transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move || async move {
                         let mut api_that_guard = None;
 let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false)]);
@@ -5290,7 +5297,7 @@ let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decod
             }
         }
         let api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::wallet::XelisWallet::start_xswd(&*api_that_guard, api__cancel_request_dart_callback, api__request_application_dart_callback, api__request_permission_dart_callback, api__request_prefetch_permissions_dart_callback, api__app_disconnect_dart_callback).await?;   std::result::Result::Ok(output_ok)
+ let output_ok = crate::api::wallet::XelisWallet::start_xswd(&*api_that_guard, api_projection_limits, api__cancel_request_dart_callback, api__request_application_dart_callback, api__request_permission_dart_callback, api__request_prefetch_permissions_dart_callback, api__app_disconnect_dart_callback).await?;   std::result::Result::Ok(output_ok)
                     })().await)
                 } })
 }
@@ -5356,57 +5363,24 @@ fn wire__crate__api__wallet__XelisWallet_subscribe_business_events_impl(
     rust_vec_len_: i32,
     data_len_: i32,
 ) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "XelisWallet_subscribe_business_events",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| async move {
-                transform_result_sse::<_, crate::api::error::NativeXelisError>(
-                    (move || async move {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec,_,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "XelisWallet_subscribe_business_events", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || {
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>>>::sse_decode(&mut deserializer);
+let api_extra_data_disclosure = <crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure>::sse_decode(&mut deserializer);deserializer.end(); move |context| async move {
+                    transform_result_sse::<_, crate::api::error::NativeXelisError>((move || async move {
                         let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => {
-                                    api_that_guard =
-                                        Some(api_that.lockable_decode_async_ref().await)
-                                }
-                                _ => unreachable!(),
-                            }
-                        }
-                        let api_that_guard = api_that_guard.unwrap();
-                        let output_ok = crate::api::wallet::XelisWallet::subscribe_business_events(
-                            &*api_that_guard,
-                        )
-                        .await?;
-                        std::result::Result::Ok(output_ok)
-                    })()
-                    .await,
-                )
+let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, false)]);
+        for i in decode_indices_ {
+            match i {
+                0 => api_that_guard = Some(api_that.lockable_decode_async_ref().await),
+                _ => unreachable!(),
             }
-        },
-    )
+        }
+        let api_that_guard = api_that_guard.unwrap();
+ let output_ok = crate::api::wallet::XelisWallet::subscribe_business_events(&*api_that_guard, api_extra_data_disclosure).await?;   std::result::Result::Ok(output_ok)
+                    })().await)
+                } })
 }
 fn wire__crate__api__wallet__XelisWallet_subscribe_runtime_events_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
@@ -6259,6 +6233,40 @@ fn wire__crate__api__utils__make_integrated_address_impl(
         },
     )
 }
+fn wire__crate__api__models__xswd_dtos__native_xswd_projection_limits_default_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "native_xswd_projection_limits_default",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Ok::<_, ()>(
+                        crate::api::models::xswd_dtos::NativeXswdProjectionLimits::default(),
+                    )?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__wallet__open_xelis_wallet_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -6542,14 +6550,12 @@ fn wire__crate__api__api__set_up_rust_logger_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_minimum_level = <crate::api::logger::Level>::sse_decode(&mut deserializer);
-            let api_diagnostic_mode = <bool>::sse_decode(&mut deserializer);
+            let api_scope = <crate::api::logger::NativeLogScope>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, crate::api::error::NativeXelisError>((move || {
-                    let output_ok = crate::api::api::set_up_rust_logger(
-                        api_minimum_level,
-                        api_diagnostic_mode,
-                    )?;
+                    let output_ok =
+                        crate::api::api::set_up_rust_logger(api_minimum_level, api_scope)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -6599,26 +6605,6 @@ fn wire__crate__api__wallet__update_tables_impl(
             }
         },
     )
-}
-fn wire__crate__api__xswd__imp__xswd_handler_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec,_,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "xswd_handler", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || {
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_receiver = <UnboundedReceiver < XSWDEvent >>::sse_decode(&mut deserializer);
-let api_cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
-let api_app_disconnect_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));deserializer.end(); move |context| async move {
-                    transform_result_sse::<_, ()>((move || async move {
-                         let output_ok = Ok::<_, ()>({ crate::api::xswd::imp::xswd_handler(api_receiver, api_cancel_request_dart_callback, api_request_application_dart_callback, api_request_permission_dart_callback, api_request_prefetch_permissions_dart_callback, api_app_disconnect_dart_callback).await; })?;   std::result::Result::Ok(output_ok)
-                    })().await)
-                } })
 }
 fn wire__crate__api__models__xswd_dtos__xswd_request_summary_is_app_disconnect_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -6769,87 +6755,22 @@ fn wire__crate__api__models__xswd_dtos__xswd_request_summary_is_prefetch_permiss
                      let output_ok = Ok::<_, ()>(crate::api::models::xswd_dtos::XswdRequestSummary::is_prefetch_permissions_request(&api_that))?;   std::result::Result::Ok(output_ok)
                 })()) })
 }
-fn wire__crate__api__models__xswd_dtos__xswd_request_summary_permission_json_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "xswd_request_summary_permission_json",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that =
-                <crate::api::models::xswd_dtos::XswdRequestSummary>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(
-                    crate::api::models::xswd_dtos::XswdRequestSummary::permission_json(&api_that),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__models__xswd_dtos__xswd_request_summary_prefetch_permissions_json_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "xswd_request_summary_prefetch_permissions_json",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that =
-                <crate::api::models::xswd_dtos::XswdRequestSummary>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(
-                    crate::api::models::xswd_dtos::XswdRequestSummary::prefetch_permissions_json(
-                        &api_that,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 
 // Section: related_funcs
 
-fn decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
+fn decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(
     dart_opaque: flutter_rust_bridge::DartOpaque,
-) -> impl Fn(crate::api::models::xswd_dtos::XswdRequestSummary) -> flutter_rust_bridge::DartFnFuture<()>
-{
+) -> impl Fn(
+    crate::api::models::xswd_dtos::XswdRequestSummary,
+) -> flutter_rust_bridge::DartFnFuture<
+    crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome,
+> {
     use flutter_rust_bridge::IntoDart;
 
     async fn body(
         dart_opaque: flutter_rust_bridge::DartOpaque,
         arg0: crate::api::models::xswd_dtos::XswdRequestSummary,
-    ) -> () {
+    ) -> crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome {
         let args = vec![arg0.into_into_dart().into_dart()];
         let message = FLUTTER_RUST_BRIDGE_HANDLER
             .dart_fn_invoke(dart_opaque, args)
@@ -6858,7 +6779,11 @@ fn decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
         let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
         let action = deserializer.cursor.read_u8().unwrap();
         let ans = match action {
-            0 => std::result::Result::Ok(<()>::sse_decode(&mut deserializer)),
+            0 => std::result::Result::Ok(
+                <crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome>::sse_decode(
+                    &mut deserializer,
+                ),
+            ),
             1 => std::result::Result::Err(
                 <flutter_rust_bridge::for_generated::anyhow::Error>::sse_decode(&mut deserializer),
             ),
@@ -6876,17 +6801,19 @@ fn decode_DartFn_Inputs_xswd_request_summary_Output_unit_AnyhowException(
         ))
     }
 }
-fn decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_AnyhowException(
+fn decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
     dart_opaque: flutter_rust_bridge::DartOpaque,
 ) -> impl Fn(
     crate::api::models::xswd_dtos::XswdRequestSummary,
-) -> flutter_rust_bridge::DartFnFuture<crate::api::models::xswd_dtos::UserPermissionDecision> {
+) -> flutter_rust_bridge::DartFnFuture<
+    crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome,
+> {
     use flutter_rust_bridge::IntoDart;
 
     async fn body(
         dart_opaque: flutter_rust_bridge::DartOpaque,
         arg0: crate::api::models::xswd_dtos::XswdRequestSummary,
-    ) -> crate::api::models::xswd_dtos::UserPermissionDecision {
+    ) -> crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome {
         let args = vec![arg0.into_into_dart().into_dart()];
         let message = FLUTTER_RUST_BRIDGE_HANDLER
             .dart_fn_invoke(dart_opaque, args)
@@ -6896,7 +6823,7 @@ fn decode_DartFn_Inputs_xswd_request_summary_Output_user_permission_decision_Any
         let action = deserializer.cursor.read_u8().unwrap();
         let ans = match action {
             0 => std::result::Result::Ok(
-                <crate::api::models::xswd_dtos::UserPermissionDecision>::sse_decode(
+                <crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome>::sse_decode(
                     &mut deserializer,
                 ),
             ),
@@ -6943,9 +6870,6 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<WalletBusinessEventSubscription>
@@ -7042,16 +6966,6 @@ impl SseDecode for TransactionTypeBuilder {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
-impl SseDecode for UnboundedReceiver<XSWDEvent> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -7227,18 +7141,6 @@ impl SseDecode
 impl SseDecode
     for RustOpaqueMoi<
         flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
     >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -7736,6 +7638,20 @@ impl SseDecode for Vec<crate::api::models::address_dtos::NativeXelisDataField> {
     }
 }
 
+impl SseDecode for Vec<crate::api::models::xswd_dtos::NativeXswdPayloadToken> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(
+                <crate::api::models::xswd_dtos::NativeXswdPayloadToken>::sse_decode(deserializer),
+            );
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -7936,6 +7852,19 @@ impl SseDecode for crate::api::logger::NativeLogEntry {
             level: var_level,
             target: var_target,
             message: var_message,
+        };
+    }
+}
+
+impl SseDecode for crate::api::logger::NativeLogScope {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::logger::NativeLogScope::Standard,
+            1 => crate::api::logger::NativeLogScope::PackageDiagnostic,
+            2 => crate::api::logger::NativeLogScope::UnsafeUpstreamDiagnostic,
+            _ => unreachable!("Invalid variant for NativeLogScope: {}", inner),
         };
     }
 }
@@ -8253,10 +8182,33 @@ impl SseDecode for crate::api::models::address_book_v2::NativeSavedDestinationKi
 impl SseDecode for crate::api::models::wallet_dtos::NativeTransactionFeePolicy {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_basisPoints = <u32>::sse_decode(deserializer);
-        return crate::api::models::wallet_dtos::NativeTransactionFeePolicy {
-            basis_points: var_basisPoints,
-        };
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                return crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Automatic;
+            }
+            1 => {
+                let mut var_field0 = <u64>::sse_decode(deserializer);
+                return crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Fixed(
+                    var_field0,
+                );
+            }
+            2 => {
+                let mut var_field0 = <u64>::sse_decode(deserializer);
+                return crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Tip(
+                    var_field0,
+                );
+            }
+            3 => {
+                let mut var_field0 = <u64>::sse_decode(deserializer);
+                return crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Multiplier(
+                    var_field0,
+                );
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -8387,6 +8339,21 @@ impl SseDecode for crate::api::models::business_event_dtos::NativeWalletBusiness
     }
 }
 
+impl SseDecode for crate::api::models::runtime_dtos::NativeWalletConnectionOptions {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_timeoutMillis = <u64>::sse_decode(deserializer);
+        let mut var_reconnectPolicy =
+            <crate::api::models::runtime_dtos::NativeWalletReconnectPolicy>::sse_decode(
+                deserializer,
+            );
+        return crate::api::models::runtime_dtos::NativeWalletConnectionOptions {
+            timeout_millis: var_timeoutMillis,
+            reconnect_policy: var_reconnectPolicy,
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::business_event_dtos::NativeWalletContractTransferGroup {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8435,6 +8402,22 @@ impl SseDecode for crate::api::models::business_event_dtos::NativeWalletExtraDat
             has_payload: var_hasPayload,
             payload: var_payload,
             payload_kind: var_payloadKind,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Redacted,
+            1 => crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Metadata,
+            2 => crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Detailed,
+            _ => unreachable!(
+                "Invalid variant for NativeWalletExtraDataDisclosure: {}",
+                inner
+            ),
         };
     }
 }
@@ -8495,6 +8478,18 @@ impl SseDecode for crate::api::models::business_event_dtos::NativeWalletPendingT
             hash: var_hash,
             timestamp_millis: var_timestampMillis,
             entry: var_entry,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::runtime_dtos::NativeWalletReconnectPolicy {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::runtime_dtos::NativeWalletReconnectPolicy::ApplicationManaged,
+1 => crate::api::models::runtime_dtos::NativeWalletReconnectPolicy::UpstreamManagedExperimental,
+            _ => unreachable!("Invalid variant for NativeWalletReconnectPolicy: {}", inner),
         };
     }
 }
@@ -8926,6 +8921,70 @@ impl SseDecode for crate::api::models::address_dtos::NativeXelisUnsignedIntegerT
     }
 }
 
+impl SseDecode for crate::api::models::xswd_dtos::NativeXswdPayload {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_tokens =
+            <Vec<crate::api::models::xswd_dtos::NativeXswdPayloadToken>>::sse_decode(deserializer);
+        return crate::api::models::xswd_dtos::NativeXswdPayload { tokens: var_tokens };
+    }
+}
+
+impl SseDecode for crate::api::models::xswd_dtos::NativeXswdPayloadToken {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind =
+            <crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind>::sse_decode(deserializer);
+        let mut var_boolValue = <Option<bool>>::sse_decode(deserializer);
+        let mut var_textValue = <Option<String>>::sse_decode(deserializer);
+        let mut var_floatValue = <Option<f64>>::sse_decode(deserializer);
+        let mut var_length = <Option<u32>>::sse_decode(deserializer);
+        return crate::api::models::xswd_dtos::NativeXswdPayloadToken {
+            kind: var_kind,
+            bool_value: var_boolValue,
+            text_value: var_textValue,
+            float_value: var_floatValue,
+            length: var_length,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Null,
+            1 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Bool,
+            2 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::StringValue,
+            3 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Integer,
+            4 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Float,
+            5 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ArrayStart,
+            6 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ObjectStart,
+            7 => crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ObjectKey,
+            _ => unreachable!("Invalid variant for NativeXswdPayloadTokenKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::xswd_dtos::NativeXswdProjectionLimits {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_maxDepth = <u32>::sse_decode(deserializer);
+        let mut var_maxTokens = <u32>::sse_decode(deserializer);
+        let mut var_maxContainerMembers = <u32>::sse_decode(deserializer);
+        let mut var_maxTextBytes = <u32>::sse_decode(deserializer);
+        let mut var_maxTotalTextBytes = <u32>::sse_decode(deserializer);
+        return crate::api::models::xswd_dtos::NativeXswdProjectionLimits {
+            max_depth: var_maxDepth,
+            max_tokens: var_maxTokens,
+            max_container_members: var_maxContainerMembers,
+            max_text_bytes: var_maxTextBytes,
+            max_total_text_bytes: var_maxTotalTextBytes,
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::network::Network {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -8980,6 +9039,17 @@ impl SseDecode for Option<crate::api::models::xswd_dtos::EncryptionMode> {
             return Some(<crate::api::models::xswd_dtos::EncryptionMode>::sse_decode(
                 deserializer,
             ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<f64>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -9309,20 +9379,6 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
-impl SseDecode for crate::api::models::xswd_dtos::UserPermissionDecision {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <i32>::sse_decode(deserializer);
-        return match inner {
-            0 => crate::api::models::xswd_dtos::UserPermissionDecision::Accept,
-            1 => crate::api::models::xswd_dtos::UserPermissionDecision::Reject,
-            2 => crate::api::models::xswd_dtos::UserPermissionDecision::AlwaysAccept,
-            3 => crate::api::models::xswd_dtos::UserPermissionDecision::AlwaysReject,
-            _ => unreachable!("Invalid variant for UserPermissionDecision: {}", inner),
-        };
-    }
-}
-
 impl SseDecode for usize {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -9454,6 +9510,40 @@ impl SseDecode for crate::api::models::wallet_dtos::XelisMaxSupplyMode {
     }
 }
 
+impl SseDecode for crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Accept,
+            1 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Reject,
+            2 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::AlwaysAccept,
+            3 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::AlwaysReject,
+            4 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::InvalidPayload,
+            5 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Timeout,
+            6 => crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Exception,
+            _ => unreachable!("Invalid variant for XswdDecisionCallbackOutcome: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Completed,
+            1 => crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::InvalidPayload,
+            2 => crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Timeout,
+            3 => crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Exception,
+            _ => unreachable!(
+                "Invalid variant for XswdNotificationCallbackOutcome: {}",
+                inner
+            ),
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::xswd_dtos::XswdRequestSummary {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -9477,11 +9567,13 @@ impl SseDecode for crate::api::models::xswd_dtos::XswdRequestType {
                 return crate::api::models::xswd_dtos::XswdRequestType::Application;
             }
             1 => {
-                let mut var_field0 = <String>::sse_decode(deserializer);
+                let mut var_field0 =
+                    <crate::api::models::xswd_dtos::NativeXswdPayload>::sse_decode(deserializer);
                 return crate::api::models::xswd_dtos::XswdRequestType::Permission(var_field0);
             }
             2 => {
-                let mut var_field0 = <String>::sse_decode(deserializer);
+                let mut var_field0 =
+                    <crate::api::models::xswd_dtos::NativeXswdPayload>::sse_decode(deserializer);
                 return crate::api::models::xswd_dtos::XswdRequestType::PrefetchPermissions(
                     var_field0,
                 );
@@ -9597,13 +9689,13 @@ fn pde_ffi_dispatcher_primary_impl(
 124 => wire__crate__api__wallet__get_current_precomputed_tables_type_impl(port, ptr, rust_vec_len, data_len),
 125 => wire__crate__api__api__initialize_crypto_provider_impl(port, ptr, rust_vec_len, data_len),
 126 => wire__crate__api__api__initialize_xelis_config_impl(port, ptr, rust_vec_len, data_len),
-129 => wire__crate__api__wallet__open_xelis_wallet_impl(port, ptr, rust_vec_len, data_len),
-131 => wire__crate__api__precomputed_tables__precomputed_table_type_index_impl(port, ptr, rust_vec_len, data_len),
-132 => wire__crate__api__precomputed_tables__precomputed_table_type_name_impl(port, ptr, rust_vec_len, data_len),
-133 => wire__crate__api__precomputed_tables__precomputed_table_type_to_l1_size_impl(port, ptr, rust_vec_len, data_len),
-136 => wire__crate__api__api__set_up_rust_logger_impl(port, ptr, rust_vec_len, data_len),
-137 => wire__crate__api__wallet__update_tables_impl(port, ptr, rust_vec_len, data_len),
-138 => wire__crate__api__xswd__imp__xswd_handler_impl(port, ptr, rust_vec_len, data_len),
+129 => wire__crate__api__models__xswd_dtos__native_xswd_projection_limits_default_impl(port, ptr, rust_vec_len, data_len),
+130 => wire__crate__api__wallet__open_xelis_wallet_impl(port, ptr, rust_vec_len, data_len),
+132 => wire__crate__api__precomputed_tables__precomputed_table_type_index_impl(port, ptr, rust_vec_len, data_len),
+133 => wire__crate__api__precomputed_tables__precomputed_table_type_name_impl(port, ptr, rust_vec_len, data_len),
+134 => wire__crate__api__precomputed_tables__precomputed_table_type_to_l1_size_impl(port, ptr, rust_vec_len, data_len),
+137 => wire__crate__api__api__set_up_rust_logger_impl(port, ptr, rust_vec_len, data_len),
+138 => wire__crate__api__wallet__update_tables_impl(port, ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -9641,16 +9733,14 @@ fn pde_ffi_dispatcher_sync_impl(
 123 => wire__crate__api__wallet__drop_wallet_impl(ptr, rust_vec_len, data_len),
 127 => wire__crate__api__utils__is_address_valid_impl(ptr, rust_vec_len, data_len),
 128 => wire__crate__api__utils__make_integrated_address_impl(ptr, rust_vec_len, data_len),
-130 => wire__crate__api__utils__parse_address_impl(ptr, rust_vec_len, data_len),
-134 => wire__crate__api__wallet__refresh_mt_params_impl(ptr, rust_vec_len, data_len),
-135 => wire__crate__api__wallet__set_mt_params_impl(ptr, rust_vec_len, data_len),
+131 => wire__crate__api__utils__parse_address_impl(ptr, rust_vec_len, data_len),
+135 => wire__crate__api__wallet__refresh_mt_params_impl(ptr, rust_vec_len, data_len),
+136 => wire__crate__api__wallet__set_mt_params_impl(ptr, rust_vec_len, data_len),
 139 => wire__crate__api__models__xswd_dtos__xswd_request_summary_is_app_disconnect_impl(ptr, rust_vec_len, data_len),
 140 => wire__crate__api__models__xswd_dtos__xswd_request_summary_is_application_request_impl(ptr, rust_vec_len, data_len),
 141 => wire__crate__api__models__xswd_dtos__xswd_request_summary_is_cancel_request_impl(ptr, rust_vec_len, data_len),
 142 => wire__crate__api__models__xswd_dtos__xswd_request_summary_is_permission_request_impl(ptr, rust_vec_len, data_len),
 143 => wire__crate__api__models__xswd_dtos__xswd_request_summary_is_prefetch_permissions_request_impl(ptr, rust_vec_len, data_len),
-144 => wire__crate__api__models__xswd_dtos__xswd_request_summary_permission_json_impl(ptr, rust_vec_len, data_len),
-145 => wire__crate__api__models__xswd_dtos__xswd_request_summary_prefetch_permissions_json_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -9786,26 +9876,6 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<TransactionTypeBuilder>>
     for TransactionTypeBuilder
 {
     fn into_into_dart(self) -> FrbWrapper<TransactionTypeBuilder> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<UnboundedReceiver<XSWDEvent>> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<UnboundedReceiver<XSWDEvent>>
-{
-}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<UnboundedReceiver<XSWDEvent>>>
-    for UnboundedReceiver<XSWDEvent>
-{
-    fn into_into_dart(self) -> FrbWrapper<UnboundedReceiver<XSWDEvent>> {
         self.into()
     }
 }
@@ -10241,6 +10311,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::logger::NativeLogEntry>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::logger::NativeLogScope {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Standard => 0.into_dart(),
+            Self::PackageDiagnostic => 1.into_dart(),
+            Self::UnsafeUpstreamDiagnostic => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::logger::NativeLogScope
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::logger::NativeLogScope>
+    for crate::api::logger::NativeLogScope
+{
+    fn into_into_dart(self) -> crate::api::logger::NativeLogScope {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::wallet_dtos::NativeMultisigParticipant {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -10641,7 +10733,23 @@ impl
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::wallet_dtos::NativeTransactionFeePolicy {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.basis_points.into_into_dart().into_dart()].into_dart()
+        match self {
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Automatic => {
+                [0.into_dart()].into_dart()
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Fixed(field0) => {
+                [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Tip(field0) => {
+                [2.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Multiplier(field0) => {
+                [3.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
@@ -10827,6 +10935,31 @@ impl
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart
+    for crate::api::models::runtime_dtos::NativeWalletConnectionOptions
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.timeout_millis.into_into_dart().into_dart(),
+            self.reconnect_policy.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::runtime_dtos::NativeWalletConnectionOptions
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::models::runtime_dtos::NativeWalletConnectionOptions,
+    > for crate::api::models::runtime_dtos::NativeWalletConnectionOptions
+{
+    fn into_into_dart(self) -> crate::api::models::runtime_dtos::NativeWalletConnectionOptions {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
     for crate::api::models::business_event_dtos::NativeWalletContractTransferGroup
 {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -10901,6 +11034,34 @@ impl
     > for crate::api::models::business_event_dtos::NativeWalletExtraData
 {
     fn into_into_dart(self) -> crate::api::models::business_event_dtos::NativeWalletExtraData {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Redacted => 0.into_dart(),
+            Self::Metadata => 1.into_dart(),
+            Self::Detailed => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure,
+    > for crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure
+{
+    fn into_into_dart(
+        self,
+    ) -> crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure {
         self
     }
 }
@@ -10993,6 +11154,30 @@ impl
     fn into_into_dart(
         self,
     ) -> crate::api::models::business_event_dtos::NativeWalletPendingTransaction {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for crate::api::models::runtime_dtos::NativeWalletReconnectPolicy
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::ApplicationManaged => 0.into_dart(),
+            Self::UpstreamManagedExperimental => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::runtime_dtos::NativeWalletReconnectPolicy
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<crate::api::models::runtime_dtos::NativeWalletReconnectPolicy>
+    for crate::api::models::runtime_dtos::NativeWalletReconnectPolicy
+{
+    fn into_into_dart(self) -> crate::api::models::runtime_dtos::NativeWalletReconnectPolicy {
         self
     }
 }
@@ -11495,6 +11680,98 @@ impl
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::NativeXswdPayload {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [self.tokens.into_into_dart().into_dart()].into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::NativeXswdPayload
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::NativeXswdPayload>
+    for crate::api::models::xswd_dtos::NativeXswdPayload
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::NativeXswdPayload {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::NativeXswdPayloadToken {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.bool_value.into_into_dart().into_dart(),
+            self.text_value.into_into_dart().into_dart(),
+            self.float_value.into_into_dart().into_dart(),
+            self.length.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::NativeXswdPayloadToken
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::NativeXswdPayloadToken>
+    for crate::api::models::xswd_dtos::NativeXswdPayloadToken
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::NativeXswdPayloadToken {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Null => 0.into_dart(),
+            Self::Bool => 1.into_dart(),
+            Self::StringValue => 2.into_dart(),
+            Self::Integer => 3.into_dart(),
+            Self::Float => 4.into_dart(),
+            Self::ArrayStart => 5.into_dart(),
+            Self::ObjectStart => 6.into_dart(),
+            Self::ObjectKey => 7.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind>
+    for crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::NativeXswdProjectionLimits {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.max_depth.into_into_dart().into_dart(),
+            self.max_tokens.into_into_dart().into_dart(),
+            self.max_container_members.into_into_dart().into_dart(),
+            self.max_text_bytes.into_into_dart().into_dart(),
+            self.max_total_text_bytes.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::NativeXswdProjectionLimits
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::NativeXswdProjectionLimits>
+    for crate::api::models::xswd_dtos::NativeXswdProjectionLimits
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::NativeXswdProjectionLimits {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::models::network::Network> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self.0 {
@@ -11615,29 +11892,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::wallet_dtos::Transfer
     for crate::api::models::wallet_dtos::Transfer
 {
     fn into_into_dart(self) -> crate::api::models::wallet_dtos::Transfer {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::UserPermissionDecision {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        match self {
-            Self::Accept => 0.into_dart(),
-            Self::Reject => 1.into_dart(),
-            Self::AlwaysAccept => 2.into_dart(),
-            Self::AlwaysReject => 3.into_dart(),
-            _ => unreachable!(),
-        }
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::models::xswd_dtos::UserPermissionDecision
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::UserPermissionDecision>
-    for crate::api::models::xswd_dtos::UserPermissionDecision
-{
-    fn into_into_dart(self) -> crate::api::models::xswd_dtos::UserPermissionDecision {
         self
     }
 }
@@ -11774,6 +12028,59 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::wallet_dtos::XelisMax
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Accept => 0.into_dart(),
+            Self::Reject => 1.into_dart(),
+            Self::AlwaysAccept => 2.into_dart(),
+            Self::AlwaysReject => 3.into_dart(),
+            Self::InvalidPayload => 4.into_dart(),
+            Self::Timeout => 5.into_dart(),
+            Self::Exception => 6.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome>
+    for crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Completed => 0.into_dart(),
+            Self::InvalidPayload => 1.into_dart(),
+            Self::Timeout => 2.into_dart(),
+            Self::Exception => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome,
+    > for crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome
+{
+    fn into_into_dart(self) -> crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::xswd_dtos::XswdRequestSummary {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -11897,18 +12204,6 @@ impl SseEncode for TransactionTypeBuilder {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <RustOpaqueMoi<
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>,
-        >>::sse_encode(
-            flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
-            serializer,
-        );
-    }
-}
-
-impl SseEncode for UnboundedReceiver<XSWDEvent> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
         >>::sse_encode(
             flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
             serializer,
@@ -12090,19 +12385,6 @@ impl SseEncode
 impl SseEncode
     for RustOpaqueMoi<
         flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
     >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -12502,6 +12784,16 @@ impl SseEncode for Vec<crate::api::models::address_dtos::NativeXelisDataField> {
     }
 }
 
+impl SseEncode for Vec<crate::api::models::xswd_dtos::NativeXswdPayloadToken> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::xswd_dtos::NativeXswdPayloadToken>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -12670,6 +12962,23 @@ impl SseEncode for crate::api::logger::NativeLogEntry {
         <crate::api::logger::Level>::sse_encode(self.level, serializer);
         <String>::sse_encode(self.target, serializer);
         <String>::sse_encode(self.message, serializer);
+    }
+}
+
+impl SseEncode for crate::api::logger::NativeLogScope {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::logger::NativeLogScope::Standard => 0,
+                crate::api::logger::NativeLogScope::PackageDiagnostic => 1,
+                crate::api::logger::NativeLogScope::UnsafeUpstreamDiagnostic => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -12912,7 +13221,26 @@ impl SseEncode for crate::api::models::address_book_v2::NativeSavedDestinationKi
 impl SseEncode for crate::api::models::wallet_dtos::NativeTransactionFeePolicy {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u32>::sse_encode(self.basis_points, serializer);
+        match self {
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Automatic => {
+                <i32>::sse_encode(0, serializer);
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Fixed(field0) => {
+                <i32>::sse_encode(1, serializer);
+                <u64>::sse_encode(field0, serializer);
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Tip(field0) => {
+                <i32>::sse_encode(2, serializer);
+                <u64>::sse_encode(field0, serializer);
+            }
+            crate::api::models::wallet_dtos::NativeTransactionFeePolicy::Multiplier(field0) => {
+                <i32>::sse_encode(3, serializer);
+                <u64>::sse_encode(field0, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -12993,6 +13321,17 @@ impl SseEncode for crate::api::models::business_event_dtos::NativeWalletBusiness
     }
 }
 
+impl SseEncode for crate::api::models::runtime_dtos::NativeWalletConnectionOptions {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u64>::sse_encode(self.timeout_millis, serializer);
+        <crate::api::models::runtime_dtos::NativeWalletReconnectPolicy>::sse_encode(
+            self.reconnect_policy,
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::models::business_event_dtos::NativeWalletContractTransferGroup {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -13027,6 +13366,16 @@ impl SseEncode for crate::api::models::business_event_dtos::NativeWalletExtraDat
             serializer,
         );
         <Option<crate::api::models::business_event_dtos::NativeWalletExtraDataPayloadKind>>::sse_encode(self.payload_kind, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(match self {crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Redacted => { 0 }
+crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Metadata => { 1 }
+crate::api::models::business_event_dtos::NativeWalletExtraDataDisclosure::Detailed => { 2 }
+ _ => { unimplemented!(""); }}, serializer);
     }
 }
 
@@ -13077,6 +13426,15 @@ impl SseEncode for crate::api::models::business_event_dtos::NativeWalletPendingT
         <crate::api::models::business_event_dtos::NativeWalletTransactionEntryData>::sse_encode(
             self.entry, serializer,
         );
+    }
+}
+
+impl SseEncode for crate::api::models::runtime_dtos::NativeWalletReconnectPolicy {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(match self {crate::api::models::runtime_dtos::NativeWalletReconnectPolicy::ApplicationManaged => { 0 }
+crate::api::models::runtime_dtos::NativeWalletReconnectPolicy::UpstreamManagedExperimental => { 1 }
+ _ => { unimplemented!(""); }}, serializer);
     }
 }
 
@@ -13416,6 +13774,62 @@ impl SseEncode for crate::api::models::address_dtos::NativeXelisUnsignedIntegerT
     }
 }
 
+impl SseEncode for crate::api::models::xswd_dtos::NativeXswdPayload {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::models::xswd_dtos::NativeXswdPayloadToken>>::sse_encode(
+            self.tokens,
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::models::xswd_dtos::NativeXswdPayloadToken {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind>::sse_encode(
+            self.kind, serializer,
+        );
+        <Option<bool>>::sse_encode(self.bool_value, serializer);
+        <Option<String>>::sse_encode(self.text_value, serializer);
+        <Option<f64>>::sse_encode(self.float_value, serializer);
+        <Option<u32>>::sse_encode(self.length, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Null => 0,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Bool => 1,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::StringValue => 2,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Integer => 3,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::Float => 4,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ArrayStart => 5,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ObjectStart => 6,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::ObjectKey => 7,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::models::xswd_dtos::NativeXswdProjectionLimits {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.max_depth, serializer);
+        <u32>::sse_encode(self.max_tokens, serializer);
+        <u32>::sse_encode(self.max_container_members, serializer);
+        <u32>::sse_encode(self.max_text_bytes, serializer);
+        <u32>::sse_encode(self.max_total_text_bytes, serializer);
+    }
+}
+
 impl SseEncode for crate::api::models::network::Network {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -13470,6 +13884,16 @@ impl SseEncode for Option<crate::api::models::xswd_dtos::EncryptionMode> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::models::xswd_dtos::EncryptionMode>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <f64>::sse_encode(value, serializer);
         }
     }
 }
@@ -13759,24 +14183,6 @@ impl SseEncode for () {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
 }
 
-impl SseEncode for crate::api::models::xswd_dtos::UserPermissionDecision {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(
-            match self {
-                crate::api::models::xswd_dtos::UserPermissionDecision::Accept => 0,
-                crate::api::models::xswd_dtos::UserPermissionDecision::Reject => 1,
-                crate::api::models::xswd_dtos::UserPermissionDecision::AlwaysAccept => 2,
-                crate::api::models::xswd_dtos::UserPermissionDecision::AlwaysReject => 3,
-                _ => {
-                    unimplemented!("");
-                }
-            },
-            serializer,
-        );
-    }
-}
-
 impl SseEncode for usize {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -13878,6 +14284,45 @@ impl SseEncode for crate::api::models::wallet_dtos::XelisMaxSupplyMode {
     }
 }
 
+impl SseEncode for crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Accept => 0,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Reject => 1,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::AlwaysAccept => 2,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::AlwaysReject => 3,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::InvalidPayload => 4,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Timeout => 5,
+                crate::api::models::xswd_dtos::XswdDecisionCallbackOutcome::Exception => 6,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Completed => 0,
+                crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::InvalidPayload => 1,
+                crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Timeout => 2,
+                crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome::Exception => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::models::xswd_dtos::XswdRequestSummary {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -13895,11 +14340,11 @@ impl SseEncode for crate::api::models::xswd_dtos::XswdRequestType {
             }
             crate::api::models::xswd_dtos::XswdRequestType::Permission(field0) => {
                 <i32>::sse_encode(1, serializer);
-                <String>::sse_encode(field0, serializer);
+                <crate::api::models::xswd_dtos::NativeXswdPayload>::sse_encode(field0, serializer);
             }
             crate::api::models::xswd_dtos::XswdRequestType::PrefetchPermissions(field0) => {
                 <i32>::sse_encode(2, serializer);
-                <String>::sse_encode(field0, serializer);
+                <crate::api::models::xswd_dtos::NativeXswdPayload>::sse_encode(field0, serializer);
             }
             crate::api::models::xswd_dtos::XswdRequestType::CancelRequest => {
                 <i32>::sse_encode(3, serializer);
@@ -14065,24 +14510,6 @@ mod io {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>>::decrement_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_xelis_wallet_flutter_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
-        >::increment_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_xelis_wallet_flutter_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
-        >::decrement_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
@@ -14296,24 +14723,6 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TransactionTypeBuilder>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
-        >::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUnboundedReceiverXSWDEvent(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver<XSWDEvent>>,
-        >::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

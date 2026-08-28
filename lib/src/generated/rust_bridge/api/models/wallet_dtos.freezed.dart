@@ -3739,61 +3739,30 @@ $NativeXelisDataElementCopyWith<$Res> get data {
 /// @nodoc
 mixin _$NativeTransactionFeePolicy {
 
- int get basisPoints;
-/// Create a copy of NativeTransactionFeePolicy
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$NativeTransactionFeePolicyCopyWith<NativeTransactionFeePolicy> get copyWith => _$NativeTransactionFeePolicyCopyWithImpl<NativeTransactionFeePolicy>(this as NativeTransactionFeePolicy, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy&&(identical(other.basisPoints, basisPoints) || other.basisPoints == basisPoints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,basisPoints);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy(basisPoints: $basisPoints)';
+  return 'NativeTransactionFeePolicy()';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $NativeTransactionFeePolicyCopyWith<$Res>  {
-  factory $NativeTransactionFeePolicyCopyWith(NativeTransactionFeePolicy value, $Res Function(NativeTransactionFeePolicy) _then) = _$NativeTransactionFeePolicyCopyWithImpl;
-@useResult
-$Res call({
- int basisPoints
-});
-
-
-
-
-}
-/// @nodoc
-class _$NativeTransactionFeePolicyCopyWithImpl<$Res>
-    implements $NativeTransactionFeePolicyCopyWith<$Res> {
-  _$NativeTransactionFeePolicyCopyWithImpl(this._self, this._then);
-
-  final NativeTransactionFeePolicy _self;
-  final $Res Function(NativeTransactionFeePolicy) _then;
-
-/// Create a copy of NativeTransactionFeePolicy
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? basisPoints = null,}) {
-  return _then(NativeTransactionFeePolicy(
-basisPoints: null == basisPoints ? _self.basisPoints : basisPoints // ignore: cast_nullable_to_non_nullable
-as int,
-  ));
-}
-
+class $NativeTransactionFeePolicyCopyWith<$Res>  {
+$NativeTransactionFeePolicyCopyWith(NativeTransactionFeePolicy _, $Res Function(NativeTransactionFeePolicy) __);
 }
 
 
@@ -3811,11 +3780,14 @@ extension NativeTransactionFeePolicyPatterns on NativeTransactionFeePolicy {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NativeTransactionFeePolicy value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( NativeTransactionFeePolicy_Automatic value)?  automatic,TResult Function( NativeTransactionFeePolicy_Fixed value)?  fixed,TResult Function( NativeTransactionFeePolicy_Tip value)?  tip,TResult Function( NativeTransactionFeePolicy_Multiplier value)?  multiplier,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy() when $default != null:
-return $default(_that);case _:
+case NativeTransactionFeePolicy_Automatic() when automatic != null:
+return automatic(_that);case NativeTransactionFeePolicy_Fixed() when fixed != null:
+return fixed(_that);case NativeTransactionFeePolicy_Tip() when tip != null:
+return tip(_that);case NativeTransactionFeePolicy_Multiplier() when multiplier != null:
+return multiplier(_that);case _:
   return orElse();
 
 }
@@ -3833,11 +3805,14 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NativeTransactionFeePolicy value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( NativeTransactionFeePolicy_Automatic value)  automatic,required TResult Function( NativeTransactionFeePolicy_Fixed value)  fixed,required TResult Function( NativeTransactionFeePolicy_Tip value)  tip,required TResult Function( NativeTransactionFeePolicy_Multiplier value)  multiplier,}){
 final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy():
-return $default(_that);}
+case NativeTransactionFeePolicy_Automatic():
+return automatic(_that);case NativeTransactionFeePolicy_Fixed():
+return fixed(_that);case NativeTransactionFeePolicy_Tip():
+return tip(_that);case NativeTransactionFeePolicy_Multiplier():
+return multiplier(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -3851,11 +3826,14 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NativeTransactionFeePolicy value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( NativeTransactionFeePolicy_Automatic value)?  automatic,TResult? Function( NativeTransactionFeePolicy_Fixed value)?  fixed,TResult? Function( NativeTransactionFeePolicy_Tip value)?  tip,TResult? Function( NativeTransactionFeePolicy_Multiplier value)?  multiplier,}){
 final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy() when $default != null:
-return $default(_that);case _:
+case NativeTransactionFeePolicy_Automatic() when automatic != null:
+return automatic(_that);case NativeTransactionFeePolicy_Fixed() when fixed != null:
+return fixed(_that);case NativeTransactionFeePolicy_Tip() when tip != null:
+return tip(_that);case NativeTransactionFeePolicy_Multiplier() when multiplier != null:
+return multiplier(_that);case _:
   return null;
 
 }
@@ -3872,10 +3850,13 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int basisPoints)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  automatic,TResult Function( BigInt field0)?  fixed,TResult Function( BigInt field0)?  tip,TResult Function( BigInt field0)?  multiplier,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy() when $default != null:
-return $default(_that.basisPoints);case _:
+case NativeTransactionFeePolicy_Automatic() when automatic != null:
+return automatic();case NativeTransactionFeePolicy_Fixed() when fixed != null:
+return fixed(_that.field0);case NativeTransactionFeePolicy_Tip() when tip != null:
+return tip(_that.field0);case NativeTransactionFeePolicy_Multiplier() when multiplier != null:
+return multiplier(_that.field0);case _:
   return orElse();
 
 }
@@ -3893,10 +3874,13 @@ return $default(_that.basisPoints);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int basisPoints)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  automatic,required TResult Function( BigInt field0)  fixed,required TResult Function( BigInt field0)  tip,required TResult Function( BigInt field0)  multiplier,}) {final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy():
-return $default(_that.basisPoints);}
+case NativeTransactionFeePolicy_Automatic():
+return automatic();case NativeTransactionFeePolicy_Fixed():
+return fixed(_that.field0);case NativeTransactionFeePolicy_Tip():
+return tip(_that.field0);case NativeTransactionFeePolicy_Multiplier():
+return multiplier(_that.field0);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3910,10 +3894,13 @@ return $default(_that.basisPoints);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int basisPoints)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  automatic,TResult? Function( BigInt field0)?  fixed,TResult? Function( BigInt field0)?  tip,TResult? Function( BigInt field0)?  multiplier,}) {final _that = this;
 switch (_that) {
-case _NativeTransactionFeePolicy() when $default != null:
-return $default(_that.basisPoints);case _:
+case NativeTransactionFeePolicy_Automatic() when automatic != null:
+return automatic();case NativeTransactionFeePolicy_Fixed() when fixed != null:
+return fixed(_that.field0);case NativeTransactionFeePolicy_Tip() when tip != null:
+return tip(_that.field0);case NativeTransactionFeePolicy_Multiplier() when multiplier != null:
+return multiplier(_that.field0);case _:
   return null;
 
 }
@@ -3924,43 +3911,75 @@ return $default(_that.basisPoints);case _:
 /// @nodoc
 
 
-class _NativeTransactionFeePolicy implements NativeTransactionFeePolicy {
-  const _NativeTransactionFeePolicy({required this.basisPoints});
+class NativeTransactionFeePolicy_Automatic extends NativeTransactionFeePolicy {
+  const NativeTransactionFeePolicy_Automatic(): super._();
   
 
-@override final  int basisPoints;
 
-/// Create a copy of NativeTransactionFeePolicy
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$NativeTransactionFeePolicyCopyWith<_NativeTransactionFeePolicy> get copyWith => __$NativeTransactionFeePolicyCopyWithImpl<_NativeTransactionFeePolicy>(this, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeTransactionFeePolicy&&(identical(other.basisPoints, basisPoints) || other.basisPoints == basisPoints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Automatic);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,basisPoints);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy(basisPoints: $basisPoints)';
+  return 'NativeTransactionFeePolicy.automatic()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class NativeTransactionFeePolicy_Fixed extends NativeTransactionFeePolicy {
+  const NativeTransactionFeePolicy_Fixed(this.field0): super._();
+  
+
+ final  BigInt field0;
+
+/// Create a copy of NativeTransactionFeePolicy
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NativeTransactionFeePolicy_FixedCopyWith<NativeTransactionFeePolicy_Fixed> get copyWith => _$NativeTransactionFeePolicy_FixedCopyWithImpl<NativeTransactionFeePolicy_Fixed>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Fixed&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NativeTransactionFeePolicy.fixed(field0: $field0)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$NativeTransactionFeePolicyCopyWith<$Res> implements $NativeTransactionFeePolicyCopyWith<$Res> {
-  factory _$NativeTransactionFeePolicyCopyWith(_NativeTransactionFeePolicy value, $Res Function(_NativeTransactionFeePolicy) _then) = __$NativeTransactionFeePolicyCopyWithImpl;
-@override @useResult
+abstract mixin class $NativeTransactionFeePolicy_FixedCopyWith<$Res> implements $NativeTransactionFeePolicyCopyWith<$Res> {
+  factory $NativeTransactionFeePolicy_FixedCopyWith(NativeTransactionFeePolicy_Fixed value, $Res Function(NativeTransactionFeePolicy_Fixed) _then) = _$NativeTransactionFeePolicy_FixedCopyWithImpl;
+@useResult
 $Res call({
- int basisPoints
+ BigInt field0
 });
 
 
@@ -3968,19 +3987,151 @@ $Res call({
 
 }
 /// @nodoc
-class __$NativeTransactionFeePolicyCopyWithImpl<$Res>
-    implements _$NativeTransactionFeePolicyCopyWith<$Res> {
-  __$NativeTransactionFeePolicyCopyWithImpl(this._self, this._then);
+class _$NativeTransactionFeePolicy_FixedCopyWithImpl<$Res>
+    implements $NativeTransactionFeePolicy_FixedCopyWith<$Res> {
+  _$NativeTransactionFeePolicy_FixedCopyWithImpl(this._self, this._then);
 
-  final _NativeTransactionFeePolicy _self;
-  final $Res Function(_NativeTransactionFeePolicy) _then;
+  final NativeTransactionFeePolicy_Fixed _self;
+  final $Res Function(NativeTransactionFeePolicy_Fixed) _then;
 
 /// Create a copy of NativeTransactionFeePolicy
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? basisPoints = null,}) {
-  return _then(_NativeTransactionFeePolicy(
-basisPoints: null == basisPoints ? _self.basisPoints : basisPoints // ignore: cast_nullable_to_non_nullable
-as int,
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NativeTransactionFeePolicy_Fixed(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as BigInt,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NativeTransactionFeePolicy_Tip extends NativeTransactionFeePolicy {
+  const NativeTransactionFeePolicy_Tip(this.field0): super._();
+  
+
+ final  BigInt field0;
+
+/// Create a copy of NativeTransactionFeePolicy
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NativeTransactionFeePolicy_TipCopyWith<NativeTransactionFeePolicy_Tip> get copyWith => _$NativeTransactionFeePolicy_TipCopyWithImpl<NativeTransactionFeePolicy_Tip>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Tip&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NativeTransactionFeePolicy.tip(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NativeTransactionFeePolicy_TipCopyWith<$Res> implements $NativeTransactionFeePolicyCopyWith<$Res> {
+  factory $NativeTransactionFeePolicy_TipCopyWith(NativeTransactionFeePolicy_Tip value, $Res Function(NativeTransactionFeePolicy_Tip) _then) = _$NativeTransactionFeePolicy_TipCopyWithImpl;
+@useResult
+$Res call({
+ BigInt field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NativeTransactionFeePolicy_TipCopyWithImpl<$Res>
+    implements $NativeTransactionFeePolicy_TipCopyWith<$Res> {
+  _$NativeTransactionFeePolicy_TipCopyWithImpl(this._self, this._then);
+
+  final NativeTransactionFeePolicy_Tip _self;
+  final $Res Function(NativeTransactionFeePolicy_Tip) _then;
+
+/// Create a copy of NativeTransactionFeePolicy
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NativeTransactionFeePolicy_Tip(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as BigInt,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NativeTransactionFeePolicy_Multiplier extends NativeTransactionFeePolicy {
+  const NativeTransactionFeePolicy_Multiplier(this.field0): super._();
+  
+
+ final  BigInt field0;
+
+/// Create a copy of NativeTransactionFeePolicy
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NativeTransactionFeePolicy_MultiplierCopyWith<NativeTransactionFeePolicy_Multiplier> get copyWith => _$NativeTransactionFeePolicy_MultiplierCopyWithImpl<NativeTransactionFeePolicy_Multiplier>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Multiplier&&(identical(other.field0, field0) || other.field0 == field0));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,field0);
+
+@override
+String toString() {
+  return 'NativeTransactionFeePolicy.multiplier(field0: $field0)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NativeTransactionFeePolicy_MultiplierCopyWith<$Res> implements $NativeTransactionFeePolicyCopyWith<$Res> {
+  factory $NativeTransactionFeePolicy_MultiplierCopyWith(NativeTransactionFeePolicy_Multiplier value, $Res Function(NativeTransactionFeePolicy_Multiplier) _then) = _$NativeTransactionFeePolicy_MultiplierCopyWithImpl;
+@useResult
+$Res call({
+ BigInt field0
+});
+
+
+
+
+}
+/// @nodoc
+class _$NativeTransactionFeePolicy_MultiplierCopyWithImpl<$Res>
+    implements $NativeTransactionFeePolicy_MultiplierCopyWith<$Res> {
+  _$NativeTransactionFeePolicy_MultiplierCopyWithImpl(this._self, this._then);
+
+  final NativeTransactionFeePolicy_Multiplier _self;
+  final $Res Function(NativeTransactionFeePolicy_Multiplier) _then;
+
+/// Create a copy of NativeTransactionFeePolicy
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
+  return _then(NativeTransactionFeePolicy_Multiplier(
+null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
+as BigInt,
   ));
 }
 

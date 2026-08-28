@@ -1313,7 +1313,7 @@ return appDisconnect(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  application,TResult Function( String field0)?  permission,TResult Function( String field0)?  prefetchPermissions,TResult Function()?  cancelRequest,TResult Function()?  appDisconnect,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  application,TResult Function( NativeXswdPayload field0)?  permission,TResult Function( NativeXswdPayload field0)?  prefetchPermissions,TResult Function()?  cancelRequest,TResult Function()?  appDisconnect,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case XswdRequestType_Application() when application != null:
 return application();case XswdRequestType_Permission() when permission != null:
@@ -1338,7 +1338,7 @@ return appDisconnect();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  application,required TResult Function( String field0)  permission,required TResult Function( String field0)  prefetchPermissions,required TResult Function()  cancelRequest,required TResult Function()  appDisconnect,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  application,required TResult Function( NativeXswdPayload field0)  permission,required TResult Function( NativeXswdPayload field0)  prefetchPermissions,required TResult Function()  cancelRequest,required TResult Function()  appDisconnect,}) {final _that = this;
 switch (_that) {
 case XswdRequestType_Application():
 return application();case XswdRequestType_Permission():
@@ -1359,7 +1359,7 @@ return appDisconnect();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  application,TResult? Function( String field0)?  permission,TResult? Function( String field0)?  prefetchPermissions,TResult? Function()?  cancelRequest,TResult? Function()?  appDisconnect,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  application,TResult? Function( NativeXswdPayload field0)?  permission,TResult? Function( NativeXswdPayload field0)?  prefetchPermissions,TResult? Function()?  cancelRequest,TResult? Function()?  appDisconnect,}) {final _that = this;
 switch (_that) {
 case XswdRequestType_Application() when application != null:
 return application();case XswdRequestType_Permission() when permission != null:
@@ -1413,7 +1413,7 @@ class XswdRequestType_Permission extends XswdRequestType {
   const XswdRequestType_Permission(this.field0): super._();
   
 
- final  String field0;
+ final  NativeXswdPayload field0;
 
 /// Create a copy of XswdRequestType
 /// with the given fields replaced by the non-null parameter values.
@@ -1445,7 +1445,7 @@ abstract mixin class $XswdRequestType_PermissionCopyWith<$Res> implements $XswdR
   factory $XswdRequestType_PermissionCopyWith(XswdRequestType_Permission value, $Res Function(XswdRequestType_Permission) _then) = _$XswdRequestType_PermissionCopyWithImpl;
 @useResult
 $Res call({
- String field0
+ NativeXswdPayload field0
 });
 
 
@@ -1465,7 +1465,7 @@ class _$XswdRequestType_PermissionCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(XswdRequestType_Permission(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+as NativeXswdPayload,
   ));
 }
 
@@ -1479,7 +1479,7 @@ class XswdRequestType_PrefetchPermissions extends XswdRequestType {
   const XswdRequestType_PrefetchPermissions(this.field0): super._();
   
 
- final  String field0;
+ final  NativeXswdPayload field0;
 
 /// Create a copy of XswdRequestType
 /// with the given fields replaced by the non-null parameter values.
@@ -1511,7 +1511,7 @@ abstract mixin class $XswdRequestType_PrefetchPermissionsCopyWith<$Res> implemen
   factory $XswdRequestType_PrefetchPermissionsCopyWith(XswdRequestType_PrefetchPermissions value, $Res Function(XswdRequestType_PrefetchPermissions) _then) = _$XswdRequestType_PrefetchPermissionsCopyWithImpl;
 @useResult
 $Res call({
- String field0
+ NativeXswdPayload field0
 });
 
 
@@ -1531,7 +1531,7 @@ class _$XswdRequestType_PrefetchPermissionsCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? field0 = null,}) {
   return _then(XswdRequestType_PrefetchPermissions(
 null == field0 ? _self.field0 : field0 // ignore: cast_nullable_to_non_nullable
-as String,
+as NativeXswdPayload,
   ));
 }
 

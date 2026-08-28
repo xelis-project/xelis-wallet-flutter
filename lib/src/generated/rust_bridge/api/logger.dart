@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `accepts`, `init_logger`, `record_to_entry`, `replace_stream_sink`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `LOGGER_CONFIGURATION`, `LoggerConfiguration`, `SEND_TO_DART_LOGGER_STREAM_SINK`, `SendToDartLogger`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `deref`, `deref`, `enabled`, `eq`, `flush`, `fmt`, `initialize`, `initialize`, `log`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `deref`, `deref`, `enabled`, `eq`, `eq`, `flush`, `fmt`, `fmt`, `initialize`, `initialize`, `log`
 
 enum Level { error, warn, info, debug, trace }
 
@@ -37,3 +37,5 @@ class NativeLogEntry {
           target == other.target &&
           message == other.message;
 }
+
+enum NativeLogScope { standard, packageDiagnostic, unsafeUpstreamDiagnostic }

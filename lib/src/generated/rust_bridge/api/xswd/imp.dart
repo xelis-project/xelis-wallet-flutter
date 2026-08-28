@@ -8,29 +8,8 @@ import '../models/xswd_dtos.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `apply_permission_updates`, `convert_encryption_mode`, `create_event_summary`, `encryption_key`, `handle_permission_decision`, `handle_prefetch_permissions_decision`, `handle_xswd_event`, `modify_app_permissions`, `permission_from_policy`, `permission_result_from_decision`, `prefetch_permissions_from_decision`, `xswd_event_name`
-
-Future<void> xswdHandler({
-  required UnboundedReceiverXswdEvent receiver,
-  required FutureOr<void> Function(XswdRequestSummary)
-  cancelRequestDartCallback,
-  required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-  requestApplicationDartCallback,
-  required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-  requestPermissionDartCallback,
-  required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
-  requestPrefetchPermissionsDartCallback,
-  required FutureOr<void> Function(XswdRequestSummary)
-  appDisconnectDartCallback,
-}) => XelisWalletFlutterBridge.instance.api.crateApiXswdImpXswdHandler(
-  receiver: receiver,
-  cancelRequestDartCallback: cancelRequestDartCallback,
-  requestApplicationDartCallback: requestApplicationDartCallback,
-  requestPermissionDartCallback: requestPermissionDartCallback,
-  requestPrefetchPermissionsDartCallback:
-      requestPrefetchPermissionsDartCallback,
-  appDisconnectDartCallback: appDisconnectDartCallback,
-);
+// These functions are ignored because they are not marked as `pub`: `apply_permission_updates`, `convert_encryption_mode`, `create_event_summary`, `decision_failure_code`, `encryption_key`, `fail_permission_projection`, `fail_prefetch_projection`, `handle_permission_outcome`, `handle_prefetch_permissions_outcome`, `handle_xswd_event`, `modify_app_permissions`, `notification_callback_failure`, `notification_failure_code`, `permission_from_policy`, `permission_result_from_outcome`, `prefetch_permissions_from_decision`, `xswd_event_name`
+// These functions are ignored (category: IgnoreBecauseExplicitAttribute): `xswd_handler`
 
 Future<AppInfo> createAppInfo({required AppState state}) =>
     XelisWalletFlutterBridge.instance.api.crateApiXswdImpCreateAppInfo(
@@ -40,21 +19,23 @@ Future<AppInfo> createAppInfo({required AppState state}) =>
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppState>>
 abstract class AppState implements RustOpaqueInterface {}
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<UnboundedReceiver < XSWDEvent >>>
-abstract class UnboundedReceiverXswdEvent implements RustOpaqueInterface {}
-
 abstract class XSWD {
   Future<void> addXswdRelayer({
     required ApplicationDataRelayer appData,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 
@@ -70,15 +51,20 @@ abstract class XSWD {
   });
 
   Future<void> startXswd({
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 

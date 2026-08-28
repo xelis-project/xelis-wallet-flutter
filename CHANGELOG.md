@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- **Breaking:** Replaced `XelisXswdRequest.payloadJson` with the typed,
+  deeply immutable `XelisXswdValue` projection for XWF 0.3.0. Native `i64` and
+  `u64` request values now cross Web as exact Dart `BigInt`s, payload projection
+  is resource-bounded and fail-closed, and all authored payload `toString()`
+  output remains redacted.
+- **Breaking:** XSWD callback failures now return static technical errors;
+  `XelisXswdDecision.reject` is reserved for explicit consumer decisions.
+  Projection limits are configurable per handler under documented XWF
+  ceilings, and callback timeouts must be positive.
+- **Breaking:** Expanded `XelisWalletFeePolicy` to automatic, exact fixed, tip,
+  and arbitrary positive basis-point multiplier modes. Policy values are
+  lossless `BigInt`s and the former 10x application-policy ceiling is removed.
+- Added per-subscription redacted, metadata, and detailed business-event
+  extra-data disclosure. The default preserves the XWF 0.2 redacted behavior,
+  and the upstream shared encryption key is never exposed.
+- **Breaking:** Replaced logger `diagnosticMode` with
+  `XelisNativeLogScope`. Raw `xelis_wallet` and `xelis_common` records require
+  the explicitly unsafe local-diagnostic scope. Migrate `diagnosticMode: false`
+  to `scope: standard` and `diagnosticMode: true` to
+  `scope: packageDiagnostic`; the unsafe upstream scope has no 0.2 equivalent.
+- Added `XelisWalletConnectionOptions` with a configurable positive timeout
+  and opt-in experimental upstream-managed reconnection. Application-managed
+  reconnection and a 20-second timeout remain the defaults.
 - **Breaking:** Raised the minimum toolchain to Dart 3.13 and Flutter 3.47
   while migrating the private generated boundary to Freezed 4 and
   `flutter_rust_bridge` 2.13.0. Authored Dart APIs, wallet storage, and

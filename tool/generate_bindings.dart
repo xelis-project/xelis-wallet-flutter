@@ -39,7 +39,10 @@ Future<void> main() async {
 
   final bridgeProcess = await Process.start(
     'flutter_rust_bridge_codegen',
-    const ['generate'],
+    // Versions are pinned and checked above. Skipping the redundant tool-side
+    // dependency probe also avoids recursively acquiring Flutter's batch lock
+    // when this script itself runs through Dart's native build hooks.
+    const ['generate', '--no-deps-check'],
     mode: ProcessStartMode.inheritStdio,
   );
   final bridgeExitCode = await bridgeProcess.exitCode;

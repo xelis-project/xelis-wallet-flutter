@@ -22,8 +22,8 @@ import 'wallet/business_events.dart';
 import 'wallet/runtime_events.dart';
 import 'xswd/imp.dart';
 
-// These functions are ignored because they are not marked as `pub`: `cancel_current`, `cancel`, `is_cancelled`, `new`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `PendingMultisigTransaction`, `WalletConnectionAttemptState`, `WalletConnectionAttempt`, `WalletConnectionAttempts`
+// These functions are ignored because they are not marked as `pub`: `cancel_current`, `cancel`, `complete`, `is_cancelled`, `new`, `wait_completed`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveWalletConnection`, `PendingMultisigTransaction`, `WalletConnectionAttemptState`, `WalletConnectionAttempt`, `WalletConnectionAttempts`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `get_wallet`
 // These functions are ignored (category: IgnoreBecauseOwnerTyShouldIgnore): `default`, `default`
@@ -104,15 +104,20 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
   @override
   Future<void> addXswdRelayer({
     required ApplicationDataRelayer appData,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 
@@ -346,7 +351,10 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   Future<void> offlineMode();
 
-  Future<void> onlineMode({required String daemonAddress});
+  Future<void> onlineMode({
+    required String daemonAddress,
+    required NativeWalletConnectionOptions options,
+  });
 
   Future<NativePreparedTransaction> prepareBurnAllTransaction({
     required String asset,
@@ -388,15 +396,20 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   @override
   Future<void> startXswd({
-    required FutureOr<void> Function(XswdRequestSummary)
+    required NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     cancelRequestDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestApplicationDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPermissionDartCallback,
-    required FutureOr<UserPermissionDecision> Function(XswdRequestSummary)
+    required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(XswdRequestSummary)
+    required FutureOr<XswdNotificationCallbackOutcome> Function(
+      XswdRequestSummary,
+    )
     appDisconnectDartCallback,
   });
 
@@ -404,7 +417,9 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
   Future<void> stopXswd();
 
   /// Opens a session-scoped business-event cursor.
-  Future<WalletBusinessEventSubscription> subscribeBusinessEvents();
+  Future<WalletBusinessEventSubscription> subscribeBusinessEvents({
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
+  });
 
   /// Opens a generation-scoped runtime event cursor after its upstream
   /// receiver has been registered.
