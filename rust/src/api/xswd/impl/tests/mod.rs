@@ -30,3 +30,4 @@ fn prefetch_permissions() -> XSWDPrefetchPermissions {
 mod application;
 mod lifecycle;
 mod permissions;
+mod projection;

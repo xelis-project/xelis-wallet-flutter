@@ -158,5 +158,7 @@ jobs:
           rustup component add rust-src --toolchain nightly
           rustup target add wasm32-unknown-unknown --toolchain nightly
           cargo install wasm-pack --locked
+      - name: Test lossless XSWD Web projection
+        run: flutter test --platform chrome test/xelis_xswd_web_projection_test.dart
       - name: Build Web consumer package
         run: dart --packages=.dart_tool/package_config.json tool/build_web.dart --output "$RUNNER_TEMP/xwf-web/pkg"

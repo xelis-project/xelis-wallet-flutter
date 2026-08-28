@@ -27,7 +27,8 @@ pub enum XSWDEvent {
 
 use crate::api::{
     models::xswd_dtos::{
-        AppInfo, ApplicationDataRelayer, PermissionPolicy, UserPermissionDecision,
+        AppInfo, ApplicationDataRelayer, NativeXswdProjectionLimits, PermissionPolicy,
+        UserPermissionDecision, XswdDecisionCallbackOutcome, XswdNotificationCallbackOutcome,
         XswdRequestSummary, XswdRequestType,
     },
     wallet::XelisWallet,
@@ -37,23 +38,24 @@ use crate::api::{
 pub trait XSWD {
     async fn start_xswd(
         &self,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -76,23 +78,24 @@ pub trait XSWD {
     async fn add_xswd_relayer(
         &self,
         app_data: ApplicationDataRelayer,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -102,23 +105,24 @@ pub trait XSWD {
 impl XSWD for XelisWallet {
     async fn start_xswd(
         &self,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        _projection_limits: NativeXswdProjectionLimits,
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -153,23 +157,24 @@ impl XSWD for XelisWallet {
     async fn add_xswd_relayer(
         &self,
         _app_data: ApplicationDataRelayer,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        _projection_limits: NativeXswdProjectionLimits,
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -182,19 +187,26 @@ fn xswd_unavailable<T>() -> Result<T> {
     Err(anyhow!("XSWD support is not enabled in this build"))
 }
 
+#[flutter_rust_bridge::frb(ignore)]
 pub async fn xswd_handler(
     mut _receiver: UnboundedReceiver<XSWDEvent>,
-    _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>,
+    _projection_limits: NativeXswdProjectionLimits,
+    _cancel_request_dart_callback: impl Fn(
+        XswdRequestSummary,
+    ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     _request_application_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
+    ) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     _request_permission_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
+    ) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     _request_prefetch_permissions_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
-    _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>,
+    )
+        -> DartFnFuture<XswdDecisionCallbackOutcome>,
+    _app_disconnect_dart_callback: impl Fn(
+        XswdRequestSummary,
+    ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
 ) {
     // no-op w/o network_handler
 }

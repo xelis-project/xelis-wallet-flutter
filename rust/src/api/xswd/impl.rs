@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use std::collections::HashMap;
 
-use anyhow::{anyhow, bail, Context, Error, Result};
+use anyhow::{anyhow, bail, Error, Result};
 pub use flutter_rust_bridge::DartFnFuture;
 use log::{debug, error, info};
 pub use xelis_common::api::wallet::XSWDPrefetchPermissions;
@@ -16,7 +16,9 @@ pub use xelis_wallet::wallet::XSWDEvent;
 
 use crate::api::{
     models::xswd_dtos::{
-        AppInfo, ApplicationDataRelayer, EncryptionMode, PermissionPolicy, UserPermissionDecision,
+        AppInfo, ApplicationDataRelayer, EncryptionMode, NativeXswdPayload,
+        NativeXswdProjectionLimits, PermissionPolicy, UserPermissionDecision,
+        XswdDecisionCallbackOutcome, XswdNotificationCallbackOutcome, XswdPayloadProjectionError,
         XswdRequestSummary, XswdRequestType,
     },
     wallet::XelisWallet,
@@ -30,23 +32,24 @@ use xelis_wallet::api::{
 pub trait XSWD {
     async fn start_xswd(
         &self,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -69,23 +72,24 @@ pub trait XSWD {
     async fn add_xswd_relayer(
         &self,
         app_data: ApplicationDataRelayer,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -95,30 +99,35 @@ pub trait XSWD {
 impl XSWD for XelisWallet {
     async fn start_xswd(
         &self,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        _request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        _app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
     ) -> Result<()> {
+        let projection_limits = projection_limits
+            .validate()
+            .map_err(|error| anyhow!(error.code()))?;
         #[cfg(target_arch = "wasm32")]
         {
             let _ = (
+                projection_limits,
                 _cancel_request_dart_callback,
                 _request_application_dart_callback,
                 _request_permission_dart_callback,
@@ -131,6 +140,7 @@ impl XSWD for XelisWallet {
         #[cfg(all(not(target_arch = "wasm32"), not(feature = "api_server")))]
         {
             let _ = (
+                projection_limits,
                 _cancel_request_dart_callback,
                 _request_application_dart_callback,
                 _request_permission_dart_callback,
@@ -147,6 +157,7 @@ impl XSWD for XelisWallet {
                     spawn_task("xswd_handler", async move {
                         xswd_handler(
                             receiver,
+                            projection_limits,
                             _cancel_request_dart_callback,
                             _request_application_dart_callback,
                             _request_permission_dart_callback,
@@ -330,27 +341,31 @@ impl XSWD for XelisWallet {
     async fn add_xswd_relayer(
         &self,
         app_data: ApplicationDataRelayer,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        projection_limits: NativeXswdProjectionLimits,
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_application_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_permission_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>
+        request_prefetch_permissions_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>
             + Send
             + Sync
             + 'static,
-        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>
+        app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
     ) -> Result<()> {
+        let projection_limits = projection_limits
+            .validate()
+            .map_err(|error| anyhow!(error.code()))?;
         let encryption_mode = convert_encryption_mode(app_data.encryption_mode)?;
 
         // Use serde to construct ApplicationData since fields are private
@@ -378,6 +393,7 @@ impl XSWD for XelisWallet {
                     "xswd-relayer-handler",
                     xswd_handler(
                         receiver,
+                        projection_limits,
                         cancel_request_dart_callback,
                         request_application_dart_callback,
                         request_permission_dart_callback,
@@ -462,25 +478,33 @@ fn convert_encryption_mode(mode: Option<EncryptionMode>) -> Result<Option<CoreEn
     .transpose()
 }
 
+#[flutter_rust_bridge::frb(ignore)]
 pub async fn xswd_handler(
     mut receiver: UnboundedReceiver<XSWDEvent>,
-    cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>,
+    projection_limits: NativeXswdProjectionLimits,
+    cancel_request_dart_callback: impl Fn(
+        XswdRequestSummary,
+    ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     request_application_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
+    ) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     request_permission_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
+    ) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     request_prefetch_permissions_dart_callback: impl Fn(
         XswdRequestSummary,
-    ) -> DartFnFuture<UserPermissionDecision>,
-    app_disconnect_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<()>,
+    )
+        -> DartFnFuture<XswdDecisionCallbackOutcome>,
+    app_disconnect_dart_callback: impl Fn(
+        XswdRequestSummary,
+    ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
 ) {
     info!("XSWD Server has been enabled");
     while let Some(event) = receiver.recv().await {
         info!("Received XSWD event: {}", xswd_event_name(&event));
         handle_xswd_event(
             event,
+            projection_limits,
             &cancel_request_dart_callback,
             &request_application_dart_callback,
             &request_permission_dart_callback,
@@ -493,25 +517,28 @@ pub async fn xswd_handler(
 
 async fn handle_xswd_event<Cancel, Application, Request, Prefetch, Disconnect>(
     event: XSWDEvent,
+    projection_limits: NativeXswdProjectionLimits,
     cancel_request_dart_callback: &Cancel,
     request_application_dart_callback: &Application,
     request_permission_dart_callback: &Request,
     request_prefetch_permissions_dart_callback: &Prefetch,
     app_disconnect_dart_callback: &Disconnect,
 ) where
-    Cancel: Fn(XswdRequestSummary) -> DartFnFuture<()>,
-    Application: Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>,
-    Request: Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>,
-    Prefetch: Fn(XswdRequestSummary) -> DartFnFuture<UserPermissionDecision>,
-    Disconnect: Fn(XswdRequestSummary) -> DartFnFuture<()>,
+    Cancel: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+    Application: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
+    Request: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
+    Prefetch: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
+    Disconnect: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
 {
     match event {
         XSWDEvent::CancelRequest(state, callback) => {
             let event_summary = create_event_summary(&state, XswdRequestType::CancelRequest).await;
 
-            cancel_request_dart_callback(event_summary).await;
-
-            if callback.send(Ok(())).is_err() {
+            let result = match cancel_request_dart_callback(event_summary).await {
+                XswdNotificationCallbackOutcome::Completed => Ok(()),
+                failure => Err(notification_callback_failure(failure)),
+            };
+            if callback.send(result).is_err() {
                 error!("Error while sending cancel response to XSWD");
             }
         }
@@ -520,53 +547,51 @@ async fn handle_xswd_event<Cancel, Application, Request, Prefetch, Disconnect>(
 
             let decision = request_application_dart_callback(event_summary).await;
 
-            handle_permission_decision(decision, callback);
+            handle_permission_outcome(decision, callback);
         }
         XSWDEvent::RequestPermission(state, request, callback) => {
-            let json = match serde_json::to_string(&request)
-                .context("Failed to serialize XSWD permission request")
-            {
-                Ok(json) => json,
+            let payload = match NativeXswdPayload::project(&request, projection_limits) {
+                Ok(payload) => payload,
                 Err(error) => {
-                    if callback.send(Err(error)).is_err() {
-                        error!("Error while sending permission serialization failure to XSWD");
-                    }
+                    fail_permission_projection(error, callback);
                     return;
                 }
             };
 
             let event_summary =
-                create_event_summary(&state, XswdRequestType::Permission(json)).await;
+                create_event_summary(&state, XswdRequestType::Permission(payload)).await;
 
             let decision = request_permission_dart_callback(event_summary).await;
 
-            handle_permission_decision(decision, callback);
+            handle_permission_outcome(decision, callback);
         }
         XSWDEvent::PrefetchPermissions(state, permissions, callback) => {
-            let json = match serde_json::to_string(&permissions)
-                .context("Failed to serialize XSWD prefetch permissions request")
-            {
-                Ok(json) => json,
+            let payload = match NativeXswdPayload::project(&permissions, projection_limits) {
+                Ok(payload) => payload,
                 Err(error) => {
-                    if callback.send(Err(error)).is_err() {
-                        error!("Error while sending prefetch serialization failure to XSWD");
-                    }
+                    fail_prefetch_projection(error, callback);
                     return;
                 }
             };
 
             let event_summary =
-                create_event_summary(&state, XswdRequestType::PrefetchPermissions(json)).await;
+                create_event_summary(&state, XswdRequestType::PrefetchPermissions(payload)).await;
 
             let decision = request_prefetch_permissions_dart_callback(event_summary).await;
 
-            handle_prefetch_permissions_decision(decision, permissions, callback);
+            handle_prefetch_permissions_outcome(decision, permissions, callback);
         }
         XSWDEvent::AppDisconnect(app_state) => {
             let event_summary =
                 create_event_summary(&app_state, XswdRequestType::AppDisconnect).await;
 
-            app_disconnect_dart_callback(event_summary).await;
+            let outcome = app_disconnect_dart_callback(event_summary).await;
+            if !matches!(outcome, XswdNotificationCallbackOutcome::Completed) {
+                debug!(
+                    "XSWD_APP_DISCONNECT_CALLBACK_FAILED:{}",
+                    notification_failure_code(outcome)
+                );
+            }
         }
     }
 }
@@ -600,17 +625,78 @@ pub async fn create_app_info(state: &AppState) -> AppInfo {
     }
 }
 
-fn handle_permission_decision(
-    decision: UserPermissionDecision,
+fn handle_permission_outcome(
+    outcome: XswdDecisionCallbackOutcome,
     callback: Sender<Result<PermissionResult, Error>>,
 ) {
-    let result = permission_result_from_decision(decision);
+    let result = permission_result_from_outcome(outcome);
 
-    if callback.send(Ok(result)).is_err() {
+    if callback.send(result).is_err() {
         error!("Error while sending permission response to XSWD");
     }
 }
 
+fn fail_permission_projection(
+    error: XswdPayloadProjectionError,
+    callback: Sender<Result<PermissionResult, Error>>,
+) {
+    debug!("XSWD_PAYLOAD_PROJECTION_FAILED:{}", error.code());
+    if callback
+        .send(Err(anyhow!("XSWD_PAYLOAD_PROJECTION_FAILED")))
+        .is_err()
+    {
+        error!("Error while sending permission projection failure to XSWD");
+    }
+}
+
+fn fail_prefetch_projection(
+    error: XswdPayloadProjectionError,
+    callback: Sender<Result<IndexMap<String, Permission>, Error>>,
+) {
+    debug!("XSWD_PAYLOAD_PROJECTION_FAILED:{}", error.code());
+    if callback
+        .send(Err(anyhow!("XSWD_PAYLOAD_PROJECTION_FAILED")))
+        .is_err()
+    {
+        error!("Error while sending prefetch projection failure to XSWD");
+    }
+}
+
+fn permission_result_from_outcome(
+    outcome: XswdDecisionCallbackOutcome,
+) -> Result<PermissionResult> {
+    match outcome {
+        XswdDecisionCallbackOutcome::Accept => Ok(PermissionResult::Accept),
+        XswdDecisionCallbackOutcome::Reject => Ok(PermissionResult::Reject),
+        XswdDecisionCallbackOutcome::AlwaysAccept => Ok(PermissionResult::AlwaysAccept),
+        XswdDecisionCallbackOutcome::AlwaysReject => Ok(PermissionResult::AlwaysReject),
+        failure => Err(anyhow!(decision_failure_code(failure))),
+    }
+}
+
+fn decision_failure_code(outcome: XswdDecisionCallbackOutcome) -> &'static str {
+    match outcome {
+        XswdDecisionCallbackOutcome::InvalidPayload => "XSWD_CALLBACK_PAYLOAD_INVALID",
+        XswdDecisionCallbackOutcome::Timeout => "XSWD_CALLBACK_TIMEOUT",
+        XswdDecisionCallbackOutcome::Exception => "XSWD_CALLBACK_EXCEPTION",
+        _ => "XSWD_CALLBACK_OUTCOME_INVALID",
+    }
+}
+
+fn notification_callback_failure(outcome: XswdNotificationCallbackOutcome) -> Error {
+    anyhow!(notification_failure_code(outcome))
+}
+
+fn notification_failure_code(outcome: XswdNotificationCallbackOutcome) -> &'static str {
+    match outcome {
+        XswdNotificationCallbackOutcome::InvalidPayload => "XSWD_CALLBACK_PAYLOAD_INVALID",
+        XswdNotificationCallbackOutcome::Timeout => "XSWD_CALLBACK_TIMEOUT",
+        XswdNotificationCallbackOutcome::Exception => "XSWD_CALLBACK_EXCEPTION",
+        XswdNotificationCallbackOutcome::Completed => "XSWD_CALLBACK_OUTCOME_INVALID",
+    }
+}
+
+#[cfg(test)]
 fn permission_result_from_decision(decision: UserPermissionDecision) -> PermissionResult {
     match decision {
         UserPermissionDecision::Accept => PermissionResult::Accept,
@@ -620,14 +706,22 @@ fn permission_result_from_decision(decision: UserPermissionDecision) -> Permissi
     }
 }
 
-fn handle_prefetch_permissions_decision(
-    decision: UserPermissionDecision,
+fn handle_prefetch_permissions_outcome(
+    outcome: XswdDecisionCallbackOutcome,
     permissions: XSWDPrefetchPermissions,
     callback: Sender<Result<IndexMap<String, Permission>, Error>>,
 ) {
-    let results = prefetch_permissions_from_decision(decision, permissions);
+    let results = match outcome {
+        XswdDecisionCallbackOutcome::Accept | XswdDecisionCallbackOutcome::AlwaysAccept => Ok(
+            prefetch_permissions_from_decision(UserPermissionDecision::Accept, permissions),
+        ),
+        XswdDecisionCallbackOutcome::Reject | XswdDecisionCallbackOutcome::AlwaysReject => {
+            Ok(IndexMap::new())
+        }
+        failure => Err(anyhow!(decision_failure_code(failure))),
+    };
 
-    if callback.send(Ok(results)).is_err() {
+    if callback.send(results).is_err() {
         error!("Error while sending prefetch permissions response back to XSWD");
     }
 }

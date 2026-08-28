@@ -79,50 +79,218 @@ void main() {
       );
 
       await wallet.startXswd(callbacks: callbacks);
+      final generatedPayload = _generatedPayload([
+        _objectStart(7),
+        _objectKey('method'),
+        _string('wallet.sign'),
+        _objectKey('secret'),
+        _string('payload'),
+        _objectKey('amount'),
+        _integer('9007199254740993'),
+        _objectKey('negative'),
+        _integer('-9223372036854775808'),
+        _objectKey('enabled'),
+        _bool(true),
+        _objectKey('ratio'),
+        _float(1.5),
+        _objectKey('items'),
+        _arrayStart(2),
+        _null(),
+        _string('18446744073709551616'),
+      ]);
       final decision = await delegate.permissionCallback!(
         _generatedRequest(
-          const generated_models.XswdRequestType.permission(
-            '{"method":"wallet.sign","secret":"payload"}',
-          ),
+          generated_models.XswdRequestType.permission(generatedPayload),
         ),
       );
 
-      expect(decision, generated_models.UserPermissionDecision.alwaysAccept);
+      expect(
+        decision,
+        generated_models.XswdDecisionCallbackOutcome.alwaysAccept,
+      );
       expect(received.kind, XelisXswdRequestKind.permission);
       expect(received.application.id, 'application-id');
-      expect(received.payloadJson, contains('wallet.sign'));
-      expect(received.toString(), isNot(contains('wallet.sign')));
-      expect(received.toString(), isNot(contains('payload')));
-    });
-
-    test('fails callback exceptions and timeouts closed', () async {
-      final delegate = _FakeGeneratedXswdWallet();
-      final wallet = NativeXelisWallet(delegate);
-      await wallet.startXswd(
-        callbacks: _callbacks(
-          timeout: Duration.zero,
-          onCancelRequest: (_) => throw StateError('sensitive callback data'),
-          onPermissionRequest: (_) => Completer<XelisXswdDecision>().future,
-        ),
-      );
-
-      await expectLater(
-        delegate.cancelCallback!(
-          _generatedRequest(
-            const generated_models.XswdRequestType.cancelRequest(),
-          ),
-        ),
-        completes,
+      final payload = received.payload as XelisXswdObjectValue;
+      expect(
+        (payload.fields['method'] as XelisXswdStringValue).value,
+        'wallet.sign',
       );
       expect(
-        await delegate.permissionCallback!(
-          _generatedRequest(
-            const generated_models.XswdRequestType.permission('secret'),
-          ),
-        ),
-        generated_models.UserPermissionDecision.reject,
+        (payload.fields['amount'] as XelisXswdIntegerValue).value,
+        BigInt.parse('9007199254740993'),
+      );
+      expect(
+        (payload.fields['negative'] as XelisXswdIntegerValue).value,
+        BigInt.parse('-9223372036854775808'),
+      );
+      expect((payload.fields['enabled'] as XelisXswdBoolValue).value, isTrue);
+      expect((payload.fields['ratio'] as XelisXswdFloatValue).value, 1.5);
+      final items = payload.fields['items'] as XelisXswdArrayValue;
+      expect(items.values.first, isA<XelisXswdNullValue>());
+      expect(
+        (items.values.last as XelisXswdStringValue).value,
+        '18446744073709551616',
+      );
+      expect(
+        () => payload.fields['other'] = const XelisXswdNullValue(),
+        throwsUnsupportedError,
+      );
+      expect(
+        () => items.values.add(const XelisXswdNullValue()),
+        throwsUnsupportedError,
+      );
+      expect(received.toString(), isNot(contains('wallet.sign')));
+      expect(received.toString(), isNot(contains('payload')));
+      expect(payload.toString(), isNot(contains('method')));
+      expect(payload.toString(), isNot(contains('wallet.sign')));
+      expect(payload.fields['secret'].toString(), isNot(contains('payload')));
+      expect(generatedPayload.toString(), isNot(contains('payload')));
+      expect(generatedPayload.tokens[4].toString(), isNot(contains('payload')));
+      expect(
+        generated_models.XswdRequestType.permission(generatedPayload)
+            .toString(),
+        isNot(contains('payload')),
       );
     });
+
+    test(
+      'reports callback exceptions and timeouts as technical outcomes',
+      () async {
+        final delegate = _FakeGeneratedXswdWallet();
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(
+          callbacks: _callbacks(
+            timeout: const Duration(microseconds: 1),
+            onCancelRequest: (_) => throw StateError('sensitive callback data'),
+            onPermissionRequest: (_) => Completer<XelisXswdDecision>().future,
+          ),
+        );
+
+        await expectLater(
+          delegate.cancelCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.cancelRequest(),
+            ),
+          ),
+          completion(
+            generated_models.XswdNotificationCallbackOutcome.exception,
+          ),
+        );
+        expect(
+          await delegate.permissionCallback!(
+            _generatedRequest(
+              generated_models.XswdRequestType.permission(
+                _generatedPayload([_objectStart(0)]),
+              ),
+            ),
+          ),
+          generated_models.XswdDecisionCallbackOutcome.timeout,
+        );
+      },
+    );
+
+    test(
+      'forwards configurable projection limits and validates ceilings',
+      () async {
+        final delegate = _FakeGeneratedXswdWallet();
+        final wallet = NativeXelisWallet(delegate);
+        const limits = XelisXswdProjectionLimits(
+          maxDepth: 12,
+          maxTokens: 1234,
+          maxContainerMembers: 123,
+          maxTextBytes: 456,
+          maxTotalTextBytes: 789,
+        );
+
+        await wallet.startXswd(callbacks: _callbacks(limits: limits));
+        expect(delegate.lastProjectionLimits?.maxDepth, 12);
+        expect(delegate.lastProjectionLimits?.maxTokens, 1234);
+        expect(delegate.lastProjectionLimits?.maxContainerMembers, 123);
+        expect(delegate.lastProjectionLimits?.maxTextBytes, 456);
+        expect(delegate.lastProjectionLimits?.maxTotalTextBytes, 789);
+
+        final invalidCallbacks = [
+          _callbacks(timeout: Duration.zero),
+          _callbacks(limits: const XelisXswdProjectionLimits(maxDepth: 0)),
+          _callbacks(
+            limits: const XelisXswdProjectionLimits(
+              maxDepth: XelisXswdProjectionLimits.technicalMaxDepth + 1,
+            ),
+          ),
+          _callbacks(
+            limits: const XelisXswdProjectionLimits(
+              maxTextBytes: 1024,
+              maxTotalTextBytes: 1023,
+            ),
+          ),
+        ];
+        for (final callbacks in invalidCallbacks) {
+          await expectLater(
+            wallet.startXswd(callbacks: callbacks),
+            throwsA(
+              isA<XelisWalletException>().having(
+                (error) => error.code,
+                'code',
+                XelisWalletErrorCode.invalidInput,
+              ),
+            ),
+          );
+        }
+      },
+    );
+
+    test(
+      'rejects malformed private payloads before the consumer callback',
+      () async {
+        var callbackCalls = 0;
+        final delegate = _FakeGeneratedXswdWallet();
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(
+          callbacks: _callbacks(
+            onPermissionRequest: (_) {
+              callbackCalls++;
+              return XelisXswdDecision.accept;
+            },
+          ),
+        );
+
+        final malformedPayloads = [
+          _generatedPayload([_string('not-an-object')]),
+          _generatedPayload([_objectStart(1), _objectKey('missing')]),
+          _generatedPayload([
+            _objectStart(1),
+            _objectKey('integer'),
+            _integer('01'),
+          ]),
+          _generatedPayload([
+            _objectStart(2),
+            _objectKey('duplicate'),
+            _null(),
+            _objectKey('duplicate'),
+            _null(),
+          ]),
+          _generatedPayload([_objectStart(0), _null()]),
+          _generatedPayload([
+            const generated_models.NativeXswdPayloadToken(
+              kind: generated_models.NativeXswdPayloadTokenKind.null_,
+              textValue: 'unexpected',
+            ),
+          ]),
+        ];
+
+        for (final payload in malformedPayloads) {
+          expect(
+            await delegate.permissionCallback!(
+              _generatedRequest(
+                generated_models.XswdRequestType.permission(payload),
+              ),
+            ),
+            generated_models.XswdDecisionCallbackOutcome.invalidPayload,
+          );
+        }
+        expect(callbackCalls, 0);
+      },
+    );
 
     test('rejects invalid relayer keys before the generated call', () async {
       final delegate = _FakeGeneratedXswdWallet();
@@ -306,10 +474,12 @@ Future<void> _expectXswdOperation({
 
 XelisXswdCallbacks _callbacks({
   Duration timeout = const Duration(minutes: 1),
+  XelisXswdProjectionLimits limits = const XelisXswdProjectionLimits(),
   XelisXswdNotificationCallback? onCancelRequest,
   XelisXswdDecisionCallback? onPermissionRequest,
 }) => XelisXswdCallbacks(
   timeout: timeout,
+  projectionLimits: limits,
   onCancelRequest: onCancelRequest ?? (_) async {},
   onApplicationRequest: (_) async => XelisXswdDecision.accept,
   onPermissionRequest:
@@ -334,6 +504,57 @@ generated_models.XswdRequestSummary _generatedRequest(
   eventType: type,
   applicationInfo: _generatedApplication(),
 );
+
+generated_models.NativeXswdPayload _generatedPayload(
+  List<generated_models.NativeXswdPayloadToken> tokens,
+) => generated_models.NativeXswdPayload(tokens: tokens);
+
+generated_models.NativeXswdPayloadToken _null() =>
+    const generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.null_,
+    );
+
+generated_models.NativeXswdPayloadToken _bool(bool value) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.bool,
+      boolValue: value,
+    );
+
+generated_models.NativeXswdPayloadToken _string(String value) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.stringValue,
+      textValue: value,
+    );
+
+generated_models.NativeXswdPayloadToken _integer(String value) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.integer,
+      textValue: value,
+    );
+
+generated_models.NativeXswdPayloadToken _float(double value) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.float,
+      floatValue: value,
+    );
+
+generated_models.NativeXswdPayloadToken _arrayStart(int length) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.arrayStart,
+      length: length,
+    );
+
+generated_models.NativeXswdPayloadToken _objectStart(int length) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.objectStart,
+      length: length,
+    );
+
+generated_models.NativeXswdPayloadToken _objectKey(String value) =>
+    generated_models.NativeXswdPayloadToken(
+      kind: generated_models.NativeXswdPayloadTokenKind.objectKey,
+      textValue: value,
+    );
 
 final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   _FakeGeneratedXswdWallet({
@@ -362,8 +583,12 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   String? closedApplicationId;
   Map<String, generated_models.PermissionPolicy>? lastPermissions;
   generated_models.ApplicationDataRelayer? lastRelayer;
-  FutureOr<void> Function(generated_models.XswdRequestSummary)? cancelCallback;
-  FutureOr<generated_models.UserPermissionDecision> Function(
+  generated_models.NativeXswdProjectionLimits? lastProjectionLimits;
+  FutureOr<generated_models.XswdNotificationCallbackOutcome> Function(
+    generated_models.XswdRequestSummary,
+  )?
+  cancelCallback;
+  FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
     generated_models.XswdRequestSummary,
   )?
   permissionCallback;
@@ -376,25 +601,29 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
 
   @override
   Future<void> startXswd({
-    required FutureOr<void> Function(generated_models.XswdRequestSummary)
+    required generated_models.NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<generated_models.XswdNotificationCallbackOutcome>
+    Function(generated_models.XswdRequestSummary)
     cancelRequestDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestApplicationDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestPermissionDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(generated_models.XswdRequestSummary)
+    required FutureOr<generated_models.XswdNotificationCallbackOutcome>
+    Function(generated_models.XswdRequestSummary)
     appDisconnectDartCallback,
   }) async {
     startCalls++;
     if (startFailure case final error?) throw error;
+    lastProjectionLimits = projectionLimits;
     cancelCallback = cancelRequestDartCallback;
     permissionCallback = requestPermissionDartCallback;
     running = true;
@@ -416,21 +645,24 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   @override
   Future<void> addXswdRelayer({
     required generated_models.ApplicationDataRelayer appData,
-    required FutureOr<void> Function(generated_models.XswdRequestSummary)
+    required generated_models.NativeXswdProjectionLimits projectionLimits,
+    required FutureOr<generated_models.XswdNotificationCallbackOutcome>
+    Function(generated_models.XswdRequestSummary)
     cancelRequestDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestApplicationDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestPermissionDartCallback,
-    required FutureOr<generated_models.UserPermissionDecision> Function(
+    required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
     )
     requestPrefetchPermissionsDartCallback,
-    required FutureOr<void> Function(generated_models.XswdRequestSummary)
+    required FutureOr<generated_models.XswdNotificationCallbackOutcome>
+    Function(generated_models.XswdRequestSummary)
     appDisconnectDartCallback,
   }) async {
     relayerCalls++;

@@ -91,51 +91,54 @@ async fn handler_routes_every_event_once_and_returns_matching_responses() {
     let calls = Arc::new(Mutex::new(Vec::<(&'static str, XswdRequestSummary)>::new()));
 
     let cancel_calls = Arc::clone(&calls);
-    let cancel = move |summary| -> DartFnFuture<()> {
+    let cancel = move |summary| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         let calls = Arc::clone(&cancel_calls);
         Box::pin(async move {
             calls.lock().unwrap().push(("cancel", summary));
+            XswdNotificationCallbackOutcome::Completed
         })
     };
 
     let application_calls = Arc::clone(&calls);
-    let application = move |summary| -> DartFnFuture<UserPermissionDecision> {
+    let application = move |summary| -> DartFnFuture<XswdDecisionCallbackOutcome> {
         let calls = Arc::clone(&application_calls);
         Box::pin(async move {
             calls.lock().unwrap().push(("application", summary));
-            UserPermissionDecision::AlwaysAccept
+            XswdDecisionCallbackOutcome::AlwaysAccept
         })
     };
 
     let permission_calls = Arc::clone(&calls);
-    let permission = move |summary| -> DartFnFuture<UserPermissionDecision> {
+    let permission = move |summary| -> DartFnFuture<XswdDecisionCallbackOutcome> {
         let calls = Arc::clone(&permission_calls);
         Box::pin(async move {
             calls.lock().unwrap().push(("permission", summary));
-            UserPermissionDecision::Reject
+            XswdDecisionCallbackOutcome::Reject
         })
     };
 
     let prefetch_calls = Arc::clone(&calls);
-    let prefetch = move |summary| -> DartFnFuture<UserPermissionDecision> {
+    let prefetch = move |summary| -> DartFnFuture<XswdDecisionCallbackOutcome> {
         let calls = Arc::clone(&prefetch_calls);
         Box::pin(async move {
             calls.lock().unwrap().push(("prefetch", summary));
-            UserPermissionDecision::Accept
+            XswdDecisionCallbackOutcome::Accept
         })
     };
 
     let disconnect_calls = Arc::clone(&calls);
-    let disconnect = move |summary| -> DartFnFuture<()> {
+    let disconnect = move |summary| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         let calls = Arc::clone(&disconnect_calls);
         Box::pin(async move {
             calls.lock().unwrap().push(("disconnect", summary));
+            XswdNotificationCallbackOutcome::Completed
         })
     };
 
     let (sender, receiver) = mpsc::unbounded_channel();
     let handler = tokio::spawn(xswd_handler(
         receiver,
+        NativeXswdProjectionLimits::default(),
         cancel,
         application,
         permission,
@@ -214,13 +217,27 @@ async fn handler_routes_every_event_once_and_returns_matching_responses() {
         .all(|(_, summary)| summary.application_info.id == "app-id"));
 
     let permission_summary = &calls[1].1;
-    let permission_json: serde_json::Value =
-        serde_json::from_str(&permission_summary.permission_json().unwrap()).unwrap();
-    assert_eq!(permission_json["method"], "get_balance");
+    let XswdRequestType::Permission(permission_payload) = &permission_summary.event_type else {
+        panic!("expected permission payload");
+    };
+    assert!(permission_payload.tokens.iter().any(|token| {
+        matches!(
+            token.kind,
+            crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::StringValue
+        ) && token.text_value.as_deref() == Some("get_balance")
+    }));
 
     let prefetch_summary = &calls[2].1;
-    let prefetch_json: serde_json::Value =
-        serde_json::from_str(&prefetch_summary.prefetch_permissions_json().unwrap()).unwrap();
-    assert_eq!(prefetch_json["permissions"][0], "get_balance");
-    assert_eq!(prefetch_json["permissions"][1], "get_assets");
+    let XswdRequestType::PrefetchPermissions(prefetch_payload) = &prefetch_summary.event_type
+    else {
+        panic!("expected prefetch payload");
+    };
+    for permission in ["get_balance", "get_assets"] {
+        assert!(prefetch_payload.tokens.iter().any(|token| {
+            matches!(
+                token.kind,
+                crate::api::models::xswd_dtos::NativeXswdPayloadTokenKind::StringValue
+            ) && token.text_value.as_deref() == Some(permission)
+        }));
+    }
 }

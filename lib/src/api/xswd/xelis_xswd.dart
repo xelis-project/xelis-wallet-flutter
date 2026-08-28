@@ -16,6 +16,131 @@ enum XelisXswdRequestKind {
   applicationDisconnect,
 }
 
+/// Lossless authored value from the effective RPC request delivered by XSWD.
+///
+/// Values may contain active secrets supplied by the requesting application,
+/// including explicit signer private keys. Inspect them only inside the
+/// callback that received them, and never log, retain, or display an entire
+/// payload. Every [toString] implementation is deliberately redacted.
+sealed class XelisXswdValue {
+  const XelisXswdValue();
+}
+
+/// Resource budget used while projecting one parsed XSWD request to Dart.
+///
+/// These limits protect the Rust/FRB/Dart boundary. They are not XELIS
+/// protocol limits. Custom values may be stricter or more permissive than the
+/// defaults but cannot exceed the package-owned technical ceilings.
+final class XelisXswdProjectionLimits {
+  const XelisXswdProjectionLimits({
+    this.maxDepth = defaultMaxDepth,
+    this.maxTokens = defaultMaxTokens,
+    this.maxContainerMembers = defaultMaxContainerMembers,
+    this.maxTextBytes = defaultMaxTextBytes,
+    this.maxTotalTextBytes = defaultMaxTotalTextBytes,
+  });
+
+  static const defaultMaxDepth = 64;
+  static const defaultMaxTokens = 65536;
+  static const defaultMaxContainerMembers = 4096;
+  static const defaultMaxTextBytes = 4 * 1024 * 1024;
+  static const defaultMaxTotalTextBytes = 8 * 1024 * 1024;
+
+  static const technicalMaxDepth = 128;
+  static const technicalMaxTokens = 262144;
+  static const technicalMaxContainerMembers = 65536;
+  static const technicalMaxTextBytes = 8 * 1024 * 1024;
+  static const technicalMaxTotalTextBytes = 16 * 1024 * 1024;
+
+  final int maxDepth;
+  final int maxTokens;
+  final int maxContainerMembers;
+  final int maxTextBytes;
+  final int maxTotalTextBytes;
+
+  @override
+  String toString() =>
+      'XelisXswdProjectionLimits(maxDepth=$maxDepth, '
+      'maxTokens=$maxTokens, maxContainerMembers=$maxContainerMembers, '
+      'maxTextBytes=$maxTextBytes, maxTotalTextBytes=$maxTotalTextBytes)';
+}
+
+/// Authored JSON null value.
+final class XelisXswdNullValue extends XelisXswdValue {
+  const XelisXswdNullValue();
+
+  @override
+  String toString() => 'XelisXswdNullValue(redacted)';
+}
+
+/// Authored JSON boolean value.
+final class XelisXswdBoolValue extends XelisXswdValue {
+  const XelisXswdBoolValue(this.value);
+
+  final bool value;
+
+  @override
+  String toString() => 'XelisXswdBoolValue(redacted)';
+}
+
+/// Authored JSON string value.
+final class XelisXswdStringValue extends XelisXswdValue {
+  const XelisXswdStringValue(this.value);
+
+  final String value;
+
+  @override
+  String toString() => 'XelisXswdStringValue(redacted)';
+}
+
+/// Exact authored JSON integer value.
+///
+/// Native `i64` and `u64` values cross the private bridge as canonical decimal
+/// strings and are reconstructed as [BigInt], including on Web.
+final class XelisXswdIntegerValue extends XelisXswdValue {
+  const XelisXswdIntegerValue(this.value);
+
+  final BigInt value;
+
+  @override
+  String toString() => 'XelisXswdIntegerValue(redacted)';
+}
+
+/// Authored JSON floating-point value.
+///
+/// This represents a genuine upstream `f64`, not an integer transport. A
+/// consumer expecting an integer authority field must reject this variant.
+final class XelisXswdFloatValue extends XelisXswdValue {
+  const XelisXswdFloatValue(this.value);
+
+  final double value;
+
+  @override
+  String toString() => 'XelisXswdFloatValue(redacted)';
+}
+
+/// Deeply immutable authored JSON array.
+final class XelisXswdArrayValue extends XelisXswdValue {
+  XelisXswdArrayValue(List<XelisXswdValue> values)
+    : values = List.unmodifiable(values);
+
+  final List<XelisXswdValue> values;
+
+  @override
+  String toString() => 'XelisXswdArrayValue(length=${values.length})';
+}
+
+/// Deeply immutable authored JSON object.
+final class XelisXswdObjectValue extends XelisXswdValue {
+  XelisXswdObjectValue(Map<String, XelisXswdValue> fields)
+    : fields = UnmodifiableMapView(Map.of(fields));
+
+  final Map<String, XelisXswdValue> fields;
+
+  @override
+  String toString() => 'XelisXswdObjectValue(fieldCount=${fields.length})';
+}
+
 /// Authored projection of one application connected through XSWD.
 final class XelisXswdApplication {
   XelisXswdApplication({
@@ -62,20 +187,23 @@ final class XelisXswdState {
 
 /// Authored XSWD request delivered to a consumer callback.
 ///
-/// [payloadJson] is present only for permission and prefetch-permission
-/// requests. It is an opaque RPC payload owned by the consuming application or
-/// its RPC SDK, not a wallet model. It may contain sensitive request data and
-/// must not enter logs, support references, analytics, or toasts.
+/// [payload] is an object for permission and prefetch-permission requests and
+/// is absent for lifecycle notifications. It may contain sensitive request
+/// data and must not enter logs, support references, analytics, or toasts.
+/// A deliberate permission-review UI may inspect and render the fields needed
+/// for informed consent. Redacted [toString] output is only a safe implicit
+/// representation: accessing [XelisXswdObjectValue.fields], collection values,
+/// or scalar values transfers responsibility to the consumer.
 final class XelisXswdRequest {
   const XelisXswdRequest({
     required this.kind,
     required this.application,
-    this.payloadJson,
+    this.payload,
   });
 
   final XelisXswdRequestKind kind;
   final XelisXswdApplication application;
-  final String? payloadJson;
+  final XelisXswdValue? payload;
 
   bool get isApplicationRequest => kind == XelisXswdRequestKind.application;
   bool get isPermissionRequest => kind == XelisXswdRequestKind.permission;
@@ -87,7 +215,7 @@ final class XelisXswdRequest {
 
   @override
   String toString() =>
-      'XelisXswdRequest(kind=$kind, hasPayload=${payloadJson != null})';
+      'XelisXswdRequest(kind=$kind, hasPayload=${payload != null})';
 }
 
 /// Supported encryption algorithms for one relayed XSWD session.
@@ -151,9 +279,9 @@ typedef XelisXswdDecisionCallback = FutureOr<XelisXswdDecision> Function(
 /// Consumer callbacks used by the local XSWD server and relayer handler.
 ///
 /// Generated bridge callback types remain private behind the package adapter.
-/// Callback exceptions and timeouts never cross into Rust: notification
-/// callbacks are abandoned, while decision callbacks fail closed to
-/// [XelisXswdDecision.reject].
+/// Callback exceptions and timeouts never cross into Rust as arbitrary Dart
+/// errors. They become static technical XSWD failures. Only an explicit
+/// [XelisXswdDecision.reject] is represented as a user rejection.
 final class XelisXswdCallbacks {
   const XelisXswdCallbacks({
     required this.onCancelRequest,
@@ -162,6 +290,7 @@ final class XelisXswdCallbacks {
     required this.onPrefetchPermissionsRequest,
     required this.onApplicationDisconnect,
     this.timeout = const Duration(minutes: 1),
+    this.projectionLimits = const XelisXswdProjectionLimits(),
   });
 
   final XelisXswdNotificationCallback onCancelRequest;
@@ -172,4 +301,7 @@ final class XelisXswdCallbacks {
 
   /// Maximum time a callback may retain the native XSWD event loop.
   final Duration timeout;
+
+  /// Resource budget fixed when these callbacks create the native handler.
+  final XelisXswdProjectionLimits projectionLimits;
 }
