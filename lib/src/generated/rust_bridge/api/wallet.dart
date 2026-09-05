@@ -107,6 +107,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -399,6 +400,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)

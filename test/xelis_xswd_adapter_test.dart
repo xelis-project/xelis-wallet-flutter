@@ -398,6 +398,250 @@ void main() {
       expect(delegate.lastPermissionsSessionRef, BigInt.one);
     });
 
+    test('does not revive a cancelled admission from a late decision or stale state', () async {
+      late XelisXswdApplication callbackApplication;
+      final decision = Completer<XelisXswdDecision>();
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      await wallet.startXswd(
+        callbacks: XelisXswdCallbacks(
+          onCancelRequest: (_) async {},
+          onApplicationRequest: (request) {
+            callbackApplication = request.application;
+            return decision.future;
+          },
+          onPermissionRequest: (_) async => XelisXswdDecision.accept,
+          onPrefetchPermissionsRequest: (_) async => XelisXswdDecision.accept,
+          onApplicationDisconnect: (_) async {},
+        ),
+      );
+
+      final pendingDecision = delegate.applicationCallback!(
+        _generatedRequest(const generated_models.XswdRequestType.application()),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        await delegate.cancelCallback!(
+          _generatedRequest(
+            const generated_models.XswdRequestType.cancelRequest(),
+          ),
+          true,
+        ),
+        generated_models.XswdNotificationCallbackOutcome.completed,
+      );
+
+      await _expectInvalidXswdSession(
+        wallet.closeXswdApplicationSession(application: callbackApplication),
+      );
+      decision.complete(XelisXswdDecision.accept);
+      expect(
+        await pendingDecision,
+        generated_models.XswdDecisionCallbackOutcome.accept,
+      );
+      final staleApplication =
+          (await wallet.getXswdState()).applications.single;
+      await _expectInvalidXswdSession(
+        wallet.updateXswdApplicationPermissions(
+          application: staleApplication,
+          permissions: const {},
+        ),
+      );
+    });
+
+    test('tombstones an accepted admission when cancellation wins before Rust consumes it', () async {
+      late XelisXswdApplication callbackApplication;
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      await wallet.startXswd(
+        callbacks: _callbacks(
+          onApplicationRequest: (request) {
+            callbackApplication = request.application;
+            return XelisXswdDecision.accept;
+          },
+        ),
+      );
+
+      expect(
+        await delegate.applicationCallback!(
+          _generatedRequest(
+            const generated_models.XswdRequestType.application(),
+          ),
+        ),
+        generated_models.XswdDecisionCallbackOutcome.accept,
+      );
+      expect(
+        await delegate.cancelCallback!(
+          _generatedRequest(
+            const generated_models.XswdRequestType.cancelRequest(),
+          ),
+          true,
+        ),
+        generated_models.XswdNotificationCallbackOutcome.completed,
+      );
+
+      await _expectInvalidXswdSession(
+        wallet.closeXswdApplicationSession(application: callbackApplication),
+      );
+      final staleProjection = (await wallet.getXswdState()).applications.single;
+      await _expectInvalidXswdSession(
+        wallet.updateXswdApplicationPermissions(
+          application: staleProjection,
+          permissions: const {},
+        ),
+      );
+    });
+
+    test(
+      'keeps an admitted session live when Rust reports a later cancellation',
+      () async {
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: [_generatedApplication()],
+        );
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(callbacks: _callbacks());
+
+        expect(
+          await delegate.applicationCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.application(),
+            ),
+          ),
+          generated_models.XswdDecisionCallbackOutcome.accept,
+        );
+        expect(
+          await delegate.cancelCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.cancelRequest(),
+            ),
+            false,
+          ),
+          generated_models.XswdNotificationCallbackOutcome.completed,
+        );
+
+        final admitted = (await wallet.getXswdState()).applications.single;
+        await wallet.updateXswdApplicationPermissions(
+          application: admitted,
+          permissions: const {},
+        );
+        expect(delegate.lastPermissionsSessionRef, BigInt.one);
+      },
+    );
+
+    test(
+      'keeps an admitted session authoritative after a request cancellation',
+      () async {
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: [_generatedApplication()],
+        );
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(callbacks: _callbacks());
+        final application = (await wallet.getXswdState()).applications.single;
+
+        expect(
+          await delegate.cancelCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.cancelRequest(),
+            ),
+            false,
+          ),
+          generated_models.XswdNotificationCallbackOutcome.completed,
+        );
+        await wallet.updateXswdApplicationPermissions(
+          application: application,
+          permissions: const {},
+        );
+
+        expect(delegate.lastPermissionsSessionRef, BigInt.one);
+      },
+    );
+
+    test(
+      'keeps disconnect identity informative but permanently non-operable',
+      () async {
+        late XelisXswdApplication disconnectedApplication;
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: [_generatedApplication()],
+        );
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(
+          callbacks: _callbacks(
+            onApplicationDisconnect: (request) {
+              disconnectedApplication = request.application;
+            },
+          ),
+        );
+        final admitted = (await wallet.getXswdState()).applications.single;
+
+        expect(
+          await delegate.disconnectCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.appDisconnect(),
+            ),
+          ),
+          generated_models.XswdNotificationCallbackOutcome.completed,
+        );
+        expect(
+          disconnectedApplication.sessionReference,
+          admitted.sessionReference,
+        );
+        final staleProjection =
+            (await wallet.getXswdState()).applications.single;
+        expect(staleProjection.sessionReference, admitted.sessionReference);
+        await _expectInvalidXswdSession(
+          wallet.updateXswdApplicationPermissions(
+            application: staleProjection,
+            permissions: const {},
+          ),
+        );
+      },
+    );
+
+    test(
+      'tombstones disconnect identity even when it was not observed before',
+      () async {
+        late XelisXswdApplication disconnectedApplication;
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: [_generatedApplication()],
+        );
+        final wallet = NativeXelisWallet(delegate);
+        await wallet.startXswd(
+          callbacks: _callbacks(
+            onApplicationDisconnect: (request) {
+              disconnectedApplication = request.application;
+            },
+          ),
+        );
+
+        expect(
+          await delegate.disconnectCallback!(
+            _generatedRequest(
+              const generated_models.XswdRequestType.appDisconnect(),
+            ),
+          ),
+          generated_models.XswdNotificationCallbackOutcome.completed,
+        );
+        final staleProjection =
+            (await wallet.getXswdState()).applications.single;
+        expect(
+          staleProjection.sessionReference,
+          disconnectedApplication.sessionReference,
+        );
+        await _expectInvalidXswdSession(
+          wallet.closeXswdApplicationSession(application: staleProjection),
+        );
+      },
+    );
+
     test('does not revive a session from a stale state read', () async {
       final staleApplications = [_generatedApplication()];
       final applicationsRead = Completer<List<generated_models.AppInfo>>();
@@ -582,6 +826,7 @@ void main() {
             _generatedRequest(
               const generated_models.XswdRequestType.cancelRequest(),
             ),
+            false,
           ),
           completion(
             generated_models.XswdNotificationCallbackOutcome.exception,
@@ -930,16 +1175,19 @@ XelisXswdCallbacks _callbacks({
   Duration timeout = const Duration(minutes: 1),
   XelisXswdProjectionLimits limits = const XelisXswdProjectionLimits(),
   XelisXswdNotificationCallback? onCancelRequest,
+  XelisXswdDecisionCallback? onApplicationRequest,
   XelisXswdDecisionCallback? onPermissionRequest,
+  XelisXswdNotificationCallback? onApplicationDisconnect,
 }) => XelisXswdCallbacks(
   timeout: timeout,
   projectionLimits: limits,
   onCancelRequest: onCancelRequest ?? (_) async {},
-  onApplicationRequest: (_) async => XelisXswdDecision.accept,
+  onApplicationRequest:
+      onApplicationRequest ?? (_) async => XelisXswdDecision.accept,
   onPermissionRequest:
       onPermissionRequest ?? (_) async => XelisXswdDecision.accept,
   onPrefetchPermissionsRequest: (_) async => XelisXswdDecision.accept,
-  onApplicationDisconnect: (_) async {},
+  onApplicationDisconnect: onApplicationDisconnect ?? (_) async {},
 );
 
 generated_models.AppInfo _generatedApplication({
@@ -1050,6 +1298,7 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   generated_models.NativeXswdProjectionLimits? lastProjectionLimits;
   FutureOr<generated_models.XswdNotificationCallbackOutcome> Function(
     generated_models.XswdRequestSummary,
+    bool,
   )?
   cancelCallback;
   FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
@@ -1075,7 +1324,7 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   Future<void> startXswd({
     required generated_models.NativeXswdProjectionLimits projectionLimits,
     required FutureOr<generated_models.XswdNotificationCallbackOutcome>
-    Function(generated_models.XswdRequestSummary)
+    Function(generated_models.XswdRequestSummary, bool)
     cancelRequestDartCallback,
     required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,
@@ -1123,7 +1372,7 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
     required generated_models.ApplicationDataRelayer appData,
     required generated_models.NativeXswdProjectionLimits projectionLimits,
     required FutureOr<generated_models.XswdNotificationCallbackOutcome>
-    Function(generated_models.XswdRequestSummary)
+    Function(generated_models.XswdRequestSummary, bool)
     cancelRequestDartCallback,
     required FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
       generated_models.XswdRequestSummary,

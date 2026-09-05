@@ -307,6 +307,7 @@ final class GeneratedXswdCallbacks {
 
   final Future<generated.XswdNotificationCallbackOutcome> Function(
     generated.XswdRequestSummary,
+    bool,
   )
   cancelRequest;
   final Future<generated.XswdDecisionCallbackOutcome> Function(
@@ -337,16 +338,27 @@ GeneratedXswdCallbacks generatedXswdCallbacksFromXelis(
     generated.XswdDecisionCallbackOutcome outcome,
   )
   onApplicationDecisionCompleted,
+  required void Function(
+    generated.AppInfo application,
+    bool cancelledApplicationAdmission,
+  )
+  onCancelRequestStarted,
   required void Function(generated.AppInfo application)
   onApplicationDisconnectStarted,
 }) => GeneratedXswdCallbacks(
-  cancelRequest: (request) => _runNotificationCallback(
-    callbacks.onCancelRequest,
-    request,
-    timeout: callbacks.timeout,
-    limits: callbacks.projectionLimits,
-    applicationAdapter: applicationAdapter,
-  ),
+  cancelRequest: (request, cancelledApplicationAdmission) {
+    onCancelRequestStarted(
+      request.applicationInfo,
+      cancelledApplicationAdmission,
+    );
+    return _runNotificationCallback(
+      callbacks.onCancelRequest,
+      request,
+      timeout: callbacks.timeout,
+      limits: callbacks.projectionLimits,
+      applicationAdapter: applicationAdapter,
+    );
+  },
   applicationRequest: (request) => _runApplicationDecisionCallback(
     callbacks.onApplicationRequest,
     request,
@@ -370,14 +382,16 @@ GeneratedXswdCallbacks generatedXswdCallbacksFromXelis(
     limits: callbacks.projectionLimits,
     applicationAdapter: applicationAdapter,
   ),
-  applicationDisconnect: (request) => _runDisconnectNotificationCallback(
-    callbacks.onApplicationDisconnect,
-    request,
-    timeout: callbacks.timeout,
-    limits: callbacks.projectionLimits,
-    applicationAdapter: applicationAdapter,
-    onProjected: (_) => onApplicationDisconnectStarted(request.applicationInfo),
-  ),
+  applicationDisconnect: (request) {
+    onApplicationDisconnectStarted(request.applicationInfo);
+    return _runNotificationCallback(
+      callbacks.onApplicationDisconnect,
+      request,
+      timeout: callbacks.timeout,
+      limits: callbacks.projectionLimits,
+      applicationAdapter: applicationAdapter,
+    );
+  },
 );
 
 Future<generated.XswdDecisionCallbackOutcome> _runApplicationDecisionCallback(
@@ -403,25 +417,6 @@ Future<generated.XswdDecisionCallbackOutcome> _runApplicationDecisionCallback(
   );
   onCompleted(request.applicationInfo, outcome);
   return outcome;
-}
-
-Future<generated.XswdNotificationCallbackOutcome>
-_runDisconnectNotificationCallback(
-  XelisXswdNotificationCallback callback,
-  generated.XswdRequestSummary request, {
-  required Duration timeout,
-  required XelisXswdProjectionLimits limits,
-  required GeneratedXswdApplicationAdapter applicationAdapter,
-  required void Function(XelisXswdRequest request) onProjected,
-}) async {
-  return _runNotificationCallback(
-    callback,
-    request,
-    timeout: timeout,
-    limits: limits,
-    applicationAdapter: applicationAdapter,
-    onProjected: onProjected,
-  );
 }
 
 generated.NativeXswdProjectionLimits generatedXswdLimitsFromXelis(
@@ -477,7 +472,6 @@ Future<generated.XswdNotificationCallbackOutcome> _runNotificationCallback(
   required Duration timeout,
   required XelisXswdProjectionLimits limits,
   required GeneratedXswdApplicationAdapter applicationAdapter,
-  void Function(XelisXswdRequest request)? onProjected,
 }) async {
   final XelisXswdRequest authored;
   try {
@@ -489,7 +483,6 @@ Future<generated.XswdNotificationCallbackOutcome> _runNotificationCallback(
   } catch (_) {
     return generated.XswdNotificationCallbackOutcome.invalidPayload;
   }
-  onProjected?.call(authored);
   try {
     await Future<void>.sync(() => callback(authored)).timeout(timeout);
     return generated.XswdNotificationCallbackOutcome.completed;

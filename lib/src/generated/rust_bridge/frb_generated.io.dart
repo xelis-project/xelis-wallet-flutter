@@ -217,6 +217,12 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
+  FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary, bool)
+  dco_decode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+    dynamic raw,
+  );
+
+  @protected
   Object dco_decode_DartOpaque(dynamic raw);
 
   @protected
@@ -2095,6 +2101,14 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void
   sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
     FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary, bool)
+    self,
     SseSerializer serializer,
   );
 

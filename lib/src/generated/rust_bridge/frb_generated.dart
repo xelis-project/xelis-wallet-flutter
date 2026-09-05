@@ -202,6 +202,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -620,6 +621,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -1554,6 +1556,7 @@ class XelisWalletFlutterBridgeApiImpl
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -1580,7 +1583,7 @@ class XelisWalletFlutterBridgeApiImpl
             projectionLimits,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
             cancelRequestDartCallback,
             serializer,
           );
@@ -4577,6 +4580,7 @@ class XelisWalletFlutterBridgeApiImpl
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -4602,7 +4606,7 @@ class XelisWalletFlutterBridgeApiImpl
             projectionLimits,
             serializer,
           );
-          sse_encode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+          sse_encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
             cancelRequestDartCallback,
             serializer,
           );
@@ -6000,6 +6004,46 @@ class XelisWalletFlutterBridgeApiImpl
     };
   }
 
+  Future<void> Function(int, dynamic, dynamic)
+  encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary, bool)
+    raw,
+  ) {
+    return (callId, rawArg0, rawArg1) async {
+      final arg0 = dco_decode_xswd_request_summary(rawArg0);
+      final arg1 = dco_decode_bool(rawArg1);
+
+      Box<XswdNotificationCallbackOutcome>? rawOutput;
+      Box<AnyhowException>? rawError;
+      try {
+        rawOutput = Box(await raw(arg0, arg1));
+      } catch (e, s) {
+        rawError = Box(AnyhowException("$e\n\n$s"));
+      }
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      assert((rawOutput != null) ^ (rawError != null));
+      if (rawOutput != null) {
+        serializer.buffer.putUint8(0);
+        sse_encode_xswd_notification_callback_outcome(
+          rawOutput.value,
+          serializer,
+        );
+      } else {
+        serializer.buffer.putUint8(1);
+        sse_encode_AnyhowException(rawError!.value, serializer);
+      }
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+        callId: callId,
+        ptr: output.ptr,
+        rustVecLen: output.rustVecLen,
+        dataLen: output.dataLen,
+      );
+    };
+  }
+
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_Address => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress;
@@ -6289,6 +6333,15 @@ class XelisWalletFlutterBridgeApiImpl
   @protected
   FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary)
   dco_decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError('');
+  }
+
+  @protected
+  FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary, bool)
+  dco_decode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -11553,6 +11606,22 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
+  void
+  sse_encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+    FutureOr<XswdNotificationCallbackOutcome> Function(XswdRequestSummary, bool)
+    self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_DartOpaque(
+      encode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+        self,
+      ),
+      serializer,
+    );
+  }
+
+  @protected
   void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_isize(
@@ -14318,6 +14387,7 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -14902,6 +14972,7 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)

@@ -16,7 +16,7 @@ async fn permission_projection_preserves_large_integers_and_explicit_signers() {
             XswdDecisionCallbackOutcome::Reject
         })
     };
-    let cancel = |_| -> DartFnFuture<XswdNotificationCallbackOutcome> {
+    let cancel = |_, _| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         Box::pin(async { XswdNotificationCallbackOutcome::Completed })
     };
     let application = |_| -> DartFnFuture<XswdDecisionCallbackOutcome> {
@@ -101,7 +101,7 @@ async fn projection_limit_failures_return_errors_without_invoking_dart_callbacks
         prefetch_counter.fetch_add(1, Ordering::SeqCst);
         Box::pin(async { XswdDecisionCallbackOutcome::Accept })
     };
-    let cancel = |_| -> DartFnFuture<XswdNotificationCallbackOutcome> {
+    let cancel = |_, _| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         Box::pin(async { XswdNotificationCallbackOutcome::Completed })
     };
     let application = |_| -> DartFnFuture<XswdDecisionCallbackOutcome> {
@@ -173,7 +173,7 @@ async fn each_permission_decision_uses_its_own_event_sender() {
             }
         })
     };
-    let cancel = |_| -> DartFnFuture<XswdNotificationCallbackOutcome> {
+    let cancel = |_, _| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         Box::pin(async { XswdNotificationCallbackOutcome::Completed })
     };
     let application = |_| -> DartFnFuture<XswdDecisionCallbackOutcome> {

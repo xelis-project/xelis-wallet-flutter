@@ -9,8 +9,9 @@ import '../models/xswd_dtos.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `acknowledge_cancelled_request`, `apply_permission_updates`, `cancel_deferred_xswd_decisions`, `cancel`, `clear`, `complete_with`, `complete`, `convert_encryption_mode`, `create_app_info`, `create_event_summary`, `decision_failure_code`, `defer_xswd_decision`, `defer_xswd_disconnect`, `encryption_key`, `fail_deferred_xswd_decisions`, `fail_deferred_xswd_event`, `fail_permission_projection`, `fail_prefetch_projection`, `fail`, `fail`, `handle_permission_outcome`, `handle_prefetch_permissions_outcome`, `handle_xswd_lifecycle_event`, `invalid_xswd_session_reference`, `invalidate_state`, `invalidate`, `is_xswd_decision_event`, `modify_app_permissions`, `notification_callback_failure`, `notification_failure_code`, `permission_from_policy`, `permission_result_from_outcome`, `prefetch_permissions_from_decision`, `prepare_xswd_event`, `register`, `remove_dead`, `resolve`, `send_permission_failure`, `send_prefetch_failure`, `xswd_event_name`, `xswd_handler_with_registry`, `xswd_permission_update_failed`, `xswd_session_close_failed`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `PendingXswdDecision`, `PendingXswdResponse`, `PreparedXswdEvent`, `XswdHandlerInput`, `XswdLifecycleEvent`, `XswdSessionRegistry`
+// These functions are ignored because they are not marked as `pub`: `acknowledge_cancelled_request`, `acknowledge`, `apply_permission_updates`, `cancel_deferred_xswd_decisions`, `cancel`, `clear`, `code`, `complete_kind`, `complete`, `complete`, `convert_encryption_mode`, `create_app_info_with_session_ref`, `create_app_info`, `create_event_summary`, `create_lifecycle_event_summary`, `decision_failure_code`, `defer_xswd_decision`, `defer_xswd_disconnect`, `encryption_key`, `fail_deferred_xswd_event`, `fail_deferred_xswd_events`, `fail_permission_projection`, `fail_prefetch_projection`, `fail`, `fail`, `handle_permission_outcome`, `handle_prefetch_permissions_outcome`, `into_active`, `invalid_xswd_session_reference`, `invalidate_observed_xswd_states`, `invalidate_state`, `is_application_admission`, `is_decision_for`, `is_disconnect_for`, `is_xswd_decision_event`, `modify_app_permissions`, `notification_failure_code`, `permission_from_policy`, `permission_result_from_outcome`, `prefetch_permissions_from_decision`, `prepare_xswd_event`, `prepare_xswd_lifecycle_notification`, `project`, `record_abandoned_xswd_notification`, `record_xswd_notification_outcome`, `register`, `remove_dead`, `resolve`, `send_permission_failure`, `send_prefetch_failure`, `start`, `track_xswd_state`, `xswd_event_name`, `xswd_event_state`, `xswd_handler_with_registry`, `xswd_notification_name`, `xswd_permission_update_failed`, `xswd_session_close_failed`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveXswdCallbackKind`, `ActiveXswdCallback`, `DeferredXswdEvent`, `PendingXswdDecision`, `PendingXswdResponse`, `PreparedXswdEvent`, `PreparedXswdNotification`, `XswdActiveCallbackOutcome`, `XswdHandlerInput`, `XswdLifecycleEvent`, `XswdNotificationKind`, `XswdSessionEntry`, `XswdSessionReferenceError`, `XswdSessionRegistry`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `eq`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `xswd_handler`
 // These functions are ignored (category: IgnoreBecauseOwnerTyShouldIgnore): `default`
 
@@ -20,6 +21,7 @@ abstract class XSWD {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)
@@ -49,6 +51,7 @@ abstract class XSWD {
     required NativeXswdProjectionLimits projectionLimits,
     required FutureOr<XswdNotificationCallbackOutcome> Function(
       XswdRequestSummary,
+      bool,
     )
     cancelRequestDartCallback,
     required FutureOr<XswdDecisionCallbackOutcome> Function(XswdRequestSummary)

@@ -1,6 +1,7 @@
 use indexmap::IndexMap;
 use std::{
     collections::{HashMap, VecDeque},
+    fmt,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc, Weak,
@@ -45,20 +46,62 @@ const XSWD_SESSION_REFERENCE_EXHAUSTED: &str = "XSWD_SESSION_REFERENCE_EXHAUSTED
 const XSWD_SESSION_REFERENCE_INVALID: &str = "XSWD_SESSION_REFERENCE_INVALID";
 static NEXT_XSWD_SESSION_REFERENCE: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum XswdSessionReferenceError {
+    Exhausted,
+    Invalid,
+}
+
+impl XswdSessionReferenceError {
+    fn code(self) -> &'static str {
+        match self {
+            Self::Exhausted => XSWD_SESSION_REFERENCE_EXHAUSTED,
+            Self::Invalid => XSWD_SESSION_REFERENCE_INVALID,
+        }
+    }
+}
+
+impl fmt::Display for XswdSessionReferenceError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.code())
+    }
+}
+
+impl std::error::Error for XswdSessionReferenceError {}
+
 #[derive(Default)]
 #[flutter_rust_bridge::frb(ignore)]
 pub(crate) struct XswdSessionRegistry {
-    sessions: HashMap<u64, Weak<AppState>>,
+    sessions: HashMap<u64, XswdSessionEntry>,
+}
+
+struct XswdSessionEntry {
+    state: Weak<AppState>,
+    active: bool,
 }
 
 impl XswdSessionRegistry {
-    fn register(&mut self, state: &Arc<AppState>) -> Result<u64> {
+    fn register(
+        &mut self,
+        state: &Arc<AppState>,
+    ) -> std::result::Result<u64, XswdSessionReferenceError> {
+        let session_ref = self.project(state)?;
+        self.sessions[&session_ref]
+            .active
+            .then_some(session_ref)
+            .ok_or(XswdSessionReferenceError::Invalid)
+    }
+
+    fn project(
+        &mut self,
+        state: &Arc<AppState>,
+    ) -> std::result::Result<u64, XswdSessionReferenceError> {
         self.remove_dead();
         let state_ref = Arc::downgrade(state);
         if let Some((session_ref, _)) = self
             .sessions
             .iter()
-            .find(|(_, registered)| Weak::ptr_eq(registered, &state_ref))
+            .find(|(_, registered)| Weak::ptr_eq(&registered.state, &state_ref))
         {
             return Ok(*session_ref);
         }
@@ -67,28 +110,67 @@ impl XswdSessionRegistry {
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
                 current.checked_add(1)
             })
-            .map_err(|_| anyhow!(XSWD_SESSION_REFERENCE_EXHAUSTED))?;
-        self.sessions.insert(session_ref, state_ref);
+            .map_err(|_| XswdSessionReferenceError::Exhausted)?;
+        self.sessions.insert(
+            session_ref,
+            XswdSessionEntry {
+                state: state_ref,
+                active: true,
+            },
+        );
         Ok(session_ref)
     }
 
     fn resolve(&mut self, session_ref: u64) -> Option<Arc<AppState>> {
         self.remove_dead();
-        self.sessions.get(&session_ref).and_then(Weak::upgrade)
+        self.sessions
+            .get(&session_ref)
+            .filter(|entry| entry.active)
+            .and_then(|entry| Weak::upgrade(&entry.state))
     }
 
     fn invalidate_state(&mut self, state: &Arc<AppState>) {
+        self.remove_dead();
         let state_ref = Arc::downgrade(state);
-        self.sessions
-            .retain(|_, registered| !Weak::ptr_eq(registered, &state_ref));
+        let mut found = false;
+        for entry in self.sessions.values_mut() {
+            if Weak::ptr_eq(&entry.state, &state_ref) {
+                entry.active = false;
+                found = true;
+            }
+        }
+        if found {
+            return;
+        }
+
+        // A disconnect may be the first event observed for a state. Reserve its
+        // opaque identity as an informational tombstone so projecting the
+        // lifecycle notification cannot mint fresh native authority.
+        if let Ok(session_ref) = NEXT_XSWD_SESSION_REFERENCE.fetch_update(
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+            |current| current.checked_add(1),
+        ) {
+            self.sessions.insert(
+                session_ref,
+                XswdSessionEntry {
+                    state: state_ref,
+                    active: false,
+                },
+            );
+        }
     }
 
     fn clear(&mut self) {
-        self.sessions.clear();
+        self.remove_dead();
+        for entry in self.sessions.values_mut() {
+            entry.active = false;
+        }
     }
 
     fn remove_dead(&mut self) {
-        self.sessions.retain(|_, state| state.strong_count() > 0);
+        self.sessions
+            .retain(|_, entry| entry.state.strong_count() > 0);
     }
 }
 #[allow(async_fn_in_trait)]
@@ -96,7 +178,7 @@ pub trait XSWD {
     async fn start_xswd(
         &self,
         projection_limits: NativeXswdProjectionLimits,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -139,7 +221,7 @@ pub trait XSWD {
         &self,
         app_data: ApplicationDataRelayer,
         projection_limits: NativeXswdProjectionLimits,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -166,7 +248,7 @@ impl XSWD for XelisWallet {
     async fn start_xswd(
         &self,
         projection_limits: NativeXswdProjectionLimits,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -432,7 +514,7 @@ impl XSWD for XelisWallet {
         &self,
         app_data: ApplicationDataRelayer,
         projection_limits: NativeXswdProjectionLimits,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -601,6 +683,7 @@ pub async fn xswd_handler(
     projection_limits: NativeXswdProjectionLimits,
     cancel_request_dart_callback: impl Fn(
         XswdRequestSummary,
+        bool,
     ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     request_application_dart_callback: impl Fn(
         XswdRequestSummary,
@@ -637,6 +720,7 @@ async fn xswd_handler_with_registry(
     projection_limits: NativeXswdProjectionLimits,
     cancel_request_dart_callback: impl Fn(
         XswdRequestSummary,
+        bool,
     ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     request_application_dart_callback: impl Fn(
         XswdRequestSummary,
@@ -654,136 +738,202 @@ async fn xswd_handler_with_registry(
 ) {
     info!("XSWD Server has been enabled");
     let mut deferred = VecDeque::new();
-    let mut pending = None;
+    let mut active = None;
     let mut receive_burst = 0;
+    let mut observed_states = Vec::new();
 
     loop {
-        if pending.is_none() {
+        if active.is_none() {
             let event = if let Some(event) = deferred.pop_front() {
                 event
             } else {
                 match receiver.recv().await {
                     Some(event) => {
                         info!("Received XSWD event: {}", xswd_event_name(&event));
-                        event
+                        track_xswd_state(&mut observed_states, xswd_event_state(&event));
+                        DeferredXswdEvent::Raw(event)
                     }
-                    None => break,
+                    None => {
+                        invalidate_observed_xswd_states(&xswd_sessions, &observed_states).await;
+                        break;
+                    }
                 }
             };
 
-            match prepare_xswd_event(
-                event,
-                &xswd_sessions,
-                projection_limits,
-                &request_application_dart_callback,
-                &request_permission_dart_callback,
-                &request_prefetch_permissions_dart_callback,
-            )
-            .await
-            {
-                PreparedXswdEvent::Decision(decision) => {
-                    pending = Some(decision);
+            match event {
+                DeferredXswdEvent::Raw(event) => match prepare_xswd_event(
+                    event,
+                    &xswd_sessions,
+                    projection_limits,
+                    &request_application_dart_callback,
+                    &request_permission_dart_callback,
+                    &request_prefetch_permissions_dart_callback,
+                )
+                .await
+                {
+                    PreparedXswdEvent::Decision(decision) => {
+                        active = Some(decision.into_active());
+                        receive_burst = 0;
+                    }
+                    PreparedXswdEvent::Lifecycle(event) => {
+                        let (state, kind) = event.acknowledge();
+                        if matches!(kind, XswdNotificationKind::AppDisconnect) {
+                            xswd_sessions.lock().await.invalidate_state(&state);
+                        }
+                        if let Some(notification) =
+                            prepare_xswd_lifecycle_notification(state, kind, false, &xswd_sessions)
+                                .await
+                        {
+                            active = Some(notification.start(
+                                &cancel_request_dart_callback,
+                                &app_disconnect_dart_callback,
+                            ));
+                            receive_burst = 0;
+                        }
+                    }
+                    PreparedXswdEvent::Handled => {}
+                },
+                DeferredXswdEvent::Notification(notification) => {
+                    active = Some(
+                        notification
+                            .start(&cancel_request_dart_callback, &app_disconnect_dart_callback),
+                    );
                     receive_burst = 0;
                 }
-                PreparedXswdEvent::Lifecycle(event) => {
-                    handle_xswd_lifecycle_event(
-                        event,
-                        &xswd_sessions,
-                        &cancel_request_dart_callback,
-                        &app_disconnect_dart_callback,
-                    )
-                    .await;
-                }
-                PreparedXswdEvent::Handled => {}
             }
             continue;
         }
 
         let input = {
-            let Some(decision) = pending.as_mut() else {
+            let Some(callback) = active.as_mut() else {
                 continue;
             };
             if receive_burst >= MAX_XSWD_RECEIVE_BURST {
                 receive_burst = 0;
                 select! {
                     biased;
-                    outcome = decision.future.as_mut() => XswdHandlerInput::Decision(outcome),
+                    outcome = callback.future.as_mut() => XswdHandlerInput::Callback(outcome),
                     event = receiver.recv() => XswdHandlerInput::Event(event),
                 }
             } else {
                 select! {
                     biased;
                     event = receiver.recv() => XswdHandlerInput::Event(event),
-                    outcome = decision.future.as_mut() => XswdHandlerInput::Decision(outcome),
+                    outcome = callback.future.as_mut() => XswdHandlerInput::Callback(outcome),
                 }
             }
         };
 
         match input {
-            XswdHandlerInput::Decision(outcome) => {
+            XswdHandlerInput::Callback(outcome) => {
                 receive_burst = 0;
-                if let Some(decision) = pending.take() {
-                    decision.complete_with(outcome);
+                if let Some(callback) = active.take() {
+                    callback.complete(outcome);
                 }
             }
             XswdHandlerInput::Event(None) => {
-                if let Some(decision) = pending.take() {
-                    decision.fail(XSWD_HANDLER_CLOSED);
+                invalidate_observed_xswd_states(&xswd_sessions, &observed_states).await;
+                if let Some(callback) = active.take() {
+                    callback.fail(XSWD_HANDLER_CLOSED);
                 }
-                fail_deferred_xswd_decisions(&mut deferred, XSWD_HANDLER_CLOSED);
+                fail_deferred_xswd_events(&mut deferred, XSWD_HANDLER_CLOSED);
                 break;
             }
             XswdHandlerInput::Event(Some(event)) => {
                 receive_burst += 1;
                 info!("Received XSWD event: {}", xswd_event_name(&event));
+                track_xswd_state(&mut observed_states, xswd_event_state(&event));
                 match event {
                     XSWDEvent::CancelRequest(state, callback) => {
-                        cancel_deferred_xswd_decisions(&mut deferred, &state);
-                        let cancels_active = pending
+                        let cancelled_deferred_admission =
+                            cancel_deferred_xswd_decisions(&mut deferred, &state);
+                        let cancels_active = active
                             .as_ref()
-                            .is_some_and(|decision| Arc::ptr_eq(&decision.state, &state));
+                            .is_some_and(|active| active.is_decision_for(&state));
+                        let cancelled_admission = cancelled_deferred_admission
+                            || (cancels_active
+                                && active
+                                    .as_ref()
+                                    .is_some_and(ActiveXswdCallback::is_application_admission));
+                        if cancelled_admission {
+                            xswd_sessions.lock().await.invalidate_state(&state);
+                        }
                         if cancels_active {
-                            if let Some(decision) = pending.take() {
-                                decision.cancel();
+                            if let Some(active) = active.take() {
+                                active.cancel();
                             }
-                            handle_xswd_lifecycle_event(
-                                XswdLifecycleEvent::CancelRequest(state, callback),
-                                &xswd_sessions,
-                                &cancel_request_dart_callback,
-                                &app_disconnect_dart_callback,
-                            )
-                            .await;
-                        } else {
-                            acknowledge_cancelled_request(callback);
+                        }
+                        acknowledge_cancelled_request(callback);
+                        let notification = prepare_xswd_lifecycle_notification(
+                            state,
+                            XswdNotificationKind::CancelRequest,
+                            cancelled_admission,
+                            &xswd_sessions,
+                        )
+                        .await;
+                        if let Some(notification) = notification {
+                            if cancels_active {
+                                active = Some(notification.start(
+                                    &cancel_request_dart_callback,
+                                    &app_disconnect_dart_callback,
+                                ));
+                                receive_burst = 0;
+                            } else if deferred.len() < MAX_DEFERRED_XSWD_EVENTS {
+                                deferred.push_back(DeferredXswdEvent::Notification(notification));
+                            } else {
+                                record_abandoned_xswd_notification(
+                                    notification.kind,
+                                    XSWD_REQUEST_QUEUE_FULL,
+                                );
+                            }
                         }
                     }
                     XSWDEvent::AppDisconnect(state) => {
                         cancel_deferred_xswd_decisions(&mut deferred, &state);
-                        let disconnects_active = pending
+                        let disconnects_active = active
                             .as_ref()
-                            .is_some_and(|decision| Arc::ptr_eq(&decision.state, &state));
+                            .is_some_and(|active| active.is_decision_for(&state));
+                        xswd_sessions.lock().await.invalidate_state(&state);
                         if disconnects_active {
-                            if let Some(decision) = pending.take() {
-                                decision.cancel();
+                            if let Some(active) = active.take() {
+                                active.cancel();
                             }
-                            handle_xswd_lifecycle_event(
-                                XswdLifecycleEvent::AppDisconnect(state),
-                                &xswd_sessions,
-                                &cancel_request_dart_callback,
-                                &app_disconnect_dart_callback,
-                            )
-                            .await;
-                        } else if let Some(state) = defer_xswd_disconnect(&mut deferred, state) {
-                            if let Some(decision) = pending.take() {
-                                decision.fail(XSWD_HANDLER_OVERLOADED);
+                        }
+                        let notification = prepare_xswd_lifecycle_notification(
+                            state,
+                            XswdNotificationKind::AppDisconnect,
+                            false,
+                            &xswd_sessions,
+                        )
+                        .await;
+                        if disconnects_active {
+                            if let Some(notification) = notification {
+                                active = Some(notification.start(
+                                    &cancel_request_dart_callback,
+                                    &app_disconnect_dart_callback,
+                                ));
+                                receive_burst = 0;
                             }
-                            handle_xswd_lifecycle_event(
-                                XswdLifecycleEvent::AppDisconnect(state),
-                                &xswd_sessions,
-                                &cancel_request_dart_callback,
-                                &app_disconnect_dart_callback,
-                            )
-                            .await;
+                        } else if let Some(notification) = notification {
+                            if let Some(next) =
+                                defer_xswd_disconnect(&mut deferred, active.as_ref(), notification)
+                            {
+                                if let Some(active_admission) = active
+                                    .as_ref()
+                                    .filter(|active| active.is_application_admission())
+                                {
+                                    let state = Arc::clone(&active_admission.state);
+                                    xswd_sessions.lock().await.invalidate_state(&state);
+                                }
+                                if let Some(callback) = active.take() {
+                                    callback.fail(XSWD_HANDLER_OVERLOADED);
+                                }
+                                active = Some(next.start(
+                                    &cancel_request_dart_callback,
+                                    &app_disconnect_dart_callback,
+                                ));
+                                receive_burst = 0;
+                            }
                         }
                     }
                     event => defer_xswd_decision(&mut deferred, event),
@@ -794,8 +944,13 @@ async fn xswd_handler_with_registry(
 }
 
 enum XswdHandlerInput {
-    Decision(XswdDecisionCallbackOutcome),
+    Callback(XswdActiveCallbackOutcome),
     Event(Option<XSWDEvent>),
+}
+
+enum DeferredXswdEvent {
+    Raw(XSWDEvent),
+    Notification(PreparedXswdNotification),
 }
 
 enum PreparedXswdEvent {
@@ -809,10 +964,55 @@ enum XswdLifecycleEvent {
     AppDisconnect(Arc<AppState>),
 }
 
+impl XswdLifecycleEvent {
+    fn acknowledge(self) -> (Arc<AppState>, XswdNotificationKind) {
+        match self {
+            Self::CancelRequest(state, callback) => {
+                acknowledge_cancelled_request(callback);
+                (state, XswdNotificationKind::CancelRequest)
+            }
+            Self::AppDisconnect(state) => (state, XswdNotificationKind::AppDisconnect),
+        }
+    }
+}
+
 struct PendingXswdDecision {
     state: Arc<AppState>,
     future: DartFnFuture<XswdDecisionCallbackOutcome>,
     response: PendingXswdResponse,
+    is_application_admission: bool,
+}
+
+#[derive(Clone, Copy)]
+enum XswdNotificationKind {
+    CancelRequest,
+    AppDisconnect,
+}
+
+struct PreparedXswdNotification {
+    state: Arc<AppState>,
+    summary: XswdRequestSummary,
+    kind: XswdNotificationKind,
+    cancelled_application_admission: bool,
+}
+
+struct ActiveXswdCallback {
+    state: Arc<AppState>,
+    kind: ActiveXswdCallbackKind,
+    future: DartFnFuture<XswdActiveCallbackOutcome>,
+}
+
+enum ActiveXswdCallbackKind {
+    Decision {
+        response: PendingXswdResponse,
+        is_application_admission: bool,
+    },
+    Notification(XswdNotificationKind),
+}
+
+enum XswdActiveCallbackOutcome {
+    Decision(XswdDecisionCallbackOutcome),
+    Notification(XswdNotificationCallbackOutcome),
 }
 
 enum PendingXswdResponse {
@@ -832,16 +1032,121 @@ impl PendingXswdDecision {
         response.complete(future.await);
     }
 
-    fn complete_with(self, outcome: XswdDecisionCallbackOutcome) {
-        self.response.complete(outcome);
+    fn into_active(self) -> ActiveXswdCallback {
+        let Self {
+            state,
+            future,
+            response,
+            is_application_admission,
+        } = self;
+        ActiveXswdCallback {
+            state,
+            kind: ActiveXswdCallbackKind::Decision {
+                response,
+                is_application_admission,
+            },
+            future: Box::pin(async move { XswdActiveCallbackOutcome::Decision(future.await) }),
+        }
+    }
+}
+
+impl PreparedXswdNotification {
+    fn start<Cancel, Disconnect>(
+        self,
+        cancel_request_dart_callback: &Cancel,
+        app_disconnect_dart_callback: &Disconnect,
+    ) -> ActiveXswdCallback
+    where
+        Cancel: Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+        Disconnect: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+    {
+        let future = match self.kind {
+            XswdNotificationKind::CancelRequest => {
+                cancel_request_dart_callback(self.summary, self.cancelled_application_admission)
+            }
+            XswdNotificationKind::AppDisconnect => app_disconnect_dart_callback(self.summary),
+        };
+        ActiveXswdCallback {
+            state: self.state,
+            kind: ActiveXswdCallbackKind::Notification(self.kind),
+            future: Box::pin(async move { XswdActiveCallbackOutcome::Notification(future.await) }),
+        }
+    }
+
+    #[cfg(test)]
+    async fn complete<Cancel, Disconnect>(
+        self,
+        cancel_request_dart_callback: &Cancel,
+        app_disconnect_dart_callback: &Disconnect,
+    ) where
+        Cancel: Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+        Disconnect: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+    {
+        let active = self.start(cancel_request_dart_callback, app_disconnect_dart_callback);
+        let ActiveXswdCallback { kind, future, .. } = active;
+        ActiveXswdCallback::complete_kind(kind, future.await);
+    }
+}
+
+impl ActiveXswdCallback {
+    fn is_decision_for(&self, state: &Arc<AppState>) -> bool {
+        matches!(self.kind, ActiveXswdCallbackKind::Decision { .. })
+            && Arc::ptr_eq(&self.state, state)
+    }
+
+    fn is_application_admission(&self) -> bool {
+        matches!(
+            self.kind,
+            ActiveXswdCallbackKind::Decision {
+                is_application_admission: true,
+                ..
+            }
+        )
+    }
+
+    fn is_disconnect_for(&self, state: &Arc<AppState>) -> bool {
+        matches!(
+            self.kind,
+            ActiveXswdCallbackKind::Notification(XswdNotificationKind::AppDisconnect)
+        ) && Arc::ptr_eq(&self.state, state)
+    }
+
+    fn complete(self, outcome: XswdActiveCallbackOutcome) {
+        Self::complete_kind(self.kind, outcome);
+    }
+
+    fn complete_kind(kind: ActiveXswdCallbackKind, outcome: XswdActiveCallbackOutcome) {
+        match (kind, outcome) {
+            (
+                ActiveXswdCallbackKind::Decision { response, .. },
+                XswdActiveCallbackOutcome::Decision(outcome),
+            ) => response.complete(outcome),
+            (
+                ActiveXswdCallbackKind::Notification(kind),
+                XswdActiveCallbackOutcome::Notification(outcome),
+            ) => record_xswd_notification_outcome(kind, outcome),
+            _ => debug!("XSWD_CALLBACK_OUTCOME_KIND_MISMATCH"),
+        }
     }
 
     fn cancel(self) {
-        self.fail(XSWD_REQUEST_CANCELLED);
+        match self.kind {
+            ActiveXswdCallbackKind::Decision { response, .. } => {
+                response.fail(XSWD_REQUEST_CANCELLED)
+            }
+            ActiveXswdCallbackKind::Notification(kind) => {
+                record_abandoned_xswd_notification(kind, XSWD_REQUEST_CANCELLED)
+            }
+        }
     }
 
     fn fail(self, code: &'static str) {
-        self.response.fail(code);
+        match self.kind {
+            ActiveXswdCallbackKind::Decision { response, .. } => response.fail(code),
+            ActiveXswdCallbackKind::Notification(kind) => {
+                record_abandoned_xswd_notification(kind, code)
+            }
+        }
     }
 }
 
@@ -884,8 +1189,8 @@ where
                     .await
                 {
                     Ok(summary) => summary,
-                    Err(_) => {
-                        send_permission_failure(callback, XSWD_SESSION_REFERENCE_EXHAUSTED);
+                    Err(error) => {
+                        send_permission_failure(callback, error.code());
                         return PreparedXswdEvent::Handled;
                     }
                 };
@@ -893,6 +1198,7 @@ where
                 state,
                 future: request_application_dart_callback(event_summary),
                 response: PendingXswdResponse::Permission(callback),
+                is_application_admission: true,
             })
         }
         XSWDEvent::RequestPermission(state, request, callback) => {
@@ -911,8 +1217,8 @@ where
             .await
             {
                 Ok(summary) => summary,
-                Err(_) => {
-                    send_permission_failure(callback, XSWD_SESSION_REFERENCE_EXHAUSTED);
+                Err(error) => {
+                    send_permission_failure(callback, error.code());
                     return PreparedXswdEvent::Handled;
                 }
             };
@@ -920,6 +1226,7 @@ where
                 state,
                 future: request_permission_dart_callback(event_summary),
                 response: PendingXswdResponse::Permission(callback),
+                is_application_admission: false,
             })
         }
         XSWDEvent::PrefetchPermissions(state, permissions, callback) => {
@@ -938,8 +1245,8 @@ where
             .await
             {
                 Ok(summary) => summary,
-                Err(_) => {
-                    send_prefetch_failure(callback, XSWD_SESSION_REFERENCE_EXHAUSTED);
+                Err(error) => {
+                    send_prefetch_failure(callback, error.code());
                     return PreparedXswdEvent::Handled;
                 }
             };
@@ -950,6 +1257,7 @@ where
                     permissions,
                     callback,
                 },
+                is_application_admission: false,
             })
         }
         XSWDEvent::CancelRequest(state, callback) => {
@@ -961,76 +1269,78 @@ where
     }
 }
 
-async fn handle_xswd_lifecycle_event<Cancel, Disconnect>(
-    event: XswdLifecycleEvent,
+async fn prepare_xswd_lifecycle_notification(
+    state: Arc<AppState>,
+    kind: XswdNotificationKind,
+    cancelled_application_admission: bool,
     xswd_sessions: &xelis_common::tokio::sync::Mutex<XswdSessionRegistry>,
-    cancel_request_dart_callback: &Cancel,
-    app_disconnect_dart_callback: &Disconnect,
-) where
-    Cancel: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
-    Disconnect: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
-{
-    match event {
-        XswdLifecycleEvent::CancelRequest(state, callback) => {
-            let event_summary =
-                match create_event_summary(xswd_sessions, &state, XswdRequestType::CancelRequest)
-                    .await
-                {
-                    Ok(summary) => summary,
-                    Err(code) => {
-                        if callback.send(Err(anyhow!(code))).is_err() {
-                            error!("Error while sending cancel response to XSWD");
-                        }
-                        return;
-                    }
-                };
-            let result = match cancel_request_dart_callback(event_summary).await {
-                XswdNotificationCallbackOutcome::Completed => Ok(()),
-                failure => Err(notification_callback_failure(failure)),
+) -> Option<PreparedXswdNotification> {
+    match kind {
+        XswdNotificationKind::CancelRequest => {
+            let summary = match create_lifecycle_event_summary(
+                xswd_sessions,
+                &state,
+                XswdRequestType::CancelRequest,
+            )
+            .await
+            {
+                Ok(summary) => summary,
+                Err(code) => {
+                    debug!("XSWD_CANCEL_NOTIFICATION_PROJECTION_FAILED:{code}");
+                    return None;
+                }
             };
-            if callback.send(result).is_err() {
-                error!("Error while sending cancel response to XSWD");
-            }
+            Some(PreparedXswdNotification {
+                state,
+                summary,
+                kind: XswdNotificationKind::CancelRequest,
+                cancelled_application_admission,
+            })
         }
-        XswdLifecycleEvent::AppDisconnect(state) => {
-            let event_summary =
-                match create_event_summary(xswd_sessions, &state, XswdRequestType::AppDisconnect)
-                    .await
-                {
-                    Ok(summary) => summary,
-                    Err(code) => {
-                        debug!("XSWD_APP_DISCONNECT_PROJECTION_FAILED:{code}");
-                        xswd_sessions.lock().await.invalidate_state(&state);
-                        return;
-                    }
-                };
-            let outcome = app_disconnect_dart_callback(event_summary).await;
-            if !matches!(outcome, XswdNotificationCallbackOutcome::Completed) {
-                debug!(
-                    "XSWD_APP_DISCONNECT_CALLBACK_FAILED:{}",
-                    notification_failure_code(outcome)
-                );
-            }
-            xswd_sessions.lock().await.invalidate_state(&state);
+        XswdNotificationKind::AppDisconnect => {
+            let summary = match create_lifecycle_event_summary(
+                xswd_sessions,
+                &state,
+                XswdRequestType::AppDisconnect,
+            )
+            .await
+            {
+                Ok(summary) => summary,
+                Err(code) => {
+                    debug!("XSWD_APP_DISCONNECT_PROJECTION_FAILED:{code}");
+                    return None;
+                }
+            };
+            Some(PreparedXswdNotification {
+                state,
+                summary,
+                kind: XswdNotificationKind::AppDisconnect,
+                cancelled_application_admission: false,
+            })
         }
     }
 }
 
-fn cancel_deferred_xswd_decisions(deferred: &mut VecDeque<XSWDEvent>, state: &Arc<AppState>) {
+fn cancel_deferred_xswd_decisions(
+    deferred: &mut VecDeque<DeferredXswdEvent>,
+    state: &Arc<AppState>,
+) -> bool {
+    let mut cancelled_application_admission = false;
     let mut retained = VecDeque::with_capacity(deferred.len());
     while let Some(event) = deferred.pop_front() {
         match event {
-            XSWDEvent::RequestApplication(event_state, callback)
+            DeferredXswdEvent::Raw(XSWDEvent::RequestApplication(event_state, callback))
+                if Arc::ptr_eq(&event_state, state) =>
+            {
+                cancelled_application_admission = true;
+                send_permission_failure(callback, XSWD_REQUEST_CANCELLED);
+            }
+            DeferredXswdEvent::Raw(XSWDEvent::RequestPermission(event_state, _, callback))
                 if Arc::ptr_eq(&event_state, state) =>
             {
                 send_permission_failure(callback, XSWD_REQUEST_CANCELLED);
             }
-            XSWDEvent::RequestPermission(event_state, _, callback)
-                if Arc::ptr_eq(&event_state, state) =>
-            {
-                send_permission_failure(callback, XSWD_REQUEST_CANCELLED);
-            }
-            XSWDEvent::PrefetchPermissions(event_state, _, callback)
+            DeferredXswdEvent::Raw(XSWDEvent::PrefetchPermissions(event_state, _, callback))
                 if Arc::ptr_eq(&event_state, state) =>
             {
                 send_prefetch_failure(callback, XSWD_REQUEST_CANCELLED);
@@ -1039,11 +1349,12 @@ fn cancel_deferred_xswd_decisions(deferred: &mut VecDeque<XSWDEvent>, state: &Ar
         }
     }
     *deferred = retained;
+    cancelled_application_admission
 }
 
-fn defer_xswd_decision(deferred: &mut VecDeque<XSWDEvent>, event: XSWDEvent) {
+fn defer_xswd_decision(deferred: &mut VecDeque<DeferredXswdEvent>, event: XSWDEvent) {
     if deferred.len() < MAX_DEFERRED_XSWD_EVENTS {
-        deferred.push_back(event);
+        deferred.push_back(DeferredXswdEvent::Raw(event));
         return;
     }
 
@@ -1055,20 +1366,28 @@ fn defer_xswd_decision(deferred: &mut VecDeque<XSWDEvent>, event: XSWDEvent) {
         XSWDEvent::PrefetchPermissions(_, _, callback) => {
             send_prefetch_failure(callback, XSWD_REQUEST_QUEUE_FULL);
         }
-        XSWDEvent::AppDisconnect(state) => {
-            let _ = defer_xswd_disconnect(deferred, state);
-        }
+        XSWDEvent::AppDisconnect(_) => debug!("XSWD_UNPREPARED_DISCONNECT_DROPPED"),
         XSWDEvent::CancelRequest(_, callback) => acknowledge_cancelled_request(callback),
     }
 }
 
 fn defer_xswd_disconnect(
-    deferred: &mut VecDeque<XSWDEvent>,
-    state: Arc<AppState>,
-) -> Option<Arc<AppState>> {
-    let already_deferred = deferred.iter().any(
-        |event| matches!(event, XSWDEvent::AppDisconnect(event_state) if Arc::ptr_eq(event_state, &state)),
-    );
+    deferred: &mut VecDeque<DeferredXswdEvent>,
+    active: Option<&ActiveXswdCallback>,
+    notification: PreparedXswdNotification,
+) -> Option<PreparedXswdNotification> {
+    let already_deferred = active
+        .is_some_and(|active| active.is_disconnect_for(&notification.state))
+        || deferred.iter().any(|event| {
+            matches!(
+                event,
+                DeferredXswdEvent::Notification(PreparedXswdNotification {
+                    state,
+                    kind: XswdNotificationKind::AppDisconnect,
+                    ..
+                }) if Arc::ptr_eq(state, &notification.state)
+            )
+        });
     if already_deferred {
         return None;
     }
@@ -1080,42 +1399,58 @@ fn defer_xswd_disconnect(
             }
         } else {
             debug!("XSWD_DISCONNECT_QUEUE_SATURATED");
-            return Some(state);
+            let next = deferred.pop_front().and_then(|event| match event {
+                DeferredXswdEvent::Notification(notification) => Some(notification),
+                DeferredXswdEvent::Raw(_) => None,
+            });
+            deferred.push_back(DeferredXswdEvent::Notification(notification));
+            return next;
         }
     }
 
     if deferred.len() < MAX_DEFERRED_XSWD_EVENTS {
-        deferred.push_back(XSWDEvent::AppDisconnect(state));
+        deferred.push_back(DeferredXswdEvent::Notification(notification));
     }
     None
 }
 
-fn is_xswd_decision_event(event: &XSWDEvent) -> bool {
+fn is_xswd_decision_event(event: &DeferredXswdEvent) -> bool {
     matches!(
         event,
-        XSWDEvent::RequestApplication(_, _)
-            | XSWDEvent::RequestPermission(_, _, _)
-            | XSWDEvent::PrefetchPermissions(_, _, _)
+        DeferredXswdEvent::Raw(
+            XSWDEvent::RequestApplication(_, _)
+                | XSWDEvent::RequestPermission(_, _, _)
+                | XSWDEvent::PrefetchPermissions(_, _, _)
+        )
     )
 }
 
-fn fail_deferred_xswd_decisions(deferred: &mut VecDeque<XSWDEvent>, code: &'static str) {
+fn fail_deferred_xswd_events(deferred: &mut VecDeque<DeferredXswdEvent>, code: &'static str) {
     while let Some(event) = deferred.pop_front() {
         fail_deferred_xswd_event(event, code);
     }
 }
 
-fn fail_deferred_xswd_event(event: XSWDEvent, code: &'static str) {
+fn fail_deferred_xswd_event(event: DeferredXswdEvent, code: &'static str) {
     match event {
-        XSWDEvent::RequestApplication(_, callback)
-        | XSWDEvent::RequestPermission(_, _, callback) => {
+        DeferredXswdEvent::Raw(
+            XSWDEvent::RequestApplication(_, callback)
+            | XSWDEvent::RequestPermission(_, _, callback),
+        ) => {
             send_permission_failure(callback, code);
         }
-        XSWDEvent::PrefetchPermissions(_, _, callback) => {
+        DeferredXswdEvent::Raw(XSWDEvent::PrefetchPermissions(_, _, callback)) => {
             send_prefetch_failure(callback, code);
         }
-        XSWDEvent::CancelRequest(_, callback) => acknowledge_cancelled_request(callback),
-        XSWDEvent::AppDisconnect(_) => {}
+        DeferredXswdEvent::Raw(XSWDEvent::CancelRequest(_, callback)) => {
+            acknowledge_cancelled_request(callback)
+        }
+        DeferredXswdEvent::Raw(XSWDEvent::AppDisconnect(_)) => {
+            debug!("XSWD_UNPREPARED_DISCONNECT_DROPPED")
+        }
+        DeferredXswdEvent::Notification(notification) => {
+            record_abandoned_xswd_notification(notification.kind, code)
+        }
     }
 }
 
@@ -1140,6 +1475,41 @@ fn acknowledge_cancelled_request(callback: Sender<Result<(), Error>>) {
     }
 }
 
+fn xswd_event_state(event: &XSWDEvent) -> &Arc<AppState> {
+    match event {
+        XSWDEvent::RequestApplication(state, _)
+        | XSWDEvent::RequestPermission(state, _, _)
+        | XSWDEvent::PrefetchPermissions(state, _, _)
+        | XSWDEvent::CancelRequest(state, _)
+        | XSWDEvent::AppDisconnect(state) => state,
+    }
+}
+
+fn track_xswd_state(observed: &mut Vec<Weak<AppState>>, state: &Arc<AppState>) {
+    observed.retain(|registered| registered.strong_count() > 0);
+    let state_ref = Arc::downgrade(state);
+    if !observed
+        .iter()
+        .any(|registered| Weak::ptr_eq(registered, &state_ref))
+    {
+        observed.push(state_ref);
+    }
+}
+
+async fn invalidate_observed_xswd_states(
+    xswd_sessions: &xelis_common::tokio::sync::Mutex<XswdSessionRegistry>,
+    observed: &[Weak<AppState>],
+) {
+    let states = observed
+        .iter()
+        .filter_map(Weak::upgrade)
+        .collect::<Vec<_>>();
+    let mut registry = xswd_sessions.lock().await;
+    for state in states {
+        registry.invalidate_state(&state);
+    }
+}
+
 #[cfg(test)]
 async fn handle_xswd_event<Cancel, Application, Request, Prefetch, Disconnect>(
     event: XSWDEvent,
@@ -1150,7 +1520,7 @@ async fn handle_xswd_event<Cancel, Application, Request, Prefetch, Disconnect>(
     request_prefetch_permissions_dart_callback: &Prefetch,
     app_disconnect_dart_callback: &Disconnect,
 ) where
-    Cancel: Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>,
+    Cancel: Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     Application: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     Request: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
     Prefetch: Fn(XswdRequestSummary) -> DartFnFuture<XswdDecisionCallbackOutcome>,
@@ -1169,13 +1539,17 @@ async fn handle_xswd_event<Cancel, Application, Request, Prefetch, Disconnect>(
     {
         PreparedXswdEvent::Decision(decision) => decision.complete().await,
         PreparedXswdEvent::Lifecycle(event) => {
-            handle_xswd_lifecycle_event(
-                event,
-                &xswd_sessions,
-                cancel_request_dart_callback,
-                app_disconnect_dart_callback,
-            )
-            .await;
+            let (state, kind) = event.acknowledge();
+            if matches!(kind, XswdNotificationKind::AppDisconnect) {
+                xswd_sessions.lock().await.invalidate_state(&state);
+            }
+            if let Some(notification) =
+                prepare_xswd_lifecycle_notification(state, kind, false, &xswd_sessions).await
+            {
+                notification
+                    .complete(cancel_request_dart_callback, app_disconnect_dart_callback)
+                    .await;
+            }
         }
         PreparedXswdEvent::Handled => {}
     }
@@ -1185,8 +1559,19 @@ async fn create_event_summary(
     xswd_sessions: &xelis_common::tokio::sync::Mutex<XswdSessionRegistry>,
     state: &Arc<AppState>,
     event_type: XswdRequestType,
-) -> Result<XswdRequestSummary> {
-    let application_info = create_app_info(xswd_sessions, state, false).await?;
+) -> std::result::Result<XswdRequestSummary, XswdSessionReferenceError> {
+    let session_ref = xswd_sessions.lock().await.register(state)?;
+    let application_info = create_app_info_with_session_ref(state, false, session_ref).await;
+    Ok(XswdRequestSummary::new(event_type, application_info))
+}
+
+async fn create_lifecycle_event_summary(
+    xswd_sessions: &xelis_common::tokio::sync::Mutex<XswdSessionRegistry>,
+    state: &Arc<AppState>,
+    event_type: XswdRequestType,
+) -> std::result::Result<XswdRequestSummary, XswdSessionReferenceError> {
+    let session_ref = xswd_sessions.lock().await.project(state)?;
+    let application_info = create_app_info_with_session_ref(state, false, session_ref).await;
     Ok(XswdRequestSummary::new(event_type, application_info))
 }
 
@@ -1196,7 +1581,19 @@ pub(crate) async fn create_app_info(
     state: &Arc<AppState>,
     is_relayer: bool,
 ) -> Result<AppInfo> {
-    let session_ref = xswd_sessions.lock().await.register(state)?;
+    let session_ref = xswd_sessions
+        .lock()
+        .await
+        .project(state)
+        .map_err(|error| anyhow!(error.code()))?;
+    Ok(create_app_info_with_session_ref(state, is_relayer, session_ref).await)
+}
+
+async fn create_app_info_with_session_ref(
+    state: &Arc<AppState>,
+    is_relayer: bool,
+    session_ref: u64,
+) -> AppInfo {
     let lock = state.get_permissions().lock().await;
     let permissions = lock
         .iter()
@@ -1210,7 +1607,7 @@ pub(crate) async fn create_app_info(
         })
         .collect();
 
-    Ok(AppInfo {
+    AppInfo {
         session_ref,
         id: state.get_id().to_string(),
         name: state.get_name().clone(),
@@ -1218,7 +1615,7 @@ pub(crate) async fn create_app_info(
         url: state.get_url().clone(),
         permissions,
         is_relayer,
-    })
+    }
 }
 
 fn handle_permission_outcome(
@@ -1279,8 +1676,31 @@ fn decision_failure_code(outcome: XswdDecisionCallbackOutcome) -> &'static str {
     }
 }
 
-fn notification_callback_failure(outcome: XswdNotificationCallbackOutcome) -> Error {
-    anyhow!(notification_failure_code(outcome))
+fn record_xswd_notification_outcome(
+    kind: XswdNotificationKind,
+    outcome: XswdNotificationCallbackOutcome,
+) {
+    if !matches!(outcome, XswdNotificationCallbackOutcome::Completed) {
+        debug!(
+            "XSWD_{}_CALLBACK_FAILED:{}",
+            xswd_notification_name(kind),
+            notification_failure_code(outcome)
+        );
+    }
+}
+
+fn record_abandoned_xswd_notification(kind: XswdNotificationKind, code: &'static str) {
+    debug!(
+        "XSWD_{}_CALLBACK_ABANDONED:{code}",
+        xswd_notification_name(kind)
+    );
+}
+
+fn xswd_notification_name(kind: XswdNotificationKind) -> &'static str {
+    match kind {
+        XswdNotificationKind::CancelRequest => "CANCEL_REQUEST",
+        XswdNotificationKind::AppDisconnect => "APP_DISCONNECT",
+    }
 }
 
 fn notification_failure_code(outcome: XswdNotificationCallbackOutcome) -> &'static str {

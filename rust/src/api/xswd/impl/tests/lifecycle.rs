@@ -10,7 +10,7 @@ fn dropped_permission_receivers_do_not_panic() {
 
 #[tokio::test]
 async fn dropped_event_response_receivers_do_not_panic() {
-    let cancel = |_| -> DartFnFuture<XswdNotificationCallbackOutcome> {
+    let cancel = |_, _| -> DartFnFuture<XswdNotificationCallbackOutcome> {
         Box::pin(async { XswdNotificationCallbackOutcome::Completed })
     };
     let application = |_| -> DartFnFuture<XswdDecisionCallbackOutcome> {

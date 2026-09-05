@@ -1621,6 +1621,7 @@ final class NativeXelisWallet implements XelisWallet {
     applicationAdapter: _adaptAndRegisterXswdApplication,
     onApplicationDecisionStarted: _startXswdApplicationDecision,
     onApplicationDecisionCompleted: _completeXswdApplicationDecision,
+    onCancelRequestStarted: _startXswdRequestCancellation,
     onApplicationDisconnectStarted: _startXswdApplicationDisconnect,
   );
 
@@ -1645,7 +1646,8 @@ final class NativeXelisWallet implements XelisWallet {
   }
 
   void _startXswdApplicationDecision(generated_xswd.AppInfo application) {
-    _xswdCapabilityForNative(application).pendingApplicationDecision = true;
+    final capability = _xswdCapabilityForNative(application);
+    capability.pendingApplicationDecision = true;
   }
 
   void _completeXswdApplicationDecision(
@@ -1653,7 +1655,7 @@ final class NativeXelisWallet implements XelisWallet {
     generated_xswd.XswdDecisionCallbackOutcome outcome,
   ) {
     final capability = _xswdCapabilities[application.sessionRef];
-    if (capability == null) {
+    if (capability == null || !capability.active) {
       return;
     }
     final accepted = switch (outcome) {
@@ -1670,11 +1672,22 @@ final class NativeXelisWallet implements XelisWallet {
     }
   }
 
-  void _startXswdApplicationDisconnect(generated_xswd.AppInfo application) {
-    final capability = _xswdCapabilities[application.sessionRef];
-    if (capability != null) {
-      _invalidateXswdCapability(capability);
+  void _startXswdRequestCancellation(
+    generated_xswd.AppInfo application,
+    bool cancelledApplicationAdmission,
+  ) {
+    if (cancelledApplicationAdmission) {
+      _tombstoneXswdCapability(_xswdCapabilityForNative(application));
     }
+  }
+
+  void _startXswdApplicationDisconnect(generated_xswd.AppInfo application) {
+    final capability = _xswdCapabilityForNative(application);
+    // Preserve the exact opaque identity for the informational disconnect
+    // projection without leaving an operable entry that a stale state read
+    // could revive. This also fails closed when disconnect is the first event
+    // observed for the native session.
+    _tombstoneXswdCapability(capability);
   }
 
   _NativeXswdSessionCapability _xswdCapabilityForNative(

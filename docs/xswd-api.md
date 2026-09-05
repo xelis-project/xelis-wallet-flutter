@@ -56,18 +56,20 @@ names are never ignored or normalized silently.
 
 `XelisXswdCallbacks` is an authored callback bundle. The package privately
 converts generated requests before invoking it and converts decisions back to
-the bridge contract. A callback exception or timeout never crosses into Rust
-as an arbitrary Dart exception: XWF returns a static technical XSWD error.
-`XelisXswdDecision.reject` is reserved for an explicit consumer decision.
-`AppDisconnect` has no upstream response sender, so a failed notification is
-abandoned with a static diagnostic only.
+the bridge contract. A decision callback exception or timeout never crosses
+into Rust as an arbitrary Dart exception: XWF returns a static technical XSWD
+error. `XelisXswdDecision.reject` is reserved for an explicit consumer decision.
+Cancellation and disconnect notifications are diagnostic-only: their
+exception, timeout, or projection failure never delays or reverses native
+cleanup or the upstream cancellation acknowledgement.
 
 Only one native XSWD event handler exists at a time. The call that creates it
 fixes callbacks, timeout, and projection limits until `stopXswd()`. Relayers
 added later use that same handler configuration.
 
-Only one decision callback is active at a time, and later application,
-permission, and prefetch decisions remain ordered behind it. A
+Only one callback, decision or notification, is tracked as active at a time,
+and later callbacks remain ordered behind it. The dispatcher continues to
+receive lifecycle events while a notification is slow. A
 `CancelRequest` or `AppDisconnect` for that exact upstream application-state
 instance preempts the active decision: XWF rejects its upstream response with
 the static `XSWD_REQUEST_CANCELLED` technical failure, drops the pending Dart
@@ -76,21 +78,42 @@ the same instance are rejected without being presented. A cancellation from a
 replaced instance that happens to reuse the same application ID cannot cancel
 or clear the current review.
 
+Cancelling an application admission tombstones that exact native session
+before acknowledging upstream. The later private notification projection
+marks the matching Dart identity non-operable, so neither a late decision nor
+a stale state read can reactivate it. Cancelling a permission or prefetch
+request on an already admitted session does not revoke the rest of that
+session. A disconnect always invalidates native authority before notification
+projection; that projection retains the same opaque identity only as
+non-operable metadata.
+
 The handler retains at most 64 deferred events in total. Further decisions fail
 with the static `XSWD_REQUEST_QUEUE_FULL` technical failure and are never
-presented. `CancelRequest` is handled directly and never occupies this queue.
+presented. `CancelRequest` performs internal cancellation and upstream
+acknowledgement directly; its consumer notification can wait in the bounded
+queue behind an unrelated active callback or be abandoned at capacity.
 Repeated deferred disconnects for the same state instance are coalesced. A new
-disconnect at capacity displaces and rejects one deferred decision; if the
-queue contains only distinct disconnects, XWF fails the active decision with
-static `XSWD_HANDLER_OVERLOADED` and handles the new disconnect directly so the
-queue can drain.
+disconnect at capacity displaces and rejects one deferred decision. If the
+queue contains only notifications, XWF abandons the active callback with the
+static `XSWD_HANDLER_OVERLOADED` diagnostic (or fails its decision response),
+advances the oldest queued notification, and keeps the new disconnect within
+the bound. An abandoned admission cannot regain native authority.
+
+Dropping the Rust wait cannot stop Dart
+code that has already started, so consumers must scope every late side effect
+to the exact opaque session identity. The 64-event bound applies only to XWF's
+deferred dispatcher queue; upstream channel buffering and parsing before XWF
+are outside that guarantee.
 
 Lifecycle reception remains responsive: XWF consumes at most 16 events with
-receiver priority before giving a ready decision priority. Thus a cancellation
-observed during that bounded receive burst wins over a simultaneously ready
-decision without allowing sustained input to starve the decision forever. If
-the upstream event channel closes, active and queued decisions fail closed with
-static `XSWD_HANDLER_CLOSED` instead of waiting for their Dart callback timeout.
+receiver priority before giving a ready callback, decision or notification,
+priority. Thus a cancellation observed during that bounded receive burst wins
+over a simultaneously ready callback without allowing sustained input to
+starve it forever. If the upstream event channel closes, active and queued
+decisions fail closed with static `XSWD_HANDLER_CLOSED`; notification waits are
+abandoned instead of delaying shutdown until their Dart timeout. Only exact
+states observed by that dispatcher are invalidated, preserving independent
+sessions owned by another dispatcher.
 
 This preemption begins once upstream emits the lifecycle event. The pinned
 upstream relayer currently waits for `on_message` to finish before it reads the
@@ -114,9 +137,9 @@ relayer membership. The close
 future waits for the client task and for the disconnect event to be enqueued;
 the consumer notification may finish asynchronously afterward. A strict
 pre-dispatch closing-state gate requires an upstream relayer change. For local
-sessions, the WebSocket server owns map removal so its `on_close` path always
-emits cancellation and disconnect before the opaque registry entry is
-invalidated.
+sessions, the WebSocket server owns map removal and its `on_close` path emits
+cancellation and disconnect. Native invalidation does not wait for the
+consumer's notification to complete.
 
 The initial application-request callback cannot reliably determine local
 versus relayed origin because the pinned upstream event does not carry that

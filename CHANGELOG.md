@@ -15,9 +15,15 @@
   cancellation/disconnect events preempt pending Dart decisions, late results
   cannot authorize requests, relayer close shuts down the client transport,
   and local close preserves upstream cancel/disconnect cleanup.
+- XSWD cancellation now completes internally before acknowledging upstream,
+  independently of Flutter notification failures. Slow notifications no longer
+  stop event reception; the bounded deferred queue has explicit overload and
+  channel-close behavior without claiming to bound upstream traffic.
 - XSWD admission proposals stay non-operable until a fresh state read confirms
   upstream insertion. State-read generations and disconnect tombstones prevent
   delayed native snapshots from reviving stopped or disconnected sessions.
+  Cancelled admissions cannot regain authority through late replies or reads;
+  cancelling an ordinary request preserves its still-active session.
 - Relayer session close now drives cancellation and client shutdown
   concurrently, so transport teardown does not wait for a blocked disconnect
   notification. Concurrent same-ID admission and close calls fail closed;
@@ -29,7 +35,7 @@
   `u64` request values now cross Web as exact Dart `BigInt`s, payload projection
   is resource-bounded and fail-closed, and all authored payload `toString()`
   output remains redacted.
-- **Breaking:** XSWD callback failures now return static technical errors;
+- **Breaking:** XSWD decision callback failures now return static technical errors;
   `XelisXswdDecision.reject` is reserved for explicit consumer decisions.
   Projection limits are configurable per handler under documented XWF
   ceilings, and callback timeouts must be positive.

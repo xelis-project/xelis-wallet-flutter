@@ -914,7 +914,7 @@ fn wire__crate__api__wallet__XelisWallet_add_xswd_relayer_impl(
             let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>>>::sse_decode(&mut deserializer);
 let api_app_data = <crate::api::models::xswd_dtos::ApplicationDataRelayer>::sse_decode(&mut deserializer);
 let api_projection_limits = <crate::api::models::xswd_dtos::NativeXswdProjectionLimits>::sse_decode(&mut deserializer);
-let api_cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api_cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api_request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api_request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api_request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
@@ -5136,7 +5136,7 @@ fn wire__crate__api__wallet__XelisWallet_start_xswd_impl(
             let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<XelisWallet>>>::sse_decode(&mut deserializer);
 let api_projection_limits = <crate::api::models::xswd_dtos::NativeXswdProjectionLimits>::sse_decode(&mut deserializer);
-let api__cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
+let api__cancel_request_dart_callback = decode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api__request_application_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api__request_permission_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
 let api__request_prefetch_permissions_dart_callback = decode_DartFn_Inputs_xswd_request_summary_Output_xswd_decision_callback_outcome_AnyhowException(<flutter_rust_bridge::DartOpaque>::sse_decode(&mut deserializer));
@@ -6638,6 +6638,55 @@ fn decode_DartFn_Inputs_xswd_request_summary_Output_xswd_notification_callback_o
         flutter_rust_bridge::for_generated::convert_into_dart_fn_future(body(
             dart_opaque.clone(),
             arg0,
+        ))
+    }
+}
+fn decode_DartFn_Inputs_xswd_request_summary_bool_Output_xswd_notification_callback_outcome_AnyhowException(
+    dart_opaque: flutter_rust_bridge::DartOpaque,
+) -> impl Fn(
+    crate::api::models::xswd_dtos::XswdRequestSummary,
+    bool,
+) -> flutter_rust_bridge::DartFnFuture<
+    crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome,
+> {
+    use flutter_rust_bridge::IntoDart;
+
+    async fn body(
+        dart_opaque: flutter_rust_bridge::DartOpaque,
+        arg0: crate::api::models::xswd_dtos::XswdRequestSummary,
+        arg1: bool,
+    ) -> crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome {
+        let args = vec![
+            arg0.into_into_dart().into_dart(),
+            arg1.into_into_dart().into_dart(),
+        ];
+        let message = FLUTTER_RUST_BRIDGE_HANDLER
+            .dart_fn_invoke(dart_opaque, args)
+            .await;
+
+        let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+        let action = deserializer.cursor.read_u8().unwrap();
+        let ans = match action {
+            0 => std::result::Result::Ok(
+                <crate::api::models::xswd_dtos::XswdNotificationCallbackOutcome>::sse_decode(
+                    &mut deserializer,
+                ),
+            ),
+            1 => std::result::Result::Err(
+                <flutter_rust_bridge::for_generated::anyhow::Error>::sse_decode(&mut deserializer),
+            ),
+            _ => unreachable!(),
+        };
+        deserializer.end();
+        let ans = ans.expect("Dart throws exception but Rust side assume it is not failable");
+        ans
+    }
+
+    move |arg0: crate::api::models::xswd_dtos::XswdRequestSummary, arg1: bool| {
+        flutter_rust_bridge::for_generated::convert_into_dart_fn_future(body(
+            dart_opaque.clone(),
+            arg0,
+            arg1,
         ))
     }
 }

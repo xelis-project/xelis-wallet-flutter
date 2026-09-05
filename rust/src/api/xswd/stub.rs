@@ -44,7 +44,7 @@ pub trait XSWD {
     async fn start_xswd(
         &self,
         projection_limits: NativeXswdProjectionLimits,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -87,7 +87,7 @@ pub trait XSWD {
         &self,
         app_data: ApplicationDataRelayer,
         projection_limits: NativeXswdProjectionLimits,
-        cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -114,7 +114,7 @@ impl XSWD for XelisWallet {
     async fn start_xswd(
         &self,
         _projection_limits: NativeXswdProjectionLimits,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -169,7 +169,7 @@ impl XSWD for XelisWallet {
         &self,
         _app_data: ApplicationDataRelayer,
         _projection_limits: NativeXswdProjectionLimits,
-        _cancel_request_dart_callback: impl Fn(XswdRequestSummary) -> DartFnFuture<XswdNotificationCallbackOutcome>
+        _cancel_request_dart_callback: impl Fn(XswdRequestSummary, bool) -> DartFnFuture<XswdNotificationCallbackOutcome>
             + Send
             + Sync
             + 'static,
@@ -212,6 +212,7 @@ pub async fn xswd_handler(
     _projection_limits: NativeXswdProjectionLimits,
     _cancel_request_dart_callback: impl Fn(
         XswdRequestSummary,
+        bool,
     ) -> DartFnFuture<XswdNotificationCallbackOutcome>,
     _request_application_dart_callback: impl Fn(
         XswdRequestSummary,
