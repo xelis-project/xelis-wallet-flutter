@@ -9,7 +9,7 @@ Flutter applications.
 ## Documentation layers
 
 - `README.md` is the consumer quick start: package scope, first integration,
-  guide index, validation, and Web setup.
+  guide index, and short links to validation and Web setup.
 - `docs/*.md` describes current public contracts and consumer responsibilities
   by domain. Prefer links between guides over repeating cross-cutting rules.
 - `AGENTS.md` is maintainer guidance for architecture, generation, compatibility,
@@ -42,6 +42,8 @@ in the published documentation.
 - Native logging policy and consumer guidance: `docs/logging.md`
 - Multisig wire contract: `docs/multisig-signing-protocol.md`
 - XSWD lifecycle, callbacks, and redaction contract: `docs/xswd-api.md`
+- Web build, hosting, storage, and validation boundary: `docs/web.md`
+- Maintainer checks and release evidence: `docs/validation.md`
 - Core capability alignment matrix: `docs/upstream-compatibility.md`
 
 ## Generated files
@@ -169,8 +171,11 @@ The root library must export authored contracts only. Do not add public
   original structured `XelisWalletException`; consumers record its existing
   XWF reference once and must not infer retry behavior from prose.
 - Keep standard native logging allowlisted by the package-owned target and
-  diagnostic logging allowlisted by package-owned module targets. Free-form
-  dependency records never cross the bridge. Never log seeds, keys, passwords,
+  package diagnostic logging allowlisted by package-owned module targets.
+  Only the explicit `unsafeUpstreamDiagnostic` scope may forward raw
+  `xelis_wallet::*` and `xelis_common::*` records; other dependencies remain
+  excluded. That scope provides no redaction guarantee and is local-only.
+  Package and consumer code must never deliberately log seeds, keys, passwords,
   tokens, signing material, or complete externally controlled payloads.
 - Operational paths, amounts, balances, addresses, and hashes may be useful in
   an explicitly enabled local diagnostic workflow, but must not be retained or
@@ -193,21 +198,14 @@ The root library must export authored contracts only. Do not add public
 
 ## Validation
 
-For Rust-only changes run `cargo fmt --check`, `cargo check --locked`, and
-focused tests. For FFI changes regenerate bindings, run the Rust checks, then
-run `dart analyze` and `flutter test`; the root suite includes a real host smoke
-that loads and calls the Rust library. Use `tool/consumer_smoke.dart` for
-release or manual consumer validation. It must generate outside the repository,
-delete only its owned temporary directory, and keep `run` limited to desktop
-targets plus the explicit headless Chrome Web consumer. The Web run must build
-the resolved package's Rust/WASM bundle, build the release consumer, and execute
-the initialization, integrated-address, and exact-integer smoke. It does not
-replace an XSWD relay-to-review-to-decision end-to-end test. Validate every
-supported native platform on an appropriate host;
-Android release artifacts must retain 16 KB ZIP alignment and 16 KB ELF
-alignment for every supported 64-bit ABI (ARM64 and x86_64). ARMv7 remains a
-4 KB runtime target; do not misclassify its ELF alignment as a 64-bit failure.
-Validate the alignment checker against malformed or unreadable ELF output as
-well as aligned and unaligned libraries. Alignment does not replace execution
-on a 16 KB Android environment. Run the
-separate Web build during release or explicit manual validation.
+Follow `docs/validation.md` for the authoritative commands and release
+evidence. For Rust-only changes run format, locked check, and focused tests. For
+FFI changes regenerate bindings, run the Rust checks, then analyze and test the
+Dart package. Keep pull-request checks fast; run real transport tests and the
+consumer platform matrix in the tag/manual release workflow.
+
+`tool/consumer_smoke.dart` must generate outside the repository, delete only
+its owned temporary directory, and keep `run` limited to desktop targets plus
+the explicit headless Chrome Web consumer. The generated application must use
+only the root authored XWF API. Keep Web hosting and storage limits in
+`docs/web.md`, not in generated consumer code or README maintenance notes.

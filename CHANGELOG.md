@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0
 
 - Fixed connection-timeout cleanup retaining worker acknowledgements while
   awaiting shutdown. Timeout releases both acknowledgements before joining the

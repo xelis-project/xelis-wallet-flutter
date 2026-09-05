@@ -17,6 +17,8 @@ capability merely to enforce an application policy.
 | URL credentials and arbitrary RPC paths | intentionally unsupported | Daemon input remains a credential-free origin; XWF appends `/json_rpc`. Future authentication must use a structured contract. |
 | Original JSON number lexemes | intentionally unsupported | Projection starts from the effective parsed request and does not preserve arbitrary source spelling. |
 | Pre-parse relayer message limits | gap | This belongs upstream of XWF's parsed-request projection and is outside the package boundary. |
+| Relayer remote-close detection | gap | Upstream waits for the active message handler before reading the next socket frame. Peer-only closure may wait for the callback timeout; explicit wallet-side close is preemptive. See [XSWD lifecycle](xswd-api.md#callback-boundary). |
+| Relayer pre-dispatch closing gate | gap | A frame already selected when close begins can remain in flight, including upstream `node.*` and `xswd.*` dispatch. Strict rejection requires an upstream closing-state gate. See [XSWD lifecycle](xswd-api.md#callback-boundary). |
 
 ## Status vocabulary
 
