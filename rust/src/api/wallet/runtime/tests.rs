@@ -23,7 +23,8 @@ use xelis_wallet::wallet::Wallet;
 
 use super::super::XelisWallet;
 use super::{
-    complete_offline_mode, daemon_rpc_endpoint, ensure_daemon_network, mt_params_for_cpu_cores,
+    await_connection_acknowledgements, complete_connection_timeout, complete_offline_mode,
+    daemon_rpc_endpoint, ensure_daemon_network, mt_params_for_cpu_cores,
     normalize_offline_mode_result, precomputed_table_type_from_l1, recover_option,
     recovery_input_kind, resolve_wallet_path, ConnectionAttemptGuard, RecoveryInputKind,
 };
@@ -113,6 +114,120 @@ async fn connection_attempt_guard_publishes_worker_completion() {
     drop(guard);
     attempt.wait_completed().await;
     assert!(attempt.completed.load(std::sync::atomic::Ordering::Acquire));
+}
+
+// Models the worker immediately after successful result delivery, while the
+// caller has selected its timeout branch. Explicit polling fixes the ordering;
+// no network timing, sleeps, or scheduler luck participates in this regression.
+#[tokio::test]
+async fn connection_timeout_releases_worker_acknowledgements_before_join() {
+    let attempts = Arc::new(WalletConnectionAttempts::default());
+    let guard = ConnectionAttemptGuard::acquire(Arc::clone(&attempts)).unwrap();
+    let attempt = guard.attempt();
+    let (accepted, accepted_receiver) = oneshot::channel();
+    let (finalized, finalized_receiver) = oneshot::channel();
+    let mut worker = Box::pin(observe_connection_handshake(
+        guard,
+        accepted_receiver,
+        finalized_receiver,
+    ));
+    assert!(futures::poll!(worker.as_mut()).is_pending());
+    let mut cleanup = Box::pin(complete_connection_timeout(
+        accepted,
+        finalized,
+        cancel_test_connection_attempt(&attempts),
+    ));
+    assert!(futures::poll!(cleanup.as_mut()).is_pending());
+    assert!(attempt.is_cancelled());
+    assert_eq!(
+        futures::poll!(worker.as_mut()),
+        std::task::Poll::Ready(false)
+    );
+    let error = cleanup.await.unwrap_err();
+    assert_eq!(
+        error.native_kind.as_deref(),
+        Some("NETWORK_CONNECT_TIMEOUT")
+    );
+    assert!(ConnectionAttemptGuard::acquire(attempts).is_ok());
+}
+
+async fn observe_connection_handshake(
+    guard: ConnectionAttemptGuard,
+    accepted: oneshot::Receiver<()>,
+    finalized: oneshot::Receiver<()>,
+) -> bool {
+    let finalized = await_connection_acknowledgements(accepted, finalized).await;
+    let activated = finalized && !guard.attempt().is_cancelled();
+    drop(guard);
+    activated
+}
+
+async fn cancel_test_connection_attempt(attempts: &WalletConnectionAttempts) {
+    if let Some(attempt) = attempts.cancel_current(false) {
+        attempt.wait_completed().await;
+    }
+}
+
+#[tokio::test]
+async fn connection_handshake_requires_both_acknowledgements() {
+    let attempts = Arc::new(WalletConnectionAttempts::default());
+    let guard = ConnectionAttemptGuard::acquire(attempts).unwrap();
+    let (accepted, accepted_receiver) = oneshot::channel();
+    let (finalized, finalized_receiver) = oneshot::channel();
+    let mut worker = Box::pin(observe_connection_handshake(
+        guard,
+        accepted_receiver,
+        finalized_receiver,
+    ));
+    assert!(futures::poll!(worker.as_mut()).is_pending());
+    accepted.send(()).unwrap();
+    assert!(futures::poll!(worker.as_mut()).is_pending());
+    finalized.send(()).unwrap();
+    assert_eq!(
+        futures::poll!(worker.as_mut()),
+        std::task::Poll::Ready(true)
+    );
+}
+
+#[tokio::test]
+async fn connection_handshake_abandonment_never_activates() {
+    for acknowledge_first in [false, true] {
+        let attempts = Arc::new(WalletConnectionAttempts::default());
+        let guard = ConnectionAttemptGuard::acquire(Arc::clone(&attempts)).unwrap();
+        let (accepted, accepted_receiver) = oneshot::channel();
+        let (finalized, finalized_receiver) = oneshot::channel();
+        let worker = observe_connection_handshake(guard, accepted_receiver, finalized_receiver);
+        if acknowledge_first {
+            accepted.send(()).unwrap();
+        } else {
+            drop(accepted);
+        }
+        drop(finalized);
+        assert!(!worker.await);
+        assert!(ConnectionAttemptGuard::acquire(attempts).is_ok());
+    }
+}
+
+#[tokio::test]
+async fn connection_handshake_terminal_cancellation_prevents_late_activation() {
+    let attempts = Arc::new(WalletConnectionAttempts::default());
+    let guard = ConnectionAttemptGuard::acquire(Arc::clone(&attempts)).unwrap();
+    let (accepted, accepted_receiver) = oneshot::channel();
+    let (finalized, finalized_receiver) = oneshot::channel();
+    let mut worker = Box::pin(observe_connection_handshake(
+        guard,
+        accepted_receiver,
+        finalized_receiver,
+    ));
+    accepted.send(()).unwrap();
+    assert!(futures::poll!(worker.as_mut()).is_pending());
+    attempts.cancel_current(true);
+    finalized.send(()).unwrap();
+    assert_eq!(
+        futures::poll!(worker.as_mut()),
+        std::task::Poll::Ready(false)
+    );
+    assert!(ConnectionAttemptGuard::acquire(attempts).is_err());
 }
 
 #[test]

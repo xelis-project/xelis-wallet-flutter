@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0
+## 0.3.0 (unreleased)
+
+- Fixed connection-timeout cleanup retaining worker acknowledgements while
+  awaiting shutdown. Timeout releases both acknowledgements before joining the
+  worker, preventing a late connection result from blocking cancellation.
 
 - **Breaking:** XSWD session close and permission updates now require the exact
   live `XelisXswdApplication` capability instead of an application ID. Opaque

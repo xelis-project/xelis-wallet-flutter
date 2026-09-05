@@ -98,6 +98,30 @@ async fn disconnect_daemon_api(api: &DaemonAPI) {
     let _ = api.disconnect_force().await;
 }
 
+async fn complete_connection_timeout<F>(
+    accepted_sender: oneshot::Sender<()>,
+    finalized_sender: oneshot::Sender<()>,
+    cancellation: F,
+) -> std::result::Result<(), NativeXelisError>
+where
+    F: Future<Output = ()>,
+{
+    // The worker can have delivered a result just as timeout wins. Release
+    // both acknowledgements before joining it, otherwise it waits for this
+    // frame while this frame waits for worker completion.
+    drop(accepted_sender);
+    drop(finalized_sender);
+    cancellation.await;
+    Err(network_connect_timeout())
+}
+
+async fn await_connection_acknowledgements(
+    accepted: oneshot::Receiver<()>,
+    finalized: oneshot::Receiver<()>,
+) -> bool {
+    accepted.await.is_ok() && finalized.await.is_ok()
+}
+
 fn network_connect_timeout() -> NativeXelisError {
     NativeXelisError::xelis_wallet_flutter(
         NativeXelisErrorCode::Network,
@@ -614,8 +638,9 @@ impl XelisWallet {
             {
                 Ok(api) => {
                     let delivered = result_sender.send(Ok(Arc::clone(&api))).is_ok();
-                    let accepted = delivered && accepted_receiver.await.is_ok();
-                    let finalized = accepted && finalized_receiver.await.is_ok();
+                    let finalized = delivered
+                        && await_connection_acknowledgements(accepted_receiver, finalized_receiver)
+                            .await;
                     if !finalized || worker_attempt.is_cancelled() {
                         rollback_connection(&wallet, &api).await;
                     }
@@ -662,8 +687,12 @@ impl XelisWallet {
             Ok(Ok(Err(error))) => Err(error),
             Ok(Err(_)) => Err(network_connect_worker_failed()),
             Err(_) => {
-                self.cancel_connection_attempt(false).await;
-                Err(network_connect_timeout())
+                complete_connection_timeout(
+                    accepted_sender,
+                    finalized_sender,
+                    self.cancel_connection_attempt(false),
+                )
+                .await
             }
         }
     }
