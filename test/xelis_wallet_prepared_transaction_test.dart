@@ -6,7 +6,10 @@ import 'package:xelis_wallet_flutter/xelis_wallet_flutter.dart';
 void main() {
   group('XelisWalletFeePolicy', () {
     test('keeps automatic as the compatible static policy', () {
-      expect(XelisWalletFeePolicy.automatic, isA<XelisWalletAutomaticFeePolicy>());
+      expect(
+        XelisWalletFeePolicy.automatic,
+        isA<XelisWalletAutomaticFeePolicy>(),
+      );
       expect(XelisWalletFeePolicy.basisPointsScale, 10000);
     });
 

@@ -33,9 +33,7 @@ sealed class XelisWalletFeePolicy {
   ///
   /// [basisPoints] must be between [minMultiplierBasisPoints] and
   /// [maxMultiplierBasisPoints], inclusive.
-  factory XelisWalletFeePolicy.multiplier({
-    required BigInt basisPoints,
-  }) {
+  factory XelisWalletFeePolicy.multiplier({required BigInt basisPoints}) {
     _requireUnsigned64FeeValue(basisPoints, 'basisPoints', allowZero: false);
     return XelisWalletMultiplierFeePolicy._(basisPoints);
   }

@@ -50,6 +50,9 @@ fn prepared_disconnect(state: Arc<AppState>) -> PreparedXswdNotification {
 }
 
 mod application;
+mod dispatcher;
 mod lifecycle;
+mod network;
 mod permissions;
 mod projection;
+mod registry;

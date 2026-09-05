@@ -121,7 +121,7 @@ void main() {
     expect(
       createWebBrowserSmokeCommand(consumerDirectory: consumerDirectory)
           .arguments,
-      ['run', 'tool/web_smoke_runner.dart'],
+      ['run', 'xelis_wallet_flutter:web_smoke_runner'],
     );
   });
 
@@ -185,10 +185,6 @@ void main() {
           .readAsString();
       final index = await File.fromUri(consumer.uri.resolve('web/index.html'))
           .readAsString();
-      final runner = await File.fromUri(
-        consumer.uri.resolve('tool/web_smoke_runner.dart'),
-      ).readAsString();
-
       expect(main, contains('XelisWalletFlutter.initialize()'));
       expect(main, contains('XelisWalletFlutter.makeIntegratedAddress'));
       expect(main, contains('9007199254740993'));
@@ -198,16 +194,26 @@ void main() {
       expect(verification, greaterThanOrEqualTo(0));
       expect(success, greaterThan(verification));
       expect(index, contains('xwfReportResult'));
-      expect(runner, contains('Cross-Origin-Opener-Policy'));
-      expect(runner, contains('Cross-Origin-Embedder-Policy'));
-      expect(runner, contains('XWF_WEB_CONSUMER_SMOKE_PASS'));
-      expect(runner, contains('initialization=true'));
-      expect(runner, contains('address_round_trip=true'));
       expect(
-        runner,
-        contains('above_javascript_safe_integer=9007199254740993'),
+        Directory.fromUri(consumer.uri.resolve('tool/')).existsSync(),
+        isFalse,
       );
-      expect(runner, contains('maximum_u64=18446744073709551615'));
+
+      final generatedDartFiles = consumer
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'));
+      for (final file in generatedDartFiles) {
+        final source = await file.readAsString();
+        final xwfImports = RegExp(
+          r"import 'package:xelis_wallet_flutter/([^']+)';",
+        ).allMatches(source);
+        expect(
+          xwfImports.map((match) => match.group(1)),
+          everyElement(equals('xelis_wallet_flutter.dart')),
+          reason: file.path,
+        );
+      }
     },
   );
 
@@ -319,7 +325,10 @@ void main() {
       'web/pkg',
     ]);
     expect(commands[3].arguments, ['build', 'web', '--release']);
-    expect(commands[4].arguments, ['run', 'tool/web_smoke_runner.dart']);
+    expect(commands[4].arguments, [
+      'run',
+      'xelis_wallet_flutter:web_smoke_runner',
+    ]);
     expect(await tempParent.list().toList(), isEmpty);
   });
 
