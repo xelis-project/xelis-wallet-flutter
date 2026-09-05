@@ -5,10 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('exports only authored contracts and the stable runtime facade', () {
     final entrypoint = File('lib/xelis_wallet_flutter.dart').readAsStringSync();
-    final exports = RegExp(
-      r"^export '([^']+)';$",
+    final exportDirectives = RegExp(
+      r"^export\s+'([^']+)'([^;]*);",
       multiLine: true,
-    ).allMatches(entrypoint).map((match) => match.group(1)!).toList();
+    ).allMatches(entrypoint).toList();
+    final exports = exportDirectives.map((match) => match.group(1)!).toList();
 
     expect(exports, isNotEmpty);
     expect(
@@ -19,6 +20,15 @@ void main() {
           equals('src/runtime/xelis_wallet_flutter.dart'),
         ),
       ),
+    );
+    final xswdExport = exportDirectives.singleWhere(
+      (match) => match.group(1) == 'src/api/xswd/xelis_xswd.dart',
+    );
+    expect(
+      xswdExport.group(2),
+      matches(RegExp(r'\bhide\s+xelisXswdApplicationWithSessionIdentity\b')),
+      reason:
+          'The package-owned XSWD session identity helper must stay private.',
     );
     expect(Directory('lib/api').existsSync(), isFalse);
   });

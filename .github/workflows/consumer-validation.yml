@@ -46,6 +46,24 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libblkid-dev
       - run: flutter config --enable-linux-desktop
       - run: flutter pub get
+      - name: Run real XSWD transport-close integration tests
+        working-directory: rust
+        shell: bash
+        run: |
+          set -o pipefail
+          tests=(
+            real_local_close_emits_cancel_and_disconnect_before_cleanup
+            real_relayer_close_stops_transport_while_disconnect_callback_is_pending
+          )
+          for test_name in "${tests[@]}"; do
+            test_path="api::xswd::imp::tests::network::$test_name"
+            output="$RUNNER_TEMP/$test_name.log"
+            cargo test --locked --lib "$test_path" -- \
+              --ignored --exact --test-threads=1 2>&1 | tee "$output"
+            grep -Eq \
+              'test result: ok\. 1 passed; 0 failed; 0 ignored;' \
+              "$output"
+          done
       - name: Run generated Linux consumer
         run: xvfb-run -a dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform linux --mode run
 
