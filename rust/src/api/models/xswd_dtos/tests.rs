@@ -9,6 +9,7 @@ const MAX_XSWD_TOTAL_TEXT_BYTES: usize = DEFAULT_XSWD_TOTAL_TEXT_BYTES as usize;
 
 fn app_info() -> AppInfo {
     AppInfo {
+        session_ref: 1,
         id: "app-id".to_owned(),
         name: "Test app".to_owned(),
         description: "Test description".to_owned(),

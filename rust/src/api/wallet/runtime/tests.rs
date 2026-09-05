@@ -1,19 +1,36 @@
+use std::borrow::Cow;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
 use anyhow::anyhow;
+use futures::{SinkExt, StreamExt};
+use serde_json::{json, Value};
+use tokio_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
+use xelis_common::api::daemon::{BlockOrderedEvent, BlockType, GetInfoResult};
+use xelis_common::block::BlockVersion;
+use xelis_common::crypto::{ecdlp::ECDLPTables, Hash};
+use xelis_common::difficulty::Difficulty;
 use xelis_common::network::Network;
+use xelis_common::tokio::net::{TcpListener, TcpStream};
+use xelis_common::tokio::sync::oneshot;
+use xelis_wallet::daemon_api::DaemonAPI;
 use xelis_wallet::error::WalletError;
 use xelis_wallet::network_handler::NetworkError;
-use xelis_wallet::precomputed_tables::{L1_FULL, L1_LOW, L1_MEDIUM};
+use xelis_wallet::precomputed_tables::{PrecomputedTablesShared, L1_FULL, L1_LOW, L1_MEDIUM};
 use xelis_wallet::wallet::RecoverOption;
+use xelis_wallet::wallet::Wallet;
 
+use super::super::XelisWallet;
 use super::{
-    daemon_rpc_endpoint, ensure_daemon_network, mt_params_for_cpu_cores,
+    complete_offline_mode, daemon_rpc_endpoint, ensure_daemon_network, mt_params_for_cpu_cores,
     normalize_offline_mode_result, precomputed_table_type_from_l1, recover_option,
     recovery_input_kind, resolve_wallet_path, ConnectionAttemptGuard, RecoveryInputKind,
 };
 use crate::api::error::NativeXelisErrorCode;
+use crate::api::models::runtime_dtos::{
+    NativeWalletConnectionOptions, NativeWalletReconnectPolicy,
+};
 use crate::api::precomputed_tables::PrecomputedTableType;
 use crate::api::wallet::WalletConnectionAttempts;
 
@@ -120,6 +137,344 @@ fn offline_mode_preserves_unexpected_network_handler_failures() {
 
     assert_eq!(error.code, NativeXelisErrorCode::NetworkMismatch);
     assert_eq!(error.native_kind.as_deref(), Some("NETWORK_MISMATCH"));
+}
+
+#[tokio::test]
+async fn offline_completion_is_not_bounded_by_the_connection_timeout() {
+    let (release, released) = xelis_common::tokio::sync::oneshot::channel();
+    let completion = complete_offline_mode(async move {
+        released.await.unwrap();
+        Ok(())
+    });
+    tokio::pin!(completion);
+
+    assert!(
+        xelis_common::tokio::time::timeout(Duration::from_millis(10), completion.as_mut(),)
+            .await
+            .is_err()
+    );
+
+    release.send(()).unwrap();
+    assert!(completion.await.is_ok());
+}
+
+struct LocalDaemonFixture {
+    address: String,
+    subscriptions_ready: Option<oneshot::Receiver<()>>,
+    trigger_block_event: Option<oneshot::Sender<bool>>,
+    block_request_seen: Option<oneshot::Receiver<()>>,
+    release_block_request: Option<oneshot::Sender<()>>,
+    task: Option<xelis_common::tokio::task::JoinHandle<()>>,
+}
+
+impl LocalDaemonFixture {
+    async fn start(top_block_hash: Hash) -> Self {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = format!("ws://{}", listener.local_addr().unwrap());
+        let (subscriptions_ready_tx, subscriptions_ready) = oneshot::channel();
+        let (trigger_block_event, trigger_block_event_rx) = oneshot::channel();
+        let (block_request_seen_tx, block_request_seen) = oneshot::channel();
+        let (release_block_request, release_block_request_rx) = oneshot::channel();
+        let task = xelis_common::tokio::spawn(async move {
+            run_local_daemon(
+                listener,
+                top_block_hash,
+                subscriptions_ready_tx,
+                trigger_block_event_rx,
+                block_request_seen_tx,
+                release_block_request_rx,
+            )
+            .await;
+        });
+
+        Self {
+            address,
+            subscriptions_ready: Some(subscriptions_ready),
+            trigger_block_event: Some(trigger_block_event),
+            block_request_seen: Some(block_request_seen),
+            release_block_request: Some(release_block_request),
+            task: Some(task),
+        }
+    }
+
+    async fn wait_until_subscribed(&mut self) {
+        xelis_common::tokio::time::timeout(
+            Duration::from_secs(5),
+            self.subscriptions_ready.take().unwrap(),
+        )
+        .await
+        .expect("network handler did not establish daemon subscriptions")
+        .unwrap();
+    }
+
+    fn trigger_block_event(&mut self) {
+        self.trigger_block_event.take().unwrap().send(true).unwrap();
+    }
+
+    fn skip_block_event(&mut self) {
+        self.trigger_block_event
+            .take()
+            .unwrap()
+            .send(false)
+            .unwrap();
+    }
+
+    async fn wait_for_block_request(&mut self) {
+        xelis_common::tokio::time::timeout(
+            Duration::from_secs(5),
+            self.block_request_seen.take().unwrap(),
+        )
+        .await
+        .expect("network handler did not process the controlled block event")
+        .unwrap();
+    }
+
+    fn release_block_request(&mut self) {
+        self.release_block_request.take().unwrap().send(()).unwrap();
+    }
+
+    async fn wait_for_shutdown(&mut self) {
+        xelis_common::tokio::time::timeout(Duration::from_secs(5), self.task.take().unwrap())
+            .await
+            .expect("local daemon did not shut down")
+            .expect("local daemon task panicked");
+    }
+}
+
+impl Drop for LocalDaemonFixture {
+    fn drop(&mut self) {
+        if let Some(task) = self.task.take() {
+            task.abort();
+        }
+    }
+}
+
+async fn run_local_daemon(
+    listener: TcpListener,
+    top_block_hash: Hash,
+    subscriptions_ready: oneshot::Sender<()>,
+    trigger_block_event: oneshot::Receiver<bool>,
+    block_request_seen: oneshot::Sender<()>,
+    release_block_request: oneshot::Receiver<()>,
+) {
+    let (stream, _) = listener.accept().await.unwrap();
+    let mut socket = accept_async(stream).await.unwrap();
+    let info = GetInfoResult {
+        height: 0,
+        topoheight: 0,
+        stableheight: 0,
+        stable_topoheight: 0,
+        pruned_topoheight: None,
+        top_block_hash: top_block_hash.clone(),
+        circulating_supply: 0,
+        burned_supply: 0,
+        emitted_supply: 0,
+        maximum_supply: 0,
+        difficulty: Difficulty::from(0_u64),
+        block_time_target: 1000,
+        average_block_time: 1000,
+        block_reward: 0,
+        dev_reward: 0,
+        miner_reward: 0,
+        mempool_size: 0,
+        version: "local-test-daemon".to_owned(),
+        network: Network::Devnet,
+        block_version: BlockVersion::V0,
+    };
+    let info = serde_json::to_value(info).unwrap();
+    let mut block_subscription_id = None;
+    let mut subscription_count = 0;
+    let mut subscriptions_ready = Some(subscriptions_ready);
+    let mut trigger_block_event = Some(trigger_block_event);
+    let mut block_request_seen = Some(block_request_seen);
+    let mut release_block_request = Some(release_block_request);
+
+    while let Some(message) = socket.next().await {
+        let Ok(Message::Text(text)) = message else {
+            break;
+        };
+        let request: Value = serde_json::from_str(text.as_ref()).unwrap();
+        let id = request["id"].clone();
+        match request["method"].as_str().unwrap() {
+            "get_version" => {
+                send_local_daemon_result(&mut socket, id, json!("local-test-daemon")).await;
+            }
+            "get_info" => {
+                send_local_daemon_result(&mut socket, id, info.clone()).await;
+            }
+            "get_nonce" => {
+                send_local_daemon_error(&mut socket, id, "account is not registered").await;
+            }
+            "subscribe" => {
+                if block_subscription_id.is_none() {
+                    block_subscription_id = Some(id.clone());
+                }
+                send_local_daemon_result(&mut socket, id, json!(true)).await;
+                subscription_count += 1;
+                if subscription_count == 3 {
+                    subscriptions_ready.take().unwrap().send(()).unwrap();
+                    if !trigger_block_event.take().unwrap().await.unwrap() {
+                        continue;
+                    }
+                    let event = BlockOrderedEvent {
+                        block_hash: Cow::Owned(Hash::new([9; 32])),
+                        block_type: BlockType::Normal,
+                        topoheight: 1,
+                    };
+                    send_local_daemon_result(
+                        &mut socket,
+                        block_subscription_id.take().unwrap(),
+                        serde_json::to_value(event).unwrap(),
+                    )
+                    .await;
+                }
+            }
+            "get_block_at_topoheight" | "get_block_with_txs_at_topoheight" => {
+                block_request_seen.take().unwrap().send(()).unwrap();
+                release_block_request.take().unwrap().await.unwrap();
+                send_local_daemon_error(&mut socket, id, "controlled block read failure").await;
+            }
+            method => panic!("unexpected daemon method: {method}"),
+        }
+    }
+}
+
+async fn send_local_daemon_result(
+    socket: &mut WebSocketStream<TcpStream>,
+    id: Value,
+    result: Value,
+) {
+    send_local_daemon_message(
+        socket,
+        json!({"jsonrpc": "2.0", "id": id, "result": result}),
+    )
+    .await;
+}
+
+async fn send_local_daemon_error(
+    socket: &mut WebSocketStream<TcpStream>,
+    id: Value,
+    message: &str,
+) {
+    send_local_daemon_message(
+        socket,
+        json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "error": {"code": -32000, "message": message}
+        }),
+    )
+    .await;
+}
+
+async fn send_local_daemon_message(socket: &mut WebSocketStream<TcpStream>, value: Value) {
+    socket
+        .send(Message::Text(value.to_string().into()))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+#[ignore = "uses production Argon2 parameters; run explicitly as the real network-handler lifecycle test"]
+async fn real_network_handler_wrapper_offline_waits_for_inflight_sync() {
+    let directory = tempfile::tempdir().unwrap();
+    let wallet_path = directory.path().join("wallet");
+    let wallet_path = wallet_path.to_string_lossy().into_owned();
+    let top_block_hash = Hash::new([7; 32]);
+    let tables: PrecomputedTablesShared = Arc::new(RwLock::new(ECDLPTables::empty(1)));
+    let wallet = Wallet::create(
+        &wallet_path,
+        "integration-test-password",
+        RecoverOption::None,
+        Network::Devnet,
+        tables,
+        1,
+        1,
+    )
+    .await
+    .unwrap();
+    {
+        let mut storage = wallet.get_storage().write().await;
+        storage.set_synced_topoheight(0).unwrap();
+        storage.set_top_block_hash(&top_block_hash).unwrap();
+    }
+    let wrapper = XelisWallet {
+        wallet: Arc::clone(&wallet),
+        connection_attempts: Default::default(),
+        active_connection: Default::default(),
+        runtime_event_generation: Default::default(),
+        business_event_generation: Default::default(),
+        asset_resolution: Default::default(),
+        prepared_transaction: Default::default(),
+        pending_multisig: Default::default(),
+        xswd_sessions: Default::default(),
+    };
+    let mut priming_daemon = LocalDaemonFixture::start(top_block_hash.clone()).await;
+    wrapper
+        .online_mode(
+            priming_daemon.address.clone(),
+            NativeWalletConnectionOptions {
+                timeout_millis: 500,
+                reconnect_policy: NativeWalletReconnectPolicy::ApplicationManaged,
+            },
+        )
+        .await
+        .unwrap();
+    priming_daemon.wait_until_subscribed().await;
+    let active_connection = wrapper.active_connection.lock().await.take().unwrap();
+    priming_daemon.skip_block_event();
+    complete_offline_mode(wallet.set_offline_mode())
+        .await
+        .unwrap();
+    active_connection.api.disconnect_force().await.unwrap();
+    priming_daemon.wait_for_shutdown().await;
+
+    let mut daemon = LocalDaemonFixture::start(top_block_hash).await;
+    let handler_api = Arc::new(
+        DaemonAPI::with(
+            format!("{}/json_rpc", daemon.address),
+            Some(Duration::from_secs(30)),
+            64,
+        )
+        .await
+        .unwrap(),
+    );
+    wallet
+        .set_online_mode_with_api(Arc::clone(&handler_api), false)
+        .await
+        .unwrap();
+    drop(handler_api);
+    *wrapper.active_connection.lock().await = Some(active_connection);
+    daemon.wait_until_subscribed().await;
+    daemon.trigger_block_event();
+    daemon.wait_for_block_request().await;
+
+    // Keep the active record created with the authored 500 ms connection
+    // timeout, but install the controlled handler with a separate 30 s RPC
+    // client. If the timeout field is reintroduced, the wrapper still observes
+    // 500 ms, while force-disconnect targets the already closed priming API and
+    // cannot release the controlled handler. This exercises the complete
+    // XelisWallet::offline_mode method that previously dropped its shutdown
+    // future when the connection timeout elapsed.
+    let completion = wrapper.offline_mode();
+    tokio::pin!(completion);
+    assert!(
+        xelis_common::tokio::time::timeout(Duration::from_millis(750), completion.as_mut())
+            .await
+            .is_err(),
+        "offline completed before the in-flight handler work was released"
+    );
+
+    daemon.release_block_request();
+    assert!(
+        xelis_common::tokio::time::timeout(Duration::from_secs(5), completion)
+            .await
+            .expect("offline did not await the released network handler")
+            .is_ok()
+    );
+    assert!(!wrapper.is_online().await);
+    wrapper.close().await;
+    daemon.wait_for_shutdown().await;
 }
 
 #[test]

@@ -16,7 +16,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// `diagnostic_message` is privileged diagnostic data. It may contain values
 /// supplied by a dependency or the caller and must not be displayed or logged
 /// without an explicit diagnostic policy.
-class NativeXelisError {
+class NativeXelisError implements FrbException {
   final int version;
   final NativeXelisErrorSource source;
   final NativeXelisErrorCode code;

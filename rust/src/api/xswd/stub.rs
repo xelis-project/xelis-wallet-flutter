@@ -26,6 +26,7 @@ pub enum XSWDEvent {
 }
 
 use crate::api::{
+    error::NativeXelisError,
     models::xswd_dtos::{
         AppInfo, ApplicationDataRelayer, NativeXswdProjectionLimits, PermissionPolicy,
         UserPermissionDecision, XswdDecisionCallbackOutcome, XswdNotificationCallbackOutcome,
@@ -33,6 +34,10 @@ use crate::api::{
     },
     wallet::XelisWallet,
 };
+
+#[derive(Default)]
+#[flutter_rust_bridge::frb(ignore)]
+pub(crate) struct XswdSessionRegistry;
 
 #[allow(async_fn_in_trait)]
 pub trait XSWD {
@@ -69,11 +74,14 @@ pub trait XSWD {
 
     async fn modify_application_permissions(
         &self,
-        id: &String,
+        session_ref: u64,
         permissions: HashMap<String, PermissionPolicy>,
-    ) -> Result<()>;
+    ) -> std::result::Result<(), NativeXelisError>;
 
-    async fn close_application_session(&self, id: &String) -> Result<()>;
+    async fn close_application_session(
+        &self,
+        session_ref: u64,
+    ) -> std::result::Result<(), NativeXelisError>;
 
     async fn add_xswd_relayer(
         &self,
@@ -144,14 +152,17 @@ impl XSWD for XelisWallet {
 
     async fn modify_application_permissions(
         &self,
-        _id: &String,
+        _session_ref: u64,
         _permissions: HashMap<String, PermissionPolicy>,
-    ) -> Result<()> {
-        xswd_unavailable()
+    ) -> std::result::Result<(), NativeXelisError> {
+        Err(xswd_native_unavailable())
     }
 
-    async fn close_application_session(&self, _id: &String) -> Result<()> {
-        xswd_unavailable()
+    async fn close_application_session(
+        &self,
+        _session_ref: u64,
+    ) -> std::result::Result<(), NativeXelisError> {
+        Err(xswd_native_unavailable())
     }
 
     async fn add_xswd_relayer(
@@ -185,6 +196,14 @@ impl XSWD for XelisWallet {
 
 fn xswd_unavailable<T>() -> Result<T> {
     Err(anyhow!("XSWD support is not enabled in this build"))
+}
+
+fn xswd_native_unavailable() -> NativeXelisError {
+    NativeXelisError::xelis_wallet_flutter(
+        crate::api::error::NativeXelisErrorCode::Unsupported,
+        "XSWD_SUPPORT_UNAVAILABLE",
+        "XSWD support is not enabled in this build",
+    )
 }
 
 #[flutter_rust_bridge::frb(ignore)]
@@ -221,6 +240,7 @@ pub async fn create_event_summary(
 
 pub async fn create_app_info(_state: &AppState) -> AppInfo {
     AppInfo {
+        session_ref: 0,
         id: String::new(),
         name: String::new(),
         description: String::new(),

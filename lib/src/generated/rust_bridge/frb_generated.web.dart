@@ -50,10 +50,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_AppStatePtr => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState;
-
-  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_DataElementPtr => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDataElement;
 
@@ -175,12 +171,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
-  AppState
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    dynamic raw,
-  );
-
-  @protected
   IntegratedAddress
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     dynamic raw,
@@ -251,12 +241,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   Address
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress(
-    dynamic raw,
-  );
-
-  @protected
-  AppState
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
     dynamic raw,
   );
 
@@ -1058,12 +1042,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   );
 
   @protected
-  AppState
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   IntegratedAddress
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     SseDeserializer deserializer,
@@ -1124,12 +1102,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   @protected
   Address
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  AppState
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
     SseDeserializer deserializer,
   );
 
@@ -2074,13 +2046,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    AppState self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     IntegratedAddress self,
     SseSerializer serializer,
@@ -2166,13 +2131,6 @@ abstract class XelisWalletFlutterBridgeApiImplPlatform
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress(
     Address self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    AppState self,
     SseSerializer serializer,
   );
 
@@ -3199,22 +3157,6 @@ class XelisWalletFlutterBridgeWire implements BaseWire {
       );
 
   void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    int ptr,
-  ) => wasmModule
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-        ptr,
-      );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    int ptr,
-  ) => wasmModule
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-        ptr,
-      );
-
-  void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDataElement(
     int ptr,
   ) => wasmModule
@@ -3389,16 +3331,6 @@ extension type XelisWalletFlutterBridgeWasmModule._(JSObject _)
 
   external void
   rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
     int ptr,
   );
 

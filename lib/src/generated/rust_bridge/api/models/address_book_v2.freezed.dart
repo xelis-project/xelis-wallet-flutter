@@ -26,16 +26,21 @@ $NativeAddressBookEntryCopyWith<NativeAddressBookEntry> get copyWith => _$Native
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.destinationLabel, destinationLabel) || other.destinationLabel == destinationLabel)&&(identical(other.note, note) || other.note == note)&&(identical(other.destination, destination) || other.destination == destination));
+  final _this = this as NativeAddressBookEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookEntry&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.destinationLabel, _this.destinationLabel) || other.destinationLabel == _this.destinationLabel)&&(identical(other.note, _this.note) || other.note == _this.note)&&(identical(other.destination, _this.destination) || other.destination == _this.destination));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,destinationLabel,note,destination);
+int get hashCode {
+  final _this = this as NativeAddressBookEntry;
+  return Object.hash(runtimeType,_this.id,_this.displayName,_this.destinationLabel,_this.note,_this.destination);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookEntry(id: $id, displayName: $displayName, destinationLabel: $destinationLabel, note: $note, destination: $destination)';
+  final _this = this as NativeAddressBookEntry;
+  return 'NativeAddressBookEntry(id: ${_this.id}, displayName: ${_this.displayName}, destinationLabel: ${_this.destinationLabel}, note: ${_this.note}, destination: ${_this.destination})';
 }
 
 
@@ -233,16 +238,18 @@ _$NativeAddressBookEntryCopyWith<_NativeAddressBookEntry> get copyWith => __$Nat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.destinationLabel, destinationLabel) || other.destinationLabel == destinationLabel)&&(identical(other.note, note) || other.note == note)&&(identical(other.destination, destination) || other.destination == destination));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.destinationLabel, destinationLabel) || other.destinationLabel == destinationLabel)&&(identical(other.note, note) || other.note == note)&&(identical(other.destination, destination) || other.destination == destination));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,destinationLabel,note,destination);
+int get hashCode {
+    return Object.hash(runtimeType,id,displayName,destinationLabel,note,destination);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookEntry(id: $id, displayName: $displayName, destinationLabel: $destinationLabel, note: $note, destination: $destination)';
+    return 'NativeAddressBookEntry(id: $id, displayName: $displayName, destinationLabel: $destinationLabel, note: $note, destination: $destination)';
 }
 
 
@@ -307,16 +314,21 @@ $NativeAddressBookMatchCopyWith<NativeAddressBookMatch> get copyWith => _$Native
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookMatch&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.entries, entries));
+  final _this = this as NativeAddressBookMatch;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookMatch&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&const DeepCollectionEquality().equals(other.entries, _this.entries));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,kind,const DeepCollectionEquality().hash(entries));
+int get hashCode {
+  final _this = this as NativeAddressBookMatch;
+  return Object.hash(runtimeType,_this.kind,const DeepCollectionEquality().hash(_this.entries));
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookMatch(kind: $kind, entries: $entries)';
+  final _this = this as NativeAddressBookMatch;
+  return 'NativeAddressBookMatch(kind: ${_this.kind}, entries: ${_this.entries})';
 }
 
 
@@ -505,16 +517,18 @@ _$NativeAddressBookMatchCopyWith<_NativeAddressBookMatch> get copyWith => __$Nat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookMatch&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other._entries, _entries));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookMatch&&(identical(other.kind, kind) || other.kind == kind)&&const DeepCollectionEquality().equals(other.entries, _entries));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,kind,const DeepCollectionEquality().hash(_entries));
+int get hashCode {
+    return Object.hash(runtimeType,kind,const DeepCollectionEquality().hash(_entries));
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookMatch(kind: $kind, entries: $entries)';
+    return 'NativeAddressBookMatch(kind: $kind, entries: $entries)';
 }
 
 
@@ -567,16 +581,21 @@ $NativeAddressBookMigrationResultCopyWith<NativeAddressBookMigrationResult> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookMigrationResult&&(identical(other.migratedEntries, migratedEntries) || other.migratedEntries == migratedEntries)&&(identical(other.alreadyComplete, alreadyComplete) || other.alreadyComplete == alreadyComplete));
+  final _this = this as NativeAddressBookMigrationResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookMigrationResult&&(identical(other.migratedEntries, _this.migratedEntries) || other.migratedEntries == _this.migratedEntries)&&(identical(other.alreadyComplete, _this.alreadyComplete) || other.alreadyComplete == _this.alreadyComplete));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,migratedEntries,alreadyComplete);
+int get hashCode {
+  final _this = this as NativeAddressBookMigrationResult;
+  return Object.hash(runtimeType,_this.migratedEntries,_this.alreadyComplete);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookMigrationResult(migratedEntries: $migratedEntries, alreadyComplete: $alreadyComplete)';
+  final _this = this as NativeAddressBookMigrationResult;
+  return 'NativeAddressBookMigrationResult(migratedEntries: ${_this.migratedEntries}, alreadyComplete: ${_this.alreadyComplete})';
 }
 
 
@@ -759,16 +778,18 @@ _$NativeAddressBookMigrationResultCopyWith<_NativeAddressBookMigrationResult> ge
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookMigrationResult&&(identical(other.migratedEntries, migratedEntries) || other.migratedEntries == migratedEntries)&&(identical(other.alreadyComplete, alreadyComplete) || other.alreadyComplete == alreadyComplete));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookMigrationResult&&(identical(other.migratedEntries, migratedEntries) || other.migratedEntries == migratedEntries)&&(identical(other.alreadyComplete, alreadyComplete) || other.alreadyComplete == alreadyComplete));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,migratedEntries,alreadyComplete);
+int get hashCode {
+    return Object.hash(runtimeType,migratedEntries,alreadyComplete);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookMigrationResult(migratedEntries: $migratedEntries, alreadyComplete: $alreadyComplete)';
+    return 'NativeAddressBookMigrationResult(migratedEntries: $migratedEntries, alreadyComplete: $alreadyComplete)';
 }
 
 
@@ -821,16 +842,21 @@ $NativeAddressBookPageCopyWith<NativeAddressBookPage> get copyWith => _$NativeAd
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookPage&&const DeepCollectionEquality().equals(other.entries, entries)&&(identical(other.total, total) || other.total == total)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
+  final _this = this as NativeAddressBookPage;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeAddressBookPage&&const DeepCollectionEquality().equals(other.entries, _this.entries)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.hasMore, _this.hasMore) || other.hasMore == _this.hasMore));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(entries),total,hasMore);
+int get hashCode {
+  final _this = this as NativeAddressBookPage;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.entries),_this.total,_this.hasMore);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookPage(entries: $entries, total: $total, hasMore: $hasMore)';
+  final _this = this as NativeAddressBookPage;
+  return 'NativeAddressBookPage(entries: ${_this.entries}, total: ${_this.total}, hasMore: ${_this.hasMore})';
 }
 
 
@@ -1021,16 +1047,18 @@ _$NativeAddressBookPageCopyWith<_NativeAddressBookPage> get copyWith => __$Nativ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookPage&&const DeepCollectionEquality().equals(other._entries, _entries)&&(identical(other.total, total) || other.total == total)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeAddressBookPage&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.total, total) || other.total == total)&&(identical(other.hasMore, hasMore) || other.hasMore == hasMore));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries),total,hasMore);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries),total,hasMore);
+}
 
 @override
 String toString() {
-  return 'NativeAddressBookPage(entries: $entries, total: $total, hasMore: $hasMore)';
+    return 'NativeAddressBookPage(entries: $entries, total: $total, hasMore: $hasMore)';
 }
 
 
@@ -1084,16 +1112,21 @@ $NativeSavedDestinationCopyWith<NativeSavedDestination> get copyWith => _$Native
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeSavedDestination&&(identical(other.address, address) || other.address == address)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.integratedDataKind, integratedDataKind) || other.integratedDataKind == integratedDataKind));
+  final _this = this as NativeSavedDestination;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeSavedDestination&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.baseAddress, _this.baseAddress) || other.baseAddress == _this.baseAddress)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.integratedDataKind, _this.integratedDataKind) || other.integratedDataKind == _this.integratedDataKind));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,address,baseAddress,kind,integratedDataKind);
+int get hashCode {
+  final _this = this as NativeSavedDestination;
+  return Object.hash(runtimeType,_this.address,_this.baseAddress,_this.kind,_this.integratedDataKind);
+}
 
 @override
 String toString() {
-  return 'NativeSavedDestination(address: $address, baseAddress: $baseAddress, kind: $kind, integratedDataKind: $integratedDataKind)';
+  final _this = this as NativeSavedDestination;
+  return 'NativeSavedDestination(address: ${_this.address}, baseAddress: ${_this.baseAddress}, kind: ${_this.kind}, integratedDataKind: ${_this.integratedDataKind})';
 }
 
 
@@ -1280,16 +1313,18 @@ _$NativeSavedDestinationCopyWith<_NativeSavedDestination> get copyWith => __$Nat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeSavedDestination&&(identical(other.address, address) || other.address == address)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.integratedDataKind, integratedDataKind) || other.integratedDataKind == integratedDataKind));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeSavedDestination&&(identical(other.address, address) || other.address == address)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.integratedDataKind, integratedDataKind) || other.integratedDataKind == integratedDataKind));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,address,baseAddress,kind,integratedDataKind);
+int get hashCode {
+    return Object.hash(runtimeType,address,baseAddress,kind,integratedDataKind);
+}
 
 @override
 String toString() {
-  return 'NativeSavedDestination(address: $address, baseAddress: $baseAddress, kind: $kind, integratedDataKind: $integratedDataKind)';
+    return 'NativeSavedDestination(address: $address, baseAddress: $baseAddress, kind: $kind, integratedDataKind: $integratedDataKind)';
 }
 
 

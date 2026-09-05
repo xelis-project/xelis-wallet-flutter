@@ -12,7 +12,7 @@ The runtime contract contains:
 | Event | Meaning | Consumer action |
 | --- | --- | --- |
 | `XelisWalletOnline` | The current native network handler is online | Complete the matching connection transition only |
-| `XelisWalletOffline` | The current native network handler is offline | Apply application-owned retry policy for the same generation |
+| `XelisWalletOffline` | The current native network handler is offline | Follow the reconnect owner selected for this connection |
 | `XelisWalletSyncIssue` | Upstream synchronization reported a non-terminal issue | Record safe support metadata; wait for `Offline` before reconnecting |
 | `XelisWalletTopoheightChanged` | A new wallet topoheight was observed | Update the matching runtime projection |
 | `XelisWalletRescanStarted` | A user action or DAG reorganization started a rescan | Mark the same generation as rescanning |
@@ -80,6 +80,17 @@ Creating the receiver after `setOffline()` prevents old queued `Offline`
 events from being relabeled as part of a new generation. Creating and listening
 before `setOnline()` ensures immediate `Online`, `SyncIssue`, or `Offline`
 events cannot be missed.
+
+Choose exactly one reconnect owner for each connection. With the default
+`applicationManaged` policy, an `Offline` event is the application's signal to
+schedule its own retry for the same wallet generation. With
+`upstreamManagedExperimental`, the native handler owns retries; the application
+must project `Offline` state but must not start a competing `setOnline()` loop.
+Changing owner requires the full connection-rotation sequence above.
+
+The configured timeout bounds only connection establishment. `setOffline()`
+and `close()` always await native handler shutdown, including an upstream retry
+that is already sleeping, so their completion is a reliable lifecycle barrier.
 
 Create `subscribeBusinessEvents()` once after opening the wallet, before normal
 session work begins. Do not rotate it on connect, reconnect, disconnect, or

@@ -21,7 +21,7 @@ mixin _$NativeWalletRuntimeEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent);
 }
 
 
@@ -30,7 +30,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent()';
+    return 'NativeWalletRuntimeEvent()';
 }
 
 
@@ -222,7 +222,7 @@ class NativeWalletRuntimeEvent_Online extends NativeWalletRuntimeEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Online);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Online);
 }
 
 
@@ -231,7 +231,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.online()';
+    return 'NativeWalletRuntimeEvent.online()';
 }
 
 
@@ -254,7 +254,7 @@ class NativeWalletRuntimeEvent_Offline extends NativeWalletRuntimeEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Offline);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Offline);
 }
 
 
@@ -263,7 +263,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.offline()';
+    return 'NativeWalletRuntimeEvent.offline()';
 }
 
 
@@ -291,16 +291,18 @@ $NativeWalletRuntimeEvent_SyncIssueCopyWith<NativeWalletRuntimeEvent_SyncIssue> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_SyncIssue&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_SyncIssue&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure);
+int get hashCode {
+    return Object.hash(runtimeType,failure);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.syncIssue(failure: $failure)';
+    return 'NativeWalletRuntimeEvent.syncIssue(failure: $failure)';
 }
 
 
@@ -357,16 +359,18 @@ $NativeWalletRuntimeEvent_NewTopoHeightCopyWith<NativeWalletRuntimeEvent_NewTopo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_NewTopoHeight&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_NewTopoHeight&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,topoheight);
+int get hashCode {
+    return Object.hash(runtimeType,topoheight);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.newTopoHeight(topoheight: $topoheight)';
+    return 'NativeWalletRuntimeEvent.newTopoHeight(topoheight: $topoheight)';
 }
 
 
@@ -423,16 +427,18 @@ $NativeWalletRuntimeEvent_RescanCopyWith<NativeWalletRuntimeEvent_Rescan> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Rescan&&(identical(other.startTopoheight, startTopoheight) || other.startTopoheight == startTopoheight));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Rescan&&(identical(other.startTopoheight, startTopoheight) || other.startTopoheight == startTopoheight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,startTopoheight);
+int get hashCode {
+    return Object.hash(runtimeType,startTopoheight);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.rescan(startTopoheight: $startTopoheight)';
+    return 'NativeWalletRuntimeEvent.rescan(startTopoheight: $startTopoheight)';
 }
 
 
@@ -489,16 +495,18 @@ $NativeWalletRuntimeEvent_HistorySyncedCopyWith<NativeWalletRuntimeEvent_History
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_HistorySynced&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_HistorySynced&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,topoheight);
+int get hashCode {
+    return Object.hash(runtimeType,topoheight);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.historySynced(topoheight: $topoheight)';
+    return 'NativeWalletRuntimeEvent.historySynced(topoheight: $topoheight)';
 }
 
 
@@ -556,16 +564,18 @@ $NativeWalletRuntimeEvent_DegradedCopyWith<NativeWalletRuntimeEvent_Degraded> ge
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Degraded&&(identical(other.skippedEvents, skippedEvents) || other.skippedEvents == skippedEvents)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Degraded&&(identical(other.skippedEvents, skippedEvents) || other.skippedEvents == skippedEvents)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,skippedEvents,failure);
+int get hashCode {
+    return Object.hash(runtimeType,skippedEvents,failure);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.degraded(skippedEvents: $skippedEvents, failure: $failure)';
+    return 'NativeWalletRuntimeEvent.degraded(skippedEvents: $skippedEvents, failure: $failure)';
 }
 
 
@@ -624,16 +634,18 @@ $NativeWalletRuntimeEvent_ClosedCopyWith<NativeWalletRuntimeEvent_Closed> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Closed&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletRuntimeEvent_Closed&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,reason,failure);
+int get hashCode {
+    return Object.hash(runtimeType,reason,failure);
+}
 
 @override
 String toString() {
-  return 'NativeWalletRuntimeEvent.closed(reason: $reason, failure: $failure)';
+    return 'NativeWalletRuntimeEvent.closed(reason: $reason, failure: $failure)';
 }
 
 

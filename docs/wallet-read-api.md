@@ -148,7 +148,9 @@ channel. `chunkId` follows the public XELIS transaction terminology.
 List reads use `XelisWalletExtraDataDisclosure.metadata` by default. They
 return the flag, presence, and top-level kind without the value. Detail reads by
 hash use `detailed` by default and return `payload` when the native plaintext
-contains data. A caller may override either default, but must
+contains data. Every read preserves an explicit `redacted`, `metadata`, or
+`detailed` choice through the native projection. A caller may override either
+default, but must
 request detailed disclosure only for an explicit transaction-detail or local
 diagnostic action.
 

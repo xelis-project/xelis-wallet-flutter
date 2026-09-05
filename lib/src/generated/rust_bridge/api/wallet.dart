@@ -22,7 +22,7 @@ import 'wallet/business_events.dart';
 import 'wallet/runtime_events.dart';
 import 'xswd/imp.dart';
 
-// These functions are ignored because they are not marked as `pub`: `cancel_current`, `cancel`, `complete`, `is_cancelled`, `new`, `wait_completed`
+// These functions are ignored because they are not marked as `pub`: `cancel_current`, `cancel`, `complete`, `is_cancelled`, `new`, `wait_completed`, `xswd_sessions`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveWalletConnection`, `PendingMultisigTransaction`, `WalletConnectionAttemptState`, `WalletConnectionAttempt`, `WalletConnectionAttempts`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `drop`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `get_wallet`
@@ -153,7 +153,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
   Future<void> close();
 
   @override
-  Future<void> closeApplicationSession({required String id});
+  Future<void> closeApplicationSession({required BigInt sessionRef});
 
   Future<String> convertTransactionsToCsv({required HistoryPageFilter filter});
 
@@ -261,11 +261,11 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   Future<NativeWalletPendingTransaction> getPendingTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<List<NativeWalletPendingTransaction>> getPendingTransactions({
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<String> getSeed({BigInt? languageIndex});
@@ -274,7 +274,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   Future<NativeWalletTransactionEntry> getTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<BigInt> getXelisBalance();
@@ -283,7 +283,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   Future<List<NativeWalletTransactionEntry>> history({
     required HistoryPageFilter filter,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<NativeMultisigSigningRequest> initDeleteMultisig({
@@ -339,7 +339,7 @@ abstract class XelisWallet implements RustOpaqueInterface, AddressBook, XSWD {
 
   @override
   Future<void> modifyApplicationPermissions({
-    required String id,
+    required BigInt sessionRef,
     required Map<String, PermissionPolicy> permissions,
   });
 

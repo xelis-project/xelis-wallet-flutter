@@ -303,11 +303,11 @@ pub(super) enum ExtraDataProjection {
 }
 
 impl ExtraDataProjection {
-    pub(super) fn explicit(include_payload: bool) -> Self {
-        if include_payload {
-            Self::Detailed
-        } else {
-            Self::Metadata
+    pub(super) fn from_disclosure(disclosure: NativeWalletExtraDataDisclosure) -> Self {
+        match disclosure {
+            NativeWalletExtraDataDisclosure::Redacted => Self::Redacted,
+            NativeWalletExtraDataDisclosure::Metadata => Self::Metadata,
+            NativeWalletExtraDataDisclosure::Detailed => Self::Detailed,
         }
     }
 }
@@ -548,11 +548,7 @@ impl XelisWallet {
             next_business_event_generation(&mut *generation)?
         };
 
-        let extra_data_projection = match extra_data_disclosure {
-            NativeWalletExtraDataDisclosure::Redacted => ExtraDataProjection::Redacted,
-            NativeWalletExtraDataDisclosure::Metadata => ExtraDataProjection::Metadata,
-            NativeWalletExtraDataDisclosure::Detailed => ExtraDataProjection::Detailed,
-        };
+        let extra_data_projection = ExtraDataProjection::from_disclosure(extra_data_disclosure);
         Ok(WalletBusinessEventSubscription::new_with_projection(
             generation,
             receiver,

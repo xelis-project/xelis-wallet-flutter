@@ -147,10 +147,11 @@ pub struct NativeWalletTransferOut {
 
 /// Package-owned projection of decrypted transaction extra data.
 ///
-/// [payload] and [payload_kind] are populated according to the explicit read
-/// disclosure. Passive business events always set them to `None`. [payload] is
-/// the lossless tagged representation. The upstream shared encryption key never
-/// crosses the bridge.
+/// [payload] and [payload_kind] are populated according to the read or
+/// business-event subscription disclosure. Redacted projection omits both,
+/// metadata adds only [payload_kind], and detailed projection may include both.
+/// [payload] is lossless and the upstream shared encryption key never crosses
+/// the bridge.
 #[derive(Clone, Debug)]
 pub struct NativeWalletExtraData {
     pub flag: NativeWalletExtraDataFlag,

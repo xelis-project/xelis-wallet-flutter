@@ -6,6 +6,8 @@ import 'package:xelis_wallet_flutter/src/bridge/adapters/xelis_wallet_business_e
 import 'package:xelis_wallet_flutter/src/bridge/adapters/xelis_wallet_adapter.dart';
 import 'package:xelis_wallet_flutter/src/generated/rust_bridge/api/error.dart'
     as generated_error;
+import 'package:xelis_wallet_flutter/src/generated/rust_bridge/api/models/address_dtos.dart'
+    as generated_address;
 import 'package:xelis_wallet_flutter/src/generated/rust_bridge/api/models/business_event_dtos.dart'
     as generated_event;
 import 'package:xelis_wallet_flutter/src/generated/rust_bridge/api/models/wallet_dtos.dart'
@@ -194,7 +196,7 @@ void main() {
             ],
           ),
         ),
-        includePayload: true,
+        extraDataDisclosure: XelisWalletExtraDataDisclosure.metadata,
       );
 
       final mapped = (transaction.entry as XelisWalletIncomingEntry)
@@ -506,6 +508,99 @@ void main() {
     );
     await subscription.cancel();
   });
+
+  test(
+    'business subscription applies disclosure to confirmed and pending events',
+    () async {
+      final payload = const XelisDataElement.value(
+        XelisDataValue.string('sensitive application payload'),
+      );
+      final nativePayload = const generated_event.NativeWalletExtraData(
+        flag: generated_event.NativeWalletExtraDataFlag.private,
+        hasPayload: true,
+        payload: generated_address.NativeXelisDataElement.value(
+          value: generated_address.NativeXelisDataValue.stringValue(
+            value: 'sensitive application payload',
+          ),
+        ),
+        payloadKind: generated_event.NativeWalletExtraDataPayloadKind.string,
+      );
+      final transactionData =
+          generated_event.NativeWalletTransactionEntryData.incoming(
+            from: 'xel:source',
+            transfers: [
+              generated_event.NativeWalletTransferIn(
+                asset: 'asset',
+                amount: BigInt.one,
+                extraData: nativePayload,
+              ),
+            ],
+          );
+      final nativeEvents = <generated_event.NativeWalletBusinessEvent>[
+        generated_event.NativeWalletBusinessEvent.newTransaction(
+          transaction: generated_event.NativeWalletTransactionEntry(
+            hash: 'confirmed-hash',
+            topoheight: BigInt.one,
+            timestampMillis: BigInt.two,
+            entry: transactionData,
+          ),
+        ),
+        generated_event.NativeWalletBusinessEvent.newPendingTransaction(
+          transaction: generated_event.NativeWalletPendingTransaction(
+            hash: 'pending-hash',
+            timestampMillis: BigInt.two,
+            entry: transactionData,
+          ),
+        ),
+      ];
+      final cases = [
+        (XelisWalletExtraDataDisclosure.redacted, null, null),
+        (
+          XelisWalletExtraDataDisclosure.metadata,
+          null,
+          XelisWalletExtraDataPayloadKind.string,
+        ),
+        (
+          XelisWalletExtraDataDisclosure.detailed,
+          payload,
+          XelisWalletExtraDataPayloadKind.string,
+        ),
+      ];
+
+      for (final (disclosure, expectedPayload, expectedKind) in cases) {
+        for (final nativeEvent in nativeEvents) {
+          final delegate = _FakeGeneratedBusinessSubscription();
+          final subscription = NativeXelisWalletBusinessEventSubscription(
+            delegate,
+            extraDataDisclosure: disclosure,
+          );
+          final received = Completer<XelisWalletBusinessEventFrame>();
+          final listener = subscription.events.listen(received.complete);
+          await pumpEventQueue();
+
+          delegate.emit(_frame(event: nativeEvent));
+
+          final event = (await received.future).event;
+          final transactionEntry = switch (event) {
+            XelisWalletNewTransaction(:final transaction) => transaction.entry,
+            XelisWalletNewPendingTransaction(:final transaction) =>
+              transaction.entry,
+            _ => throw StateError('Expected a transaction business event'),
+          };
+          final extraData = (transactionEntry as XelisWalletIncomingEntry)
+              .transfers
+              .single
+              .extraData!;
+          expect(extraData.hasPayload, isTrue);
+          expect(extraData.payload, expectedPayload);
+          expect(extraData.payloadKind, expectedKind);
+
+          await subscription.cancel();
+          await listener.cancel();
+        }
+      }
+    },
+  );
 }
 
 generated_error.NativeXelisError _nativeFailure({

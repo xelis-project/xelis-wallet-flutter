@@ -2,12 +2,12 @@ use flutter_rust_bridge::frb;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 
 use self::multisig::PendingMultisigStore;
 use super::error::NativeXelisError;
 use super::models::wallet_dtos::NativeMultisigSigningTransaction;
 use super::precomputed_tables::PrecomputedTableType;
+use super::xswd::XswdSessionRegistry;
 use anyhow::Result;
 use futures::lock::Mutex as AsyncMutex;
 use parking_lot::{Mutex, RwLock};
@@ -101,7 +101,6 @@ struct WalletConnectionAttempts {
 #[frb(ignore)]
 struct ActiveWalletConnection {
     api: Arc<DaemonAPI>,
-    timeout: Duration,
 }
 
 impl WalletConnectionAttempts {
@@ -131,6 +130,7 @@ pub struct XelisWallet {
     prepared_transaction:
         RwLock<transactions::PreparedTransactionStore<transactions::PreparedWalletTransaction>>,
     pending_multisig: RwLock<PendingMultisigStore<PendingMultisigTransaction>>,
+    xswd_sessions: Arc<TokioMutex<XswdSessionRegistry>>,
 }
 
 impl Drop for XelisWallet {
@@ -229,6 +229,26 @@ pub async fn open_xelis_wallet(
 }
 
 impl XelisWallet {
+    #[cfg(test)]
+    pub(crate) fn from_test_wallet(wallet: Arc<Wallet>) -> Self {
+        Self {
+            wallet,
+            connection_attempts: Arc::new(WalletConnectionAttempts::default()),
+            active_connection: Default::default(),
+            runtime_event_generation: Default::default(),
+            business_event_generation: Default::default(),
+            asset_resolution: Default::default(),
+            prepared_transaction: Default::default(),
+            pending_multisig: Default::default(),
+            xswd_sessions: Default::default(),
+        }
+    }
+
+    #[frb(ignore)]
+    pub(crate) fn xswd_sessions(&self) -> &Arc<TokioMutex<XswdSessionRegistry>> {
+        &self.xswd_sessions
+    }
+
     #[frb(ignore)]
     pub fn get_wallet(&self) -> &Arc<Wallet> {
         &self.wallet

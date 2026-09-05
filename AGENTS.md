@@ -144,9 +144,10 @@ The root library must export authored contracts only. Do not add public
   base address. Treat exact, base-only, ambiguous, and absent matches as
   distinct exhaustive states. Keep legacy migration non-destructive and mark
   v2 complete only after every entry is durable.
-- Keep history and pending lists on metadata-only extra-data disclosure. Fetch
-  a typed payload by transaction hash only after an explicit detail/reveal
-  action, and never expose detailed payloads through passive events.
+- Keep metadata as the default for history and pending lists. Preserve a
+  consumer's explicit redacted, metadata, or detailed disclosure through every
+  read and business subscription; detailed payloads require an explicit
+  detail, reveal, or diagnostic action.
 - Pass a parsed `XelisAddressDescriptor` to history filters. Preserve standard
   counterparty semantics, but filter an integrated destination by exact base
   key plus canonical `DataElement` before pagination. For incoming history the
@@ -198,6 +199,15 @@ run `dart analyze` and `flutter test`; the root suite includes a real host smoke
 that loads and calls the Rust library. Use `tool/consumer_smoke.dart` for
 release or manual consumer validation. It must generate outside the repository,
 delete only its owned temporary directory, and keep `run` limited to desktop
-targets. Validate every supported native platform on an appropriate host;
-Android release artifacts must retain 16 KB ELF and ZIP alignment. Run the
+targets plus the explicit headless Chrome Web consumer. The Web run must build
+the resolved package's Rust/WASM bundle, build the release consumer, and execute
+the initialization, integrated-address, and exact-integer smoke. It does not
+replace an XSWD relay-to-review-to-decision end-to-end test. Validate every
+supported native platform on an appropriate host;
+Android release artifacts must retain 16 KB ZIP alignment and 16 KB ELF
+alignment for every supported 64-bit ABI (ARM64 and x86_64). ARMv7 remains a
+4 KB runtime target; do not misclassify its ELF alignment as a 64-bit failure.
+Validate the alignment checker against malformed or unreadable ELF output as
+well as aligned and unaligned libraries. Alignment does not replace execution
+on a 16 KB Android environment. Run the
 separate Web build during release or explicit manual validation.

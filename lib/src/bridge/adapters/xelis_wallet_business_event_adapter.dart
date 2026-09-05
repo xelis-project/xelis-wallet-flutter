@@ -24,6 +24,7 @@ final class NativeXelisWalletBusinessEventSubscription
     implements XelisWalletBusinessEventSubscription {
   NativeXelisWalletBusinessEventSubscription(
     this._delegate, {
+    this._extraDataDisclosure = XelisWalletExtraDataDisclosure.redacted,
     NativeBusinessSubscriptionTerminated? onTerminated,
   }) : _onTerminated = onTerminated {
     generation = guardXelisCall(
@@ -53,6 +54,7 @@ final class NativeXelisWalletBusinessEventSubscription
   );
 
   final generated_subscription.WalletBusinessEventSubscription _delegate;
+  final XelisWalletExtraDataDisclosure _extraDataDisclosure;
   final NativeBusinessSubscriptionTerminated? _onTerminated;
   late final StreamController<XelisWalletBusinessEventFrame> _controller;
 
@@ -156,6 +158,7 @@ final class NativeXelisWalletBusinessEventSubscription
           nativeFrame,
           expectedGeneration: generation,
           expectedSequence: _expectedSequence,
+          extraDataDisclosure: _extraDataDisclosure,
         );
         _expectedSequence += BigInt.one;
         _controller.add(frame);
@@ -226,6 +229,8 @@ XelisWalletBusinessEventFrame adaptBusinessEventFrame(
   generated_event.NativeWalletBusinessEventFrame frame, {
   required BigInt expectedGeneration,
   required BigInt expectedSequence,
+  XelisWalletExtraDataDisclosure extraDataDisclosure =
+      XelisWalletExtraDataDisclosure.redacted,
 }) {
   if (frame.version != XelisWalletBusinessEventContract.currentVersion) {
     throw xelisBridgeContractException(
@@ -258,12 +263,13 @@ XelisWalletBusinessEventFrame adaptBusinessEventFrame(
     contractVersion: frame.version,
     generation: frame.generation,
     sequence: frame.sequence,
-    event: _adaptBusinessEvent(frame.event),
+    event: _adaptBusinessEvent(frame.event, extraDataDisclosure),
   );
 }
 
 XelisWalletBusinessEvent _adaptBusinessEvent(
   generated_event.NativeWalletBusinessEvent event,
+  XelisWalletExtraDataDisclosure extraDataDisclosure,
 ) => switch (event) {
   generated_event.NativeWalletBusinessEvent_NewTransaction(
     :final transaction,
@@ -271,7 +277,7 @@ XelisWalletBusinessEvent _adaptBusinessEvent(
     XelisWalletNewTransaction(
       transaction: xelisWalletTransactionFromGenerated(
         transaction,
-        includePayload: false,
+        extraDataDisclosure: extraDataDisclosure,
       ),
     ),
   generated_event.NativeWalletBusinessEvent_NewPendingTransaction(
@@ -280,7 +286,7 @@ XelisWalletBusinessEvent _adaptBusinessEvent(
     XelisWalletNewPendingTransaction(
       transaction: xelisWalletPendingTransactionFromGenerated(
         transaction,
-        includePayload: false,
+        extraDataDisclosure: extraDataDisclosure,
       ),
     ),
   generated_event.NativeWalletBusinessEvent_BalanceChanged(
@@ -319,26 +325,28 @@ XelisWalletBusinessEvent _adaptBusinessEvent(
 
 XelisWalletTransactionEntry xelisWalletTransactionFromGenerated(
   generated_event.NativeWalletTransactionEntry value, {
-  required bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure =
+      XelisWalletExtraDataDisclosure.redacted,
 }) => XelisWalletTransactionEntry(
   hash: value.hash,
   topoheight: value.topoheight,
   timestampMillis: value.timestampMillis,
-  entry: _adaptTransactionEntry(value.entry, includePayload),
+  entry: _adaptTransactionEntry(value.entry, extraDataDisclosure),
 );
 
 XelisWalletPendingTransaction xelisWalletPendingTransactionFromGenerated(
   generated_event.NativeWalletPendingTransaction value, {
-  required bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure =
+      XelisWalletExtraDataDisclosure.redacted,
 }) => XelisWalletPendingTransaction(
   hash: value.hash,
   timestampMillis: value.timestampMillis,
-  entry: _adaptTransactionEntry(value.entry, includePayload),
+  entry: _adaptTransactionEntry(value.entry, extraDataDisclosure),
 );
 
 XelisWalletTransactionEntryData _adaptTransactionEntry(
   generated_event.NativeWalletTransactionEntryData value,
-  bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure,
 ) => switch (value) {
   generated_event.NativeWalletTransactionEntryData_Coinbase(:final reward) =>
     XelisWalletCoinbaseEntry(reward: reward),
@@ -356,7 +364,7 @@ XelisWalletTransactionEntryData _adaptTransactionEntry(
     XelisWalletIncomingEntry(
       from: from,
       transfers: transfers
-          .map((value) => _adaptTransferIn(value, includePayload))
+          .map((value) => _adaptTransferIn(value, extraDataDisclosure))
           .toList(growable: false),
     ),
   generated_event.NativeWalletTransactionEntryData_Outgoing(
@@ -366,7 +374,7 @@ XelisWalletTransactionEntryData _adaptTransactionEntry(
   ) =>
     XelisWalletOutgoingEntry(
       transfers: transfers
-          .map((value) => _adaptTransferOut(value, includePayload))
+          .map((value) => _adaptTransferOut(value, extraDataDisclosure))
           .toList(growable: false),
       fee: fee,
       nonce: nonce,
@@ -431,7 +439,7 @@ XelisWalletTransactionEntryData _adaptTransactionEntry(
       destinations: destinations,
       fee: fee,
       nonce: nonce,
-      data: _adaptExtraData(data, includePayload),
+      data: _adaptExtraData(data, extraDataDisclosure),
     ),
   generated_event.NativeWalletTransactionEntryData_IncomingBlob(
     :final from,
@@ -441,36 +449,36 @@ XelisWalletTransactionEntryData _adaptTransactionEntry(
     XelisWalletIncomingBlobEntry(
       from: from,
       destinations: destinations,
-      data: _adaptExtraData(data, includePayload),
+      data: _adaptExtraData(data, extraDataDisclosure),
     ),
 };
 
 XelisWalletTransferIn _adaptTransferIn(
   generated_event.NativeWalletTransferIn value,
-  bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure,
 ) => XelisWalletTransferIn(
   asset: value.asset,
   amount: value.amount,
   extraData: value.extraData == null
       ? null
-      : _adaptExtraData(value.extraData!, includePayload),
+      : _adaptExtraData(value.extraData!, extraDataDisclosure),
 );
 
 XelisWalletTransferOut _adaptTransferOut(
   generated_event.NativeWalletTransferOut value,
-  bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure,
 ) => XelisWalletTransferOut(
   destination: value.destination,
   asset: value.asset,
   amount: value.amount,
   extraData: value.extraData == null
       ? null
-      : _adaptExtraData(value.extraData!, includePayload),
+      : _adaptExtraData(value.extraData!, extraDataDisclosure),
 );
 
 XelisWalletExtraData _adaptExtraData(
   generated_event.NativeWalletExtraData value,
-  bool includePayload,
+  XelisWalletExtraDataDisclosure extraDataDisclosure,
 ) => XelisWalletExtraData(
   flag: switch (value.flag) {
     generated_event.NativeWalletExtraDataFlag.private =>
@@ -483,10 +491,12 @@ XelisWalletExtraData _adaptExtraData(
       XelisWalletExtraDataFlag.failed,
   },
   hasPayload: value.hasPayload,
-  payload: includePayload && value.payload != null
+  payload:
+      extraDataDisclosure == XelisWalletExtraDataDisclosure.detailed &&
+          value.payload != null
       ? xelisDataElementFromGenerated(value.payload!)
       : null,
-  payloadKind: includePayload
+  payloadKind: extraDataDisclosure != XelisWalletExtraDataDisclosure.redacted
       ? switch (value.payloadKind) {
           null => null,
           generated_event.NativeWalletExtraDataPayloadKind.boolValue =>

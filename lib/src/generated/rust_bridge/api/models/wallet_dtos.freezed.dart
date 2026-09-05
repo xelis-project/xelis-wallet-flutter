@@ -26,16 +26,21 @@ $HistoryPageFilterCopyWith<HistoryPageFilter> get copyWith => _$HistoryPageFilte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HistoryPageFilter&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.address, address) || other.address == address)&&(identical(other.minTopoheight, minTopoheight) || other.minTopoheight == minTopoheight)&&(identical(other.maxTopoheight, maxTopoheight) || other.maxTopoheight == maxTopoheight)&&(identical(other.acceptIncoming, acceptIncoming) || other.acceptIncoming == acceptIncoming)&&(identical(other.acceptOutgoing, acceptOutgoing) || other.acceptOutgoing == acceptOutgoing)&&(identical(other.acceptCoinbase, acceptCoinbase) || other.acceptCoinbase == acceptCoinbase)&&(identical(other.acceptBurn, acceptBurn) || other.acceptBurn == acceptBurn)&&(identical(other.acceptBlob, acceptBlob) || other.acceptBlob == acceptBlob)&&(identical(other.minTimestamp, minTimestamp) || other.minTimestamp == minTimestamp)&&(identical(other.maxTimestamp, maxTimestamp) || other.maxTimestamp == maxTimestamp));
+  final _this = this as HistoryPageFilter;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HistoryPageFilter&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.assetHash, _this.assetHash) || other.assetHash == _this.assetHash)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.minTopoheight, _this.minTopoheight) || other.minTopoheight == _this.minTopoheight)&&(identical(other.maxTopoheight, _this.maxTopoheight) || other.maxTopoheight == _this.maxTopoheight)&&(identical(other.acceptIncoming, _this.acceptIncoming) || other.acceptIncoming == _this.acceptIncoming)&&(identical(other.acceptOutgoing, _this.acceptOutgoing) || other.acceptOutgoing == _this.acceptOutgoing)&&(identical(other.acceptCoinbase, _this.acceptCoinbase) || other.acceptCoinbase == _this.acceptCoinbase)&&(identical(other.acceptBurn, _this.acceptBurn) || other.acceptBurn == _this.acceptBurn)&&(identical(other.acceptBlob, _this.acceptBlob) || other.acceptBlob == _this.acceptBlob)&&(identical(other.minTimestamp, _this.minTimestamp) || other.minTimestamp == _this.minTimestamp)&&(identical(other.maxTimestamp, _this.maxTimestamp) || other.maxTimestamp == _this.maxTimestamp));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,page,limit,assetHash,address,minTopoheight,maxTopoheight,acceptIncoming,acceptOutgoing,acceptCoinbase,acceptBurn,acceptBlob,minTimestamp,maxTimestamp);
+int get hashCode {
+  final _this = this as HistoryPageFilter;
+  return Object.hash(runtimeType,_this.page,_this.limit,_this.assetHash,_this.address,_this.minTopoheight,_this.maxTopoheight,_this.acceptIncoming,_this.acceptOutgoing,_this.acceptCoinbase,_this.acceptBurn,_this.acceptBlob,_this.minTimestamp,_this.maxTimestamp);
+}
 
 @override
 String toString() {
-  return 'HistoryPageFilter(page: $page, limit: $limit, assetHash: $assetHash, address: $address, minTopoheight: $minTopoheight, maxTopoheight: $maxTopoheight, acceptIncoming: $acceptIncoming, acceptOutgoing: $acceptOutgoing, acceptCoinbase: $acceptCoinbase, acceptBurn: $acceptBurn, acceptBlob: $acceptBlob, minTimestamp: $minTimestamp, maxTimestamp: $maxTimestamp)';
+  final _this = this as HistoryPageFilter;
+  return 'HistoryPageFilter(page: ${_this.page}, limit: ${_this.limit}, assetHash: ${_this.assetHash}, address: ${_this.address}, minTopoheight: ${_this.minTopoheight}, maxTopoheight: ${_this.maxTopoheight}, acceptIncoming: ${_this.acceptIncoming}, acceptOutgoing: ${_this.acceptOutgoing}, acceptCoinbase: ${_this.acceptCoinbase}, acceptBurn: ${_this.acceptBurn}, acceptBlob: ${_this.acceptBlob}, minTimestamp: ${_this.minTimestamp}, maxTimestamp: ${_this.maxTimestamp})';
 }
 
 
@@ -240,16 +245,18 @@ _$HistoryPageFilterCopyWith<_HistoryPageFilter> get copyWith => __$HistoryPageFi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HistoryPageFilter&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.address, address) || other.address == address)&&(identical(other.minTopoheight, minTopoheight) || other.minTopoheight == minTopoheight)&&(identical(other.maxTopoheight, maxTopoheight) || other.maxTopoheight == maxTopoheight)&&(identical(other.acceptIncoming, acceptIncoming) || other.acceptIncoming == acceptIncoming)&&(identical(other.acceptOutgoing, acceptOutgoing) || other.acceptOutgoing == acceptOutgoing)&&(identical(other.acceptCoinbase, acceptCoinbase) || other.acceptCoinbase == acceptCoinbase)&&(identical(other.acceptBurn, acceptBurn) || other.acceptBurn == acceptBurn)&&(identical(other.acceptBlob, acceptBlob) || other.acceptBlob == acceptBlob)&&(identical(other.minTimestamp, minTimestamp) || other.minTimestamp == minTimestamp)&&(identical(other.maxTimestamp, maxTimestamp) || other.maxTimestamp == maxTimestamp));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HistoryPageFilter&&(identical(other.page, page) || other.page == page)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.address, address) || other.address == address)&&(identical(other.minTopoheight, minTopoheight) || other.minTopoheight == minTopoheight)&&(identical(other.maxTopoheight, maxTopoheight) || other.maxTopoheight == maxTopoheight)&&(identical(other.acceptIncoming, acceptIncoming) || other.acceptIncoming == acceptIncoming)&&(identical(other.acceptOutgoing, acceptOutgoing) || other.acceptOutgoing == acceptOutgoing)&&(identical(other.acceptCoinbase, acceptCoinbase) || other.acceptCoinbase == acceptCoinbase)&&(identical(other.acceptBurn, acceptBurn) || other.acceptBurn == acceptBurn)&&(identical(other.acceptBlob, acceptBlob) || other.acceptBlob == acceptBlob)&&(identical(other.minTimestamp, minTimestamp) || other.minTimestamp == minTimestamp)&&(identical(other.maxTimestamp, maxTimestamp) || other.maxTimestamp == maxTimestamp));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,page,limit,assetHash,address,minTopoheight,maxTopoheight,acceptIncoming,acceptOutgoing,acceptCoinbase,acceptBurn,acceptBlob,minTimestamp,maxTimestamp);
+int get hashCode {
+    return Object.hash(runtimeType,page,limit,assetHash,address,minTopoheight,maxTopoheight,acceptIncoming,acceptOutgoing,acceptCoinbase,acceptBurn,acceptBlob,minTimestamp,maxTimestamp);
+}
 
 @override
 String toString() {
-  return 'HistoryPageFilter(page: $page, limit: $limit, assetHash: $assetHash, address: $address, minTopoheight: $minTopoheight, maxTopoheight: $maxTopoheight, acceptIncoming: $acceptIncoming, acceptOutgoing: $acceptOutgoing, acceptCoinbase: $acceptCoinbase, acceptBurn: $acceptBurn, acceptBlob: $acceptBlob, minTimestamp: $minTimestamp, maxTimestamp: $maxTimestamp)';
+    return 'HistoryPageFilter(page: $page, limit: $limit, assetHash: $assetHash, address: $address, minTopoheight: $minTopoheight, maxTopoheight: $maxTopoheight, acceptIncoming: $acceptIncoming, acceptOutgoing: $acceptOutgoing, acceptCoinbase: $acceptCoinbase, acceptBurn: $acceptBurn, acceptBlob: $acceptBlob, minTimestamp: $minTimestamp, maxTimestamp: $maxTimestamp)';
 }
 
 
@@ -313,16 +320,21 @@ $NativeMultisigParticipantCopyWith<NativeMultisigParticipant> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigParticipant&&(identical(other.id, id) || other.id == id)&&(identical(other.address, address) || other.address == address));
+  final _this = this as NativeMultisigParticipant;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigParticipant&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.address, _this.address) || other.address == _this.address));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,address);
+int get hashCode {
+  final _this = this as NativeMultisigParticipant;
+  return Object.hash(runtimeType,_this.id,_this.address);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigParticipant(id: $id, address: $address)';
+  final _this = this as NativeMultisigParticipant;
+  return 'NativeMultisigParticipant(id: ${_this.id}, address: ${_this.address})';
 }
 
 
@@ -505,16 +517,18 @@ _$NativeMultisigParticipantCopyWith<_NativeMultisigParticipant> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigParticipant&&(identical(other.id, id) || other.id == id)&&(identical(other.address, address) || other.address == address));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigParticipant&&(identical(other.id, id) || other.id == id)&&(identical(other.address, address) || other.address == address));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,address);
+int get hashCode {
+    return Object.hash(runtimeType,id,address);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigParticipant(id: $id, address: $address)';
+    return 'NativeMultisigParticipant(id: $id, address: $address)';
 }
 
 
@@ -567,16 +581,21 @@ $NativeMultisigSignatureShareCopyWith<NativeMultisigSignatureShare> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSignatureShare&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.signature, signature) || other.signature == signature));
+  final _this = this as NativeMultisigSignatureShare;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSignatureShare&&(identical(other.encoded, _this.encoded) || other.encoded == _this.encoded)&&(identical(other.signingHash, _this.signingHash) || other.signingHash == _this.signingHash)&&(identical(other.signerId, _this.signerId) || other.signerId == _this.signerId)&&(identical(other.signature, _this.signature) || other.signature == _this.signature));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,encoded,signingHash,signerId,signature);
+int get hashCode {
+  final _this = this as NativeMultisigSignatureShare;
+  return Object.hash(runtimeType,_this.encoded,_this.signingHash,_this.signerId,_this.signature);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSignatureShare(encoded: $encoded, signingHash: $signingHash, signerId: $signerId, signature: $signature)';
+  final _this = this as NativeMultisigSignatureShare;
+  return 'NativeMultisigSignatureShare(encoded: ${_this.encoded}, signingHash: ${_this.signingHash}, signerId: ${_this.signerId}, signature: ${_this.signature})';
 }
 
 
@@ -763,16 +782,18 @@ _$NativeMultisigSignatureShareCopyWith<_NativeMultisigSignatureShare> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSignatureShare&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.signature, signature) || other.signature == signature));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSignatureShare&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.signature, signature) || other.signature == signature));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,encoded,signingHash,signerId,signature);
+int get hashCode {
+    return Object.hash(runtimeType,encoded,signingHash,signerId,signature);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSignatureShare(encoded: $encoded, signingHash: $signingHash, signerId: $signerId, signature: $signature)';
+    return 'NativeMultisigSignatureShare(encoded: $encoded, signingHash: $signingHash, signerId: $signerId, signature: $signature)';
 }
 
 
@@ -827,16 +848,21 @@ $NativeMultisigSigningRequestCopyWith<NativeMultisigSigningRequest> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningRequest&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.source, source) || other.source == source)&&(identical(other.network, network) || other.network == network)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.feeLimit, feeLimit) || other.feeLimit == feeLimit)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.referenceTopoheight, referenceTopoheight) || other.referenceTopoheight == referenceTopoheight)&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.transaction, transaction) || other.transaction == transaction));
+  final _this = this as NativeMultisigSigningRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningRequest&&(identical(other.requestId, _this.requestId) || other.requestId == _this.requestId)&&(identical(other.encoded, _this.encoded) || other.encoded == _this.encoded)&&(identical(other.signingHash, _this.signingHash) || other.signingHash == _this.signingHash)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.network, _this.network) || other.network == _this.network)&&(identical(other.fee, _this.fee) || other.fee == _this.fee)&&(identical(other.feeLimit, _this.feeLimit) || other.feeLimit == _this.feeLimit)&&(identical(other.nonce, _this.nonce) || other.nonce == _this.nonce)&&(identical(other.referenceTopoheight, _this.referenceTopoheight) || other.referenceTopoheight == _this.referenceTopoheight)&&(identical(other.threshold, _this.threshold) || other.threshold == _this.threshold)&&const DeepCollectionEquality().equals(other.participants, _this.participants)&&(identical(other.signerId, _this.signerId) || other.signerId == _this.signerId)&&(identical(other.transaction, _this.transaction) || other.transaction == _this.transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,requestId,encoded,signingHash,source,network,fee,feeLimit,nonce,referenceTopoheight,threshold,const DeepCollectionEquality().hash(participants),signerId,transaction);
+int get hashCode {
+  final _this = this as NativeMultisigSigningRequest;
+  return Object.hash(runtimeType,_this.requestId,_this.encoded,_this.signingHash,_this.source,_this.network,_this.fee,_this.feeLimit,_this.nonce,_this.referenceTopoheight,_this.threshold,const DeepCollectionEquality().hash(_this.participants),_this.signerId,_this.transaction);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningRequest(requestId: $requestId, encoded: $encoded, signingHash: $signingHash, source: $source, network: $network, fee: $fee, feeLimit: $feeLimit, nonce: $nonce, referenceTopoheight: $referenceTopoheight, threshold: $threshold, participants: $participants, signerId: $signerId, transaction: $transaction)';
+  final _this = this as NativeMultisigSigningRequest;
+  return 'NativeMultisigSigningRequest(requestId: ${_this.requestId}, encoded: ${_this.encoded}, signingHash: ${_this.signingHash}, source: ${_this.source}, network: ${_this.network}, fee: ${_this.fee}, feeLimit: ${_this.feeLimit}, nonce: ${_this.nonce}, referenceTopoheight: ${_this.referenceTopoheight}, threshold: ${_this.threshold}, participants: ${_this.participants}, signerId: ${_this.signerId}, transaction: ${_this.transaction})';
 }
 
 
@@ -1056,16 +1082,18 @@ _$NativeMultisigSigningRequestCopyWith<_NativeMultisigSigningRequest> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSigningRequest&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.source, source) || other.source == source)&&(identical(other.network, network) || other.network == network)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.feeLimit, feeLimit) || other.feeLimit == feeLimit)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.referenceTopoheight, referenceTopoheight) || other.referenceTopoheight == referenceTopoheight)&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.transaction, transaction) || other.transaction == transaction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSigningRequest&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.encoded, encoded) || other.encoded == encoded)&&(identical(other.signingHash, signingHash) || other.signingHash == signingHash)&&(identical(other.source, source) || other.source == source)&&(identical(other.network, network) || other.network == network)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.feeLimit, feeLimit) || other.feeLimit == feeLimit)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.referenceTopoheight, referenceTopoheight) || other.referenceTopoheight == referenceTopoheight)&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other.participants, _participants)&&(identical(other.signerId, signerId) || other.signerId == signerId)&&(identical(other.transaction, transaction) || other.transaction == transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,requestId,encoded,signingHash,source,network,fee,feeLimit,nonce,referenceTopoheight,threshold,const DeepCollectionEquality().hash(_participants),signerId,transaction);
+int get hashCode {
+    return Object.hash(runtimeType,requestId,encoded,signingHash,source,network,fee,feeLimit,nonce,referenceTopoheight,threshold,const DeepCollectionEquality().hash(_participants),signerId,transaction);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningRequest(requestId: $requestId, encoded: $encoded, signingHash: $signingHash, source: $source, network: $network, fee: $fee, feeLimit: $feeLimit, nonce: $nonce, referenceTopoheight: $referenceTopoheight, threshold: $threshold, participants: $participants, signerId: $signerId, transaction: $transaction)';
+    return 'NativeMultisigSigningRequest(requestId: $requestId, encoded: $encoded, signingHash: $signingHash, source: $source, network: $network, fee: $fee, feeLimit: $feeLimit, nonce: $nonce, referenceTopoheight: $referenceTopoheight, threshold: $threshold, participants: $participants, signerId: $signerId, transaction: $transaction)';
 }
 
 
@@ -1133,7 +1161,7 @@ mixin _$NativeMultisigSigningTransaction {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction);
 }
 
 
@@ -1142,7 +1170,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransaction()';
+    return 'NativeMultisigSigningTransaction()';
 }
 
 
@@ -1315,16 +1343,18 @@ $NativeMultisigSigningTransaction_TransfersCopyWith<NativeMultisigSigningTransac
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_Transfers&&const DeepCollectionEquality().equals(other._transfers, _transfers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_Transfers&&const DeepCollectionEquality().equals(other.transfers, _transfers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransaction.transfers(transfers: $transfers)';
+    return 'NativeMultisigSigningTransaction.transfers(transfers: $transfers)';
 }
 
 
@@ -1382,16 +1412,18 @@ $NativeMultisigSigningTransaction_BurnCopyWith<NativeMultisigSigningTransaction_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset,amount);
+int get hashCode {
+    return Object.hash(runtimeType,asset,amount);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransaction.burn(asset: $asset, amount: $amount)';
+    return 'NativeMultisigSigningTransaction.burn(asset: $asset, amount: $amount)';
 }
 
 
@@ -1444,7 +1476,7 @@ class NativeMultisigSigningTransaction_DeleteMultisig extends NativeMultisigSign
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_DeleteMultisig);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransaction_DeleteMultisig);
 }
 
 
@@ -1453,7 +1485,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransaction.deleteMultisig()';
+    return 'NativeMultisigSigningTransaction.deleteMultisig()';
 }
 
 
@@ -1476,16 +1508,21 @@ $NativeMultisigSigningTransferCopyWith<NativeMultisigSigningTransfer> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData));
+  final _this = this as NativeMultisigSigningTransfer;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigSigningTransfer&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.asset, _this.asset) || other.asset == _this.asset)&&(identical(other.destination, _this.destination) || other.destination == _this.destination)&&(identical(other.hasExtraData, _this.hasExtraData) || other.hasExtraData == _this.hasExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,asset,destination,hasExtraData);
+int get hashCode {
+  final _this = this as NativeMultisigSigningTransfer;
+  return Object.hash(runtimeType,_this.amount,_this.asset,_this.destination,_this.hasExtraData);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransfer(amount: $amount, asset: $asset, destination: $destination, hasExtraData: $hasExtraData)';
+  final _this = this as NativeMultisigSigningTransfer;
+  return 'NativeMultisigSigningTransfer(amount: ${_this.amount}, asset: ${_this.asset}, destination: ${_this.destination}, hasExtraData: ${_this.hasExtraData})';
 }
 
 
@@ -1672,16 +1709,18 @@ _$NativeMultisigSigningTransferCopyWith<_NativeMultisigSigningTransfer> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSigningTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigSigningTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,asset,destination,hasExtraData);
+int get hashCode {
+    return Object.hash(runtimeType,amount,asset,destination,hasExtraData);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigSigningTransfer(amount: $amount, asset: $asset, destination: $destination, hasExtraData: $hasExtraData)';
+    return 'NativeMultisigSigningTransfer(amount: $amount, asset: $asset, destination: $destination, hasExtraData: $hasExtraData)';
 }
 
 
@@ -1736,16 +1775,21 @@ $NativeMultisigStateCopyWith<NativeMultisigState> get copyWith => _$NativeMultis
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigState&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
+  final _this = this as NativeMultisigState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeMultisigState&&(identical(other.threshold, _this.threshold) || other.threshold == _this.threshold)&&const DeepCollectionEquality().equals(other.participants, _this.participants)&&(identical(other.topoheight, _this.topoheight) || other.topoheight == _this.topoheight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,threshold,const DeepCollectionEquality().hash(participants),topoheight);
+int get hashCode {
+  final _this = this as NativeMultisigState;
+  return Object.hash(runtimeType,_this.threshold,const DeepCollectionEquality().hash(_this.participants),_this.topoheight);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigState(threshold: $threshold, participants: $participants, topoheight: $topoheight)';
+  final _this = this as NativeMultisigState;
+  return 'NativeMultisigState(threshold: ${_this.threshold}, participants: ${_this.participants}, topoheight: ${_this.topoheight})';
 }
 
 
@@ -1936,16 +1980,18 @@ _$NativeMultisigStateCopyWith<_NativeMultisigState> get copyWith => __$NativeMul
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigState&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeMultisigState&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other.participants, _participants)&&(identical(other.topoheight, topoheight) || other.topoheight == topoheight));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,threshold,const DeepCollectionEquality().hash(_participants),topoheight);
+int get hashCode {
+    return Object.hash(runtimeType,threshold,const DeepCollectionEquality().hash(_participants),topoheight);
+}
 
 @override
 String toString() {
-  return 'NativeMultisigState(threshold: $threshold, participants: $participants, topoheight: $topoheight)';
+    return 'NativeMultisigState(threshold: $threshold, participants: $participants, topoheight: $topoheight)';
 }
 
 
@@ -1999,16 +2045,21 @@ $NativePreparedTransactionCopyWith<NativePreparedTransaction> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransaction&&(identical(other.hash, hash) || other.hash == hash)&&(identical(other.preparationId, preparationId) || other.preparationId == preparationId)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.transaction, transaction) || other.transaction == transaction));
+  final _this = this as NativePreparedTransaction;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransaction&&(identical(other.hash, _this.hash) || other.hash == _this.hash)&&(identical(other.preparationId, _this.preparationId) || other.preparationId == _this.preparationId)&&(identical(other.fee, _this.fee) || other.fee == _this.fee)&&(identical(other.transaction, _this.transaction) || other.transaction == _this.transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,hash,preparationId,fee,transaction);
+int get hashCode {
+  final _this = this as NativePreparedTransaction;
+  return Object.hash(runtimeType,_this.hash,_this.preparationId,_this.fee,_this.transaction);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransaction(hash: $hash, preparationId: $preparationId, fee: $fee, transaction: $transaction)';
+  final _this = this as NativePreparedTransaction;
+  return 'NativePreparedTransaction(hash: ${_this.hash}, preparationId: ${_this.preparationId}, fee: ${_this.fee}, transaction: ${_this.transaction})';
 }
 
 
@@ -2204,16 +2255,18 @@ _$NativePreparedTransactionCopyWith<_NativePreparedTransaction> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransaction&&(identical(other.hash, hash) || other.hash == hash)&&(identical(other.preparationId, preparationId) || other.preparationId == preparationId)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.transaction, transaction) || other.transaction == transaction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransaction&&(identical(other.hash, hash) || other.hash == hash)&&(identical(other.preparationId, preparationId) || other.preparationId == preparationId)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.transaction, transaction) || other.transaction == transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,hash,preparationId,fee,transaction);
+int get hashCode {
+    return Object.hash(runtimeType,hash,preparationId,fee,transaction);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransaction(hash: $hash, preparationId: $preparationId, fee: $fee, transaction: $transaction)';
+    return 'NativePreparedTransaction(hash: $hash, preparationId: $preparationId, fee: $fee, transaction: $transaction)';
 }
 
 
@@ -2272,7 +2325,7 @@ mixin _$NativePreparedTransactionBroadcastOutcome {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome);
 }
 
 
@@ -2281,7 +2334,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome()';
+    return 'NativePreparedTransactionBroadcastOutcome()';
 }
 
 
@@ -2455,7 +2508,7 @@ class NativePreparedTransactionBroadcastOutcome_Submitted extends NativePrepared
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Submitted);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Submitted);
 }
 
 
@@ -2464,7 +2517,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome.submitted()';
+    return 'NativePreparedTransactionBroadcastOutcome.submitted()';
 }
 
 
@@ -2492,16 +2545,18 @@ $NativePreparedTransactionBroadcastOutcome_RetryableCopyWith<NativePreparedTrans
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Retryable&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Retryable&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure);
+int get hashCode {
+    return Object.hash(runtimeType,failure);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome.retryable(failure: $failure)';
+    return 'NativePreparedTransactionBroadcastOutcome.retryable(failure: $failure)';
 }
 
 
@@ -2558,16 +2613,18 @@ $NativePreparedTransactionBroadcastOutcome_RejectedCopyWith<NativePreparedTransa
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Rejected&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_Rejected&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure);
+int get hashCode {
+    return Object.hash(runtimeType,failure);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome.rejected(failure: $failure)';
+    return 'NativePreparedTransactionBroadcastOutcome.rejected(failure: $failure)';
 }
 
 
@@ -2624,16 +2681,18 @@ $NativePreparedTransactionBroadcastOutcome_LocalFailureCopyWith<NativePreparedTr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_LocalFailure&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_LocalFailure&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure);
+int get hashCode {
+    return Object.hash(runtimeType,failure);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome.localFailure(failure: $failure)';
+    return 'NativePreparedTransactionBroadcastOutcome.localFailure(failure: $failure)';
 }
 
 
@@ -2690,16 +2749,18 @@ $NativePreparedTransactionBroadcastOutcome_SubmittedNeedsResyncCopyWith<NativePr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_SubmittedNeedsResync&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionBroadcastOutcome_SubmittedNeedsResync&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,failure);
+int get hashCode {
+    return Object.hash(runtimeType,failure);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionBroadcastOutcome.submittedNeedsResync(failure: $failure)';
+    return 'NativePreparedTransactionBroadcastOutcome.submittedNeedsResync(failure: $failure)';
 }
 
 
@@ -2746,7 +2807,7 @@ mixin _$NativePreparedTransactionKind {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind);
 }
 
 
@@ -2755,7 +2816,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativePreparedTransactionKind()';
+    return 'NativePreparedTransactionKind()';
 }
 
 
@@ -2934,16 +2995,18 @@ $NativePreparedTransactionKind_TransfersCopyWith<NativePreparedTransactionKind_T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_Transfers&&const DeepCollectionEquality().equals(other._transfers, _transfers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_Transfers&&const DeepCollectionEquality().equals(other.transfers, _transfers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionKind.transfers(transfers: $transfers)';
+    return 'NativePreparedTransactionKind.transfers(transfers: $transfers)';
 }
 
 
@@ -3001,16 +3064,18 @@ $NativePreparedTransactionKind_BurnCopyWith<NativePreparedTransactionKind_Burn> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset,amount);
+int get hashCode {
+    return Object.hash(runtimeType,asset,amount);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionKind.burn(asset: $asset, amount: $amount)';
+    return 'NativePreparedTransactionKind.burn(asset: $asset, amount: $amount)';
 }
 
 
@@ -3075,16 +3140,18 @@ $NativePreparedTransactionKind_MultisigSetupCopyWith<NativePreparedTransactionKi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_MultisigSetup&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other._participants, _participants));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_MultisigSetup&&(identical(other.threshold, threshold) || other.threshold == threshold)&&const DeepCollectionEquality().equals(other.participants, _participants));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,threshold,const DeepCollectionEquality().hash(_participants));
+int get hashCode {
+    return Object.hash(runtimeType,threshold,const DeepCollectionEquality().hash(_participants));
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionKind.multisigSetup(threshold: $threshold, participants: $participants)';
+    return 'NativePreparedTransactionKind.multisigSetup(threshold: $threshold, participants: $participants)';
 }
 
 
@@ -3142,16 +3209,18 @@ $NativePreparedTransactionKind_MultisigFinalizedCopyWith<NativePreparedTransacti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_MultisigFinalized&&(identical(other.transaction, transaction) || other.transaction == transaction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransactionKind_MultisigFinalized&&(identical(other.transaction, transaction) || other.transaction == transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,transaction);
+int get hashCode {
+    return Object.hash(runtimeType,transaction);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransactionKind.multisigFinalized(transaction: $transaction)';
+    return 'NativePreparedTransactionKind.multisigFinalized(transaction: $transaction)';
 }
 
 
@@ -3212,16 +3281,21 @@ $NativePreparedTransferCopyWith<NativePreparedTransfer> get copyWith => _$Native
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+  final _this = this as NativePreparedTransfer;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransfer&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.destination, _this.destination) || other.destination == _this.destination)&&(identical(other.asset, _this.asset) || other.asset == _this.asset)&&(identical(other.hasExtraData, _this.hasExtraData) || other.hasExtraData == _this.hasExtraData)&&(identical(other.encryptExtraData, _this.encryptExtraData) || other.encryptExtraData == _this.encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,destination,asset,hasExtraData,encryptExtraData);
+int get hashCode {
+  final _this = this as NativePreparedTransfer;
+  return Object.hash(runtimeType,_this.amount,_this.destination,_this.asset,_this.hasExtraData,_this.encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransfer(amount: $amount, destination: $destination, asset: $asset, hasExtraData: $hasExtraData, encryptExtraData: $encryptExtraData)';
+  final _this = this as NativePreparedTransfer;
+  return 'NativePreparedTransfer(amount: ${_this.amount}, destination: ${_this.destination}, asset: ${_this.asset}, hasExtraData: ${_this.hasExtraData}, encryptExtraData: ${_this.encryptExtraData})';
 }
 
 
@@ -3410,16 +3484,18 @@ _$NativePreparedTransferCopyWith<_NativePreparedTransfer> get copyWith => __$Nat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransfer&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.hasExtraData, hasExtraData) || other.hasExtraData == hasExtraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,destination,asset,hasExtraData,encryptExtraData);
+int get hashCode {
+    return Object.hash(runtimeType,amount,destination,asset,hasExtraData,encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransfer(amount: $amount, destination: $destination, asset: $asset, hasExtraData: $hasExtraData, encryptExtraData: $encryptExtraData)';
+    return 'NativePreparedTransfer(amount: $amount, destination: $destination, asset: $asset, hasExtraData: $hasExtraData, encryptExtraData: $encryptExtraData)';
 }
 
 
@@ -3475,16 +3551,21 @@ $NativePreparedTransferExtraDataCopyWith<NativePreparedTransferExtraData> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransferExtraData&&(identical(other.data, data) || other.data == data)&&(identical(other.source, source) || other.source == source)&&(identical(other.encrypted, encrypted) || other.encrypted == encrypted));
+  final _this = this as NativePreparedTransferExtraData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativePreparedTransferExtraData&&(identical(other.data, _this.data) || other.data == _this.data)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.encrypted, _this.encrypted) || other.encrypted == _this.encrypted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,data,source,encrypted);
+int get hashCode {
+  final _this = this as NativePreparedTransferExtraData;
+  return Object.hash(runtimeType,_this.data,_this.source,_this.encrypted);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransferExtraData(data: $data, source: $source, encrypted: $encrypted)';
+  final _this = this as NativePreparedTransferExtraData;
+  return 'NativePreparedTransferExtraData(data: ${_this.data}, source: ${_this.source}, encrypted: ${_this.encrypted})';
 }
 
 
@@ -3678,16 +3759,18 @@ _$NativePreparedTransferExtraDataCopyWith<_NativePreparedTransferExtraData> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransferExtraData&&(identical(other.data, data) || other.data == data)&&(identical(other.source, source) || other.source == source)&&(identical(other.encrypted, encrypted) || other.encrypted == encrypted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativePreparedTransferExtraData&&(identical(other.data, data) || other.data == data)&&(identical(other.source, source) || other.source == source)&&(identical(other.encrypted, encrypted) || other.encrypted == encrypted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,data,source,encrypted);
+int get hashCode {
+    return Object.hash(runtimeType,data,source,encrypted);
+}
 
 @override
 String toString() {
-  return 'NativePreparedTransferExtraData(data: $data, source: $source, encrypted: $encrypted)';
+    return 'NativePreparedTransferExtraData(data: $data, source: $source, encrypted: $encrypted)';
 }
 
 
@@ -3745,7 +3828,7 @@ mixin _$NativeTransactionFeePolicy {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy);
 }
 
 
@@ -3754,7 +3837,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy()';
+    return 'NativeTransactionFeePolicy()';
 }
 
 
@@ -3922,7 +4005,7 @@ class NativeTransactionFeePolicy_Automatic extends NativeTransactionFeePolicy {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Automatic);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Automatic);
 }
 
 
@@ -3931,7 +4014,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy.automatic()';
+    return 'NativeTransactionFeePolicy.automatic()';
 }
 
 
@@ -3959,16 +4042,18 @@ $NativeTransactionFeePolicy_FixedCopyWith<NativeTransactionFeePolicy_Fixed> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Fixed&&(identical(other.field0, field0) || other.field0 == field0));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Fixed&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode {
+    return Object.hash(runtimeType,field0);
+}
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy.fixed(field0: $field0)';
+    return 'NativeTransactionFeePolicy.fixed(field0: $field0)';
 }
 
 
@@ -4025,16 +4110,18 @@ $NativeTransactionFeePolicy_TipCopyWith<NativeTransactionFeePolicy_Tip> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Tip&&(identical(other.field0, field0) || other.field0 == field0));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Tip&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode {
+    return Object.hash(runtimeType,field0);
+}
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy.tip(field0: $field0)';
+    return 'NativeTransactionFeePolicy.tip(field0: $field0)';
 }
 
 
@@ -4091,16 +4178,18 @@ $NativeTransactionFeePolicy_MultiplierCopyWith<NativeTransactionFeePolicy_Multip
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Multiplier&&(identical(other.field0, field0) || other.field0 == field0));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionFeePolicy_Multiplier&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode {
+    return Object.hash(runtimeType,field0);
+}
 
 @override
 String toString() {
-  return 'NativeTransactionFeePolicy.multiplier(field0: $field0)';
+    return 'NativeTransactionFeePolicy.multiplier(field0: $field0)';
 }
 
 
@@ -4152,16 +4241,21 @@ $NativeTransactionTransferRequestCopyWith<NativeTransactionTransferRequest> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionTransferRequest&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+  final _this = this as NativeTransactionTransferRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeTransactionTransferRequest&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.destination, _this.destination) || other.destination == _this.destination)&&(identical(other.asset, _this.asset) || other.asset == _this.asset)&&(identical(other.extraData, _this.extraData) || other.extraData == _this.extraData)&&(identical(other.encryptExtraData, _this.encryptExtraData) || other.encryptExtraData == _this.encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,destination,asset,extraData,encryptExtraData);
+int get hashCode {
+  final _this = this as NativeTransactionTransferRequest;
+  return Object.hash(runtimeType,_this.amount,_this.destination,_this.asset,_this.extraData,_this.encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'NativeTransactionTransferRequest(amount: $amount, destination: $destination, asset: $asset, extraData: $extraData, encryptExtraData: $encryptExtraData)';
+  final _this = this as NativeTransactionTransferRequest;
+  return 'NativeTransactionTransferRequest(amount: ${_this.amount}, destination: ${_this.destination}, asset: ${_this.asset}, extraData: ${_this.extraData}, encryptExtraData: ${_this.encryptExtraData})';
 }
 
 
@@ -4350,16 +4444,18 @@ _$NativeTransactionTransferRequestCopyWith<_NativeTransactionTransferRequest> ge
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeTransactionTransferRequest&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeTransactionTransferRequest&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,amount,destination,asset,extraData,encryptExtraData);
+int get hashCode {
+    return Object.hash(runtimeType,amount,destination,asset,extraData,encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'NativeTransactionTransferRequest(amount: $amount, destination: $destination, asset: $asset, extraData: $extraData, encryptExtraData: $encryptExtraData)';
+    return 'NativeTransactionTransferRequest(amount: $amount, destination: $destination, asset: $asset, extraData: $extraData, encryptExtraData: $encryptExtraData)';
 }
 
 
@@ -4415,16 +4511,21 @@ $TransferCopyWith<Transfer> get copyWith => _$TransferCopyWithImpl<Transfer>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Transfer&&(identical(other.floatAmount, floatAmount) || other.floatAmount == floatAmount)&&(identical(other.strAddress, strAddress) || other.strAddress == strAddress)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+  final _this = this as Transfer;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Transfer&&(identical(other.floatAmount, _this.floatAmount) || other.floatAmount == _this.floatAmount)&&(identical(other.strAddress, _this.strAddress) || other.strAddress == _this.strAddress)&&(identical(other.assetHash, _this.assetHash) || other.assetHash == _this.assetHash)&&(identical(other.extraData, _this.extraData) || other.extraData == _this.extraData)&&(identical(other.encryptExtraData, _this.encryptExtraData) || other.encryptExtraData == _this.encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,floatAmount,strAddress,assetHash,extraData,encryptExtraData);
+int get hashCode {
+  final _this = this as Transfer;
+  return Object.hash(runtimeType,_this.floatAmount,_this.strAddress,_this.assetHash,_this.extraData,_this.encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'Transfer(floatAmount: $floatAmount, strAddress: $strAddress, assetHash: $assetHash, extraData: $extraData, encryptExtraData: $encryptExtraData)';
+  final _this = this as Transfer;
+  return 'Transfer(floatAmount: ${_this.floatAmount}, strAddress: ${_this.strAddress}, assetHash: ${_this.assetHash}, extraData: ${_this.extraData}, encryptExtraData: ${_this.encryptExtraData})';
 }
 
 
@@ -4613,16 +4714,18 @@ _$TransferCopyWith<_Transfer> get copyWith => __$TransferCopyWithImpl<_Transfer>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Transfer&&(identical(other.floatAmount, floatAmount) || other.floatAmount == floatAmount)&&(identical(other.strAddress, strAddress) || other.strAddress == strAddress)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Transfer&&(identical(other.floatAmount, floatAmount) || other.floatAmount == floatAmount)&&(identical(other.strAddress, strAddress) || other.strAddress == strAddress)&&(identical(other.assetHash, assetHash) || other.assetHash == assetHash)&&(identical(other.extraData, extraData) || other.extraData == extraData)&&(identical(other.encryptExtraData, encryptExtraData) || other.encryptExtraData == encryptExtraData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,floatAmount,strAddress,assetHash,extraData,encryptExtraData);
+int get hashCode {
+    return Object.hash(runtimeType,floatAmount,strAddress,assetHash,extraData,encryptExtraData);
+}
 
 @override
 String toString() {
-  return 'Transfer(floatAmount: $floatAmount, strAddress: $strAddress, assetHash: $assetHash, extraData: $extraData, encryptExtraData: $encryptExtraData)';
+    return 'Transfer(floatAmount: $floatAmount, strAddress: $strAddress, assetHash: $assetHash, extraData: $extraData, encryptExtraData: $encryptExtraData)';
 }
 
 
@@ -4678,16 +4781,21 @@ $XelisAssetMetadataCopyWith<XelisAssetMetadata> get copyWith => _$XelisAssetMeta
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetMetadata&&(identical(other.name, name) || other.name == name)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.decimals, decimals) || other.decimals == decimals)&&(identical(other.maxSupply, maxSupply) || other.maxSupply == maxSupply)&&(identical(other.owner, owner) || other.owner == owner));
+  final _this = this as XelisAssetMetadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetMetadata&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.ticker, _this.ticker) || other.ticker == _this.ticker)&&(identical(other.decimals, _this.decimals) || other.decimals == _this.decimals)&&(identical(other.maxSupply, _this.maxSupply) || other.maxSupply == _this.maxSupply)&&(identical(other.owner, _this.owner) || other.owner == _this.owner));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,ticker,decimals,maxSupply,owner);
+int get hashCode {
+  final _this = this as XelisAssetMetadata;
+  return Object.hash(runtimeType,_this.name,_this.ticker,_this.decimals,_this.maxSupply,_this.owner);
+}
 
 @override
 String toString() {
-  return 'XelisAssetMetadata(name: $name, ticker: $ticker, decimals: $decimals, maxSupply: $maxSupply, owner: $owner)';
+  final _this = this as XelisAssetMetadata;
+  return 'XelisAssetMetadata(name: ${_this.name}, ticker: ${_this.ticker}, decimals: ${_this.decimals}, maxSupply: ${_this.maxSupply}, owner: ${_this.owner})';
 }
 
 
@@ -4894,16 +5002,18 @@ _$XelisAssetMetadataCopyWith<_XelisAssetMetadata> get copyWith => __$XelisAssetM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _XelisAssetMetadata&&(identical(other.name, name) || other.name == name)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.decimals, decimals) || other.decimals == decimals)&&(identical(other.maxSupply, maxSupply) || other.maxSupply == maxSupply)&&(identical(other.owner, owner) || other.owner == owner));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _XelisAssetMetadata&&(identical(other.name, name) || other.name == name)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.decimals, decimals) || other.decimals == decimals)&&(identical(other.maxSupply, maxSupply) || other.maxSupply == maxSupply)&&(identical(other.owner, owner) || other.owner == owner));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,ticker,decimals,maxSupply,owner);
+int get hashCode {
+    return Object.hash(runtimeType,name,ticker,decimals,maxSupply,owner);
+}
 
 @override
 String toString() {
-  return 'XelisAssetMetadata(name: $name, ticker: $ticker, decimals: $decimals, maxSupply: $maxSupply, owner: $owner)';
+    return 'XelisAssetMetadata(name: $name, ticker: $ticker, decimals: $decimals, maxSupply: $maxSupply, owner: $owner)';
 }
 
 
@@ -4972,7 +5082,7 @@ mixin _$XelisAssetOwner {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner);
 }
 
 
@@ -4981,7 +5091,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'XelisAssetOwner()';
+    return 'XelisAssetOwner()';
 }
 
 
@@ -5143,7 +5253,7 @@ class XelisAssetOwner_None extends XelisAssetOwner {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_None);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_None);
 }
 
 
@@ -5152,7 +5262,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'XelisAssetOwner.none()';
+    return 'XelisAssetOwner.none()';
 }
 
 
@@ -5181,16 +5291,18 @@ $XelisAssetOwner_CreatorCopyWith<XelisAssetOwner_Creator> get copyWith => _$Xeli
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_Creator&&(identical(other.contract, contract) || other.contract == contract)&&(identical(other.id, id) || other.id == id));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_Creator&&(identical(other.contract, contract) || other.contract == contract)&&(identical(other.id, id) || other.id == id));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,contract,id);
+int get hashCode {
+    return Object.hash(runtimeType,contract,id);
+}
 
 @override
 String toString() {
-  return 'XelisAssetOwner.creator(contract: $contract, id: $id)';
+    return 'XelisAssetOwner.creator(contract: $contract, id: $id)';
 }
 
 
@@ -5250,16 +5362,18 @@ $XelisAssetOwner_OwnerCopyWith<XelisAssetOwner_Owner> get copyWith => _$XelisAss
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_Owner&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.originId, originId) || other.originId == originId)&&(identical(other.owner, owner) || other.owner == owner));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisAssetOwner_Owner&&(identical(other.origin, origin) || other.origin == origin)&&(identical(other.originId, originId) || other.originId == originId)&&(identical(other.owner, owner) || other.owner == owner));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,origin,originId,owner);
+int get hashCode {
+    return Object.hash(runtimeType,origin,originId,owner);
+}
 
 @override
 String toString() {
-  return 'XelisAssetOwner.owner(origin: $origin, originId: $originId, owner: $owner)';
+    return 'XelisAssetOwner.owner(origin: $origin, originId: $originId, owner: $owner)';
 }
 
 
@@ -5308,7 +5422,7 @@ mixin _$XelisMaxSupplyMode {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode);
 }
 
 
@@ -5317,7 +5431,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'XelisMaxSupplyMode()';
+    return 'XelisMaxSupplyMode()';
 }
 
 
@@ -5479,7 +5593,7 @@ class XelisMaxSupplyMode_None extends XelisMaxSupplyMode {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_None);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_None);
 }
 
 
@@ -5488,7 +5602,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'XelisMaxSupplyMode.none()';
+    return 'XelisMaxSupplyMode.none()';
 }
 
 
@@ -5516,16 +5630,18 @@ $XelisMaxSupplyMode_FixedCopyWith<XelisMaxSupplyMode_Fixed> get copyWith => _$Xe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_Fixed&&(identical(other.field0, field0) || other.field0 == field0));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_Fixed&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode {
+    return Object.hash(runtimeType,field0);
+}
 
 @override
 String toString() {
-  return 'XelisMaxSupplyMode.fixed(field0: $field0)';
+    return 'XelisMaxSupplyMode.fixed(field0: $field0)';
 }
 
 
@@ -5582,16 +5698,18 @@ $XelisMaxSupplyMode_MintableCopyWith<XelisMaxSupplyMode_Mintable> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_Mintable&&(identical(other.field0, field0) || other.field0 == field0));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is XelisMaxSupplyMode_Mintable&&(identical(other.field0, field0) || other.field0 == field0));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,field0);
+int get hashCode {
+    return Object.hash(runtimeType,field0);
+}
 
 @override
 String toString() {
-  return 'XelisMaxSupplyMode.mintable(field0: $field0)';
+    return 'XelisMaxSupplyMode.mintable(field0: $field0)';
 }
 
 

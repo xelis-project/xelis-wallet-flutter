@@ -11,7 +11,7 @@ capability merely to enforce an application policy.
 | XSWD resource budgets | adapted | Configurable projection budgets protect FRB and Dart under documented technical ceilings; they are not protocol limits. |
 | XSWD callback failures | adapted | Exceptions, timeouts, and invalid projections are technical errors. Only an explicit callback decision is a user rejection. |
 | Transaction fee modes | exact | Automatic, fixed, tip, and fixed-point multiplier modes map to the corresponding core capability with checked arithmetic. |
-| Passive extra data | opt-in | Business subscriptions select redacted, metadata, or detailed disclosure once. The upstream shared key is always omitted. |
+| Wallet extra data | opt-in | Reads and business subscriptions preserve redacted, metadata, or detailed disclosure. The upstream shared key is always omitted. |
 | Native logs | opt-in | Safe scopes contain package-authored targets. Selected raw upstream targets require the explicitly unsafe local-diagnostic scope. |
 | Daemon reconnection | opt-in | Application-managed reconnect remains the default; upstream auto-reconnect is experimental and explicitly supervised. |
 | URL credentials and arbitrary RPC paths | intentionally unsupported | Daemon input remains a credential-free origin; XWF appends `/json_rpc`. Future authentication must use a structured contract. |

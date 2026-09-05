@@ -22,5 +22,6 @@ export 'src/api/seed/seed_search_engine.dart';
 export 'src/api/transactions/xelis_wallet_prepared_transaction.dart';
 export 'src/api/transactions/xelis_wallet_transaction.dart';
 export 'src/api/wallet/xelis_wallet.dart';
-export 'src/api/xswd/xelis_xswd.dart';
+export 'src/api/xswd/xelis_xswd.dart'
+    hide xelisXswdApplicationWithSessionIdentity;
 export 'src/runtime/xelis_wallet_flutter.dart';

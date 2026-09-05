@@ -26,7 +26,8 @@ void main() {
           ],
         ),
       ),
-      applicationInfo: const generated.AppInfo(
+      applicationInfo: generated.AppInfo(
+        sessionRef: BigInt.one,
         id: 'app',
         name: 'app',
         description: '',

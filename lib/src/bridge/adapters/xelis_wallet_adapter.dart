@@ -23,6 +23,8 @@ import '../../generated/rust_bridge/api/models/runtime_dtos.dart'
     as generated_runtime;
 import '../../generated/rust_bridge/api/models/wallet_dtos.dart'
     as generated_wallet;
+import '../../generated/rust_bridge/api/models/xswd_dtos.dart'
+    as generated_xswd;
 import '../../generated/rust_bridge/api/wallet.dart' as generated;
 import 'seed_search_engine_adapter.dart';
 import 'xelis_daemon_info_adapter.dart';
@@ -33,6 +35,17 @@ import 'xelis_runtime_utility_adapter.dart';
 import 'xelis_wallet_business_event_adapter.dart';
 import 'xelis_wallet_runtime_event_adapter.dart';
 import 'xelis_xswd_adapter.dart';
+
+generated_business.NativeWalletExtraDataDisclosure
+_generatedExtraDataDisclosure(XelisWalletExtraDataDisclosure disclosure) =>
+    switch (disclosure) {
+      XelisWalletExtraDataDisclosure.redacted =>
+        generated_business.NativeWalletExtraDataDisclosure.redacted,
+      XelisWalletExtraDataDisclosure.metadata =>
+        generated_business.NativeWalletExtraDataDisclosure.metadata,
+      XelisWalletExtraDataDisclosure.detailed =>
+        generated_business.NativeWalletExtraDataDisclosure.detailed,
+    };
 
 Future<XelisWallet> createNativeXelisWallet({
   required String walletPath,
@@ -122,6 +135,13 @@ final class NativeXelisWallet implements XelisWallet {
   final _multisigShareCapabilities = Expando<_NativeMultisigShareCapability>(
     'xelis-wallet-multisig-share',
   );
+  final _xswdApplicationCapabilities = Expando<_NativeXswdSessionCapability>(
+    'xelis-xswd-session',
+  );
+  final _xswdCapabilities = <BigInt, _NativeXswdSessionCapability>{};
+  final _xswdApplicationOperations = <String>{};
+  var _xswdCapabilityRevision = 0;
+  var _xswdLifecycleOperationInProgress = false;
   XelisWalletMultisigSigningRequest? _activePendingMultisigRequest;
 
   @override
@@ -208,8 +228,7 @@ final class NativeXelisWallet implements XelisWallet {
         operation: XelisWalletOperation.walletNetworkConnect,
         code: XelisWalletErrorCode.invalidInput,
         nativeKind: 'NETWORK_TIMEOUT_INVALID',
-        diagnosticMessage:
-            'The connection timeout must be positive and at least one millisecond.',
+        diagnosticMessage: 'The connection timeout must be positive and at least one millisecond.',
       );
     }
     final timeoutMillisBigInt = BigInt.from(timeoutMillis);
@@ -287,34 +306,41 @@ final class NativeXelisWallet implements XelisWallet {
       callbacks,
       operation: operation,
     );
-    final generatedCallbacks = generatedXswdCallbacksFromXelis(callbacks);
-    await guardXelisFuture(
-      () => _delegate.startXswd(
-        projectionLimits: generatedLimits,
-        cancelRequestDartCallback: generatedCallbacks.cancelRequest,
-        requestApplicationDartCallback: generatedCallbacks.applicationRequest,
-        requestPermissionDartCallback: generatedCallbacks.permissionRequest,
-        requestPrefetchPermissionsDartCallback:
-            generatedCallbacks.prefetchPermissionsRequest,
-        appDisconnectDartCallback: generatedCallbacks.applicationDisconnect,
+    final generatedCallbacks = _generatedXswdCallbacks(callbacks);
+    await _runXswdLifecycleOperation(
+      () => guardXelisFuture(
+        () => _delegate.startXswd(
+          projectionLimits: generatedLimits,
+          cancelRequestDartCallback: generatedCallbacks.cancelRequest,
+          requestApplicationDartCallback: generatedCallbacks.applicationRequest,
+          requestPermissionDartCallback: generatedCallbacks.permissionRequest,
+          requestPrefetchPermissionsDartCallback:
+              generatedCallbacks.prefetchPermissionsRequest,
+          appDisconnectDartCallback: generatedCallbacks.applicationDisconnect,
+        ),
+        boundary: const XelisErrorBoundary(
+          source: XelisWalletErrorSource.xelisWallet,
+          operation: operation,
+        ),
       ),
-      boundary: const XelisErrorBoundary(
-        source: XelisWalletErrorSource.xelisWallet,
-        operation: operation,
-      ),
+      operation: operation,
     );
   }
 
   @override
   Future<void> stopXswd() async {
     _ensureActive();
-    await guardXelisFuture(
-      _delegate.stopXswd,
-      boundary: const XelisErrorBoundary(
-        source: XelisWalletErrorSource.xelisWallet,
-        operation: XelisWalletOperation.walletXswdStop,
-      ),
-    );
+    const operation = XelisWalletOperation.walletXswdStop;
+    await _runXswdLifecycleOperation(() async {
+      await guardXelisFuture(
+        _delegate.stopXswd,
+        boundary: const XelisErrorBoundary(
+          source: XelisWalletErrorSource.xelisWallet,
+          operation: operation,
+        ),
+      );
+      _invalidateAllXswdCapabilities();
+    }, operation: operation);
   }
 
   @override
@@ -322,17 +348,34 @@ final class NativeXelisWallet implements XelisWallet {
     _ensureActive();
     return guardXelisFuture(
       () async {
-        final isRunning = await _delegate.isXswdRunning();
-        if (!isRunning) {
-          return XelisXswdState(isRunning: false, applications: const []);
+        while (true) {
+          final revision = _xswdCapabilityRevision;
+          final isRunning = await _delegate.isXswdRunning();
+          if (revision != _xswdCapabilityRevision) {
+            continue;
+          }
+          if (!isRunning) {
+            _reconcileXswdCapabilities(const <generated_xswd.AppInfo>[]);
+            return XelisXswdState(isRunning: false, applications: const []);
+          }
+          final applications = await _delegate.getApplicationPermissions();
+          if (revision != _xswdCapabilityRevision) {
+            continue;
+          }
+          final authoredApplications = applications
+              .map(
+                (application) => _adaptAndRegisterXswdApplication(
+                  application,
+                  observedInState: true,
+                ),
+              )
+              .toList(growable: false);
+          _reconcileXswdCapabilities(applications);
+          return XelisXswdState(
+            isRunning: true,
+            applications: authoredApplications,
+          );
         }
-        final applications = await _delegate.getApplicationPermissions();
-        return XelisXswdState(
-          isRunning: true,
-          applications: applications
-              .map(xelisXswdApplicationFromGenerated)
-              .toList(growable: false),
-        );
       },
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
@@ -356,54 +399,68 @@ final class NativeXelisWallet implements XelisWallet {
       callbacks,
       operation: operation,
     );
-    final generatedCallbacks = generatedXswdCallbacksFromXelis(callbacks);
-    await guardXelisFuture(
-      () => _delegate.addXswdRelayer(
-        appData: generatedRelayer,
-        projectionLimits: generatedLimits,
-        cancelRequestDartCallback: generatedCallbacks.cancelRequest,
-        requestApplicationDartCallback: generatedCallbacks.applicationRequest,
-        requestPermissionDartCallback: generatedCallbacks.permissionRequest,
-        requestPrefetchPermissionsDartCallback:
-            generatedCallbacks.prefetchPermissionsRequest,
-        appDisconnectDartCallback: generatedCallbacks.applicationDisconnect,
-      ),
-      boundary: const XelisErrorBoundary(
-        source: XelisWalletErrorSource.xelisWallet,
-        operation: operation,
-      ),
-    );
+    final generatedCallbacks = _generatedXswdCallbacks(callbacks);
+    await _runXswdApplicationOperation(relayer.id, () async {
+      await guardXelisFuture(
+        () => _delegate.addXswdRelayer(
+          appData: generatedRelayer,
+          projectionLimits: generatedLimits,
+          cancelRequestDartCallback: generatedCallbacks.cancelRequest,
+          requestApplicationDartCallback: generatedCallbacks.applicationRequest,
+          requestPermissionDartCallback: generatedCallbacks.permissionRequest,
+          requestPrefetchPermissionsDartCallback:
+              generatedCallbacks.prefetchPermissionsRequest,
+          appDisconnectDartCallback: generatedCallbacks.applicationDisconnect,
+        ),
+        boundary: const XelisErrorBoundary(
+          source: XelisWalletErrorSource.xelisWallet,
+          operation: operation,
+        ),
+      );
+    }, operation: operation);
   }
 
   @override
-  Future<void> closeXswdApplicationSession({required String applicationId}) {
+  Future<void> closeXswdApplicationSession({
+    required XelisXswdApplication application,
+  }) async {
     _ensureActive();
-    return guardXelisFuture(
-      () => _delegate.closeApplicationSession(id: applicationId),
-      boundary: const XelisErrorBoundary(
-        source: XelisWalletErrorSource.xelisWallet,
-        operation: XelisWalletOperation.walletXswdSessionClose,
-      ),
-    );
+    const operation = XelisWalletOperation.walletXswdSessionClose;
+    _xswdCapability(application, operation: operation);
+    await _runXswdApplicationOperation(application.id, () async {
+      final capability = _xswdCapability(application, operation: operation);
+      await guardXelisFuture(
+        () => _delegate.closeApplicationSession(
+          sessionRef: capability.sessionRef,
+        ),
+        boundary: const XelisErrorBoundary(
+          source: XelisWalletErrorSource.xelisWallet,
+          operation: operation,
+        ),
+      );
+      _tombstoneXswdCapability(capability);
+    }, operation: operation);
   }
 
   @override
   Future<void> updateXswdApplicationPermissions({
-    required String applicationId,
+    required XelisXswdApplication application,
     required Map<String, XelisXswdPermissionPolicy> permissions,
-  }) {
+  }) async {
     _ensureActive();
-    return guardXelisFuture(
+    const operation = XelisWalletOperation.walletXswdPermissionsUpdate;
+    final capability = _xswdCapability(application, operation: operation);
+    await guardXelisFuture(
       () => _delegate.modifyApplicationPermissions(
-        id: applicationId,
+        sessionRef: capability.sessionRef,
         permissions: generatedXswdPermissionsFromXelis(
           permissions,
-          operation: XelisWalletOperation.walletXswdPermissionsUpdate,
+          operation: operation,
         ),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
-        operation: XelisWalletOperation.walletXswdPermissionsUpdate,
+        operation: operation,
       ),
     );
   }
@@ -468,14 +525,7 @@ final class NativeXelisWallet implements XelisWallet {
     _ensureActive();
     final delegate = await guardXelisFuture(
       () => _delegate.subscribeBusinessEvents(
-        extraDataDisclosure: switch (extraDataDisclosure) {
-          XelisWalletExtraDataDisclosure.redacted =>
-            generated_business.NativeWalletExtraDataDisclosure.redacted,
-          XelisWalletExtraDataDisclosure.metadata =>
-            generated_business.NativeWalletExtraDataDisclosure.metadata,
-          XelisWalletExtraDataDisclosure.detailed =>
-            generated_business.NativeWalletExtraDataDisclosure.detailed,
-        },
+        extraDataDisclosure: _generatedExtraDataDisclosure(extraDataDisclosure),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWalletFlutter,
@@ -487,6 +537,7 @@ final class NativeXelisWallet implements XelisWallet {
     try {
       subscription = NativeXelisWalletBusinessEventSubscription(
         delegate,
+        extraDataDisclosure: extraDataDisclosure,
         onTerminated: _businessEventSubscriptions.remove,
       );
     } catch (error, stackTrace) {
@@ -762,12 +813,10 @@ final class NativeXelisWallet implements XelisWallet {
         XelisWalletExtraDataDisclosure.metadata,
   }) async {
     _ensureActive();
-    final includePayload =
-        extraDataDisclosure == XelisWalletExtraDataDisclosure.detailed;
     final transactions = await guardXelisFuture(
       () => _delegate.history(
         filter: _generatedHistoryFilter(filter),
-        includeExtraDataPayload: includePayload,
+        extraDataDisclosure: _generatedExtraDataDisclosure(extraDataDisclosure),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
@@ -778,9 +827,7 @@ final class NativeXelisWallet implements XelisWallet {
       transactions.map(
         (transaction) => xelisWalletTransactionFromGenerated(
           transaction,
-          // Native projection is authoritative: metadata reads return a null
-          // payload but retain its top-level kind.
-          includePayload: true,
+          extraDataDisclosure: extraDataDisclosure,
         ),
       ),
     );
@@ -826,11 +873,9 @@ final class NativeXelisWallet implements XelisWallet {
         XelisWalletExtraDataDisclosure.metadata,
   }) async {
     _ensureActive();
-    final includePayload =
-        extraDataDisclosure == XelisWalletExtraDataDisclosure.detailed;
     final transactions = await guardXelisFuture(
       () => _delegate.getPendingTransactions(
-        includeExtraDataPayload: includePayload,
+        extraDataDisclosure: _generatedExtraDataDisclosure(extraDataDisclosure),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
@@ -841,7 +886,7 @@ final class NativeXelisWallet implements XelisWallet {
       transactions.map(
         (transaction) => xelisWalletPendingTransactionFromGenerated(
           transaction,
-          includePayload: true,
+          extraDataDisclosure: extraDataDisclosure,
         ),
       ),
     );
@@ -854,12 +899,10 @@ final class NativeXelisWallet implements XelisWallet {
         XelisWalletExtraDataDisclosure.detailed,
   }) async {
     _ensureActive();
-    final includePayload =
-        extraDataDisclosure == XelisWalletExtraDataDisclosure.detailed;
     final transaction = await guardXelisFuture(
       () => _delegate.getTransactionByHash(
         hash: hash,
-        includeExtraDataPayload: includePayload,
+        extraDataDisclosure: _generatedExtraDataDisclosure(extraDataDisclosure),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
@@ -868,7 +911,7 @@ final class NativeXelisWallet implements XelisWallet {
     );
     return xelisWalletTransactionFromGenerated(
       transaction,
-      includePayload: true,
+      extraDataDisclosure: extraDataDisclosure,
     );
   }
 
@@ -879,12 +922,10 @@ final class NativeXelisWallet implements XelisWallet {
         XelisWalletExtraDataDisclosure.detailed,
   }) async {
     _ensureActive();
-    final includePayload =
-        extraDataDisclosure == XelisWalletExtraDataDisclosure.detailed;
     final transaction = await guardXelisFuture(
       () => _delegate.getPendingTransactionByHash(
         hash: hash,
-        includeExtraDataPayload: includePayload,
+        extraDataDisclosure: _generatedExtraDataDisclosure(extraDataDisclosure),
       ),
       boundary: const XelisErrorBoundary(
         source: XelisWalletErrorSource.xelisWallet,
@@ -893,7 +934,7 @@ final class NativeXelisWallet implements XelisWallet {
     );
     return xelisWalletPendingTransactionFromGenerated(
       transaction,
-      includePayload: true,
+      extraDataDisclosure: extraDataDisclosure,
     );
   }
 
@@ -1487,6 +1528,7 @@ final class NativeXelisWallet implements XelisWallet {
 
     _terminal = true;
     _invalidateActivePreparedTransaction();
+    _invalidateAllXswdCapabilities();
     _closeInProgress = true;
     final future = _cancelSubscriptionsAndClose().whenComplete(
       () => _closeInProgress = false,
@@ -1542,6 +1584,7 @@ final class NativeXelisWallet implements XelisWallet {
     if (_disposedByWrapper || _delegate.isDisposed) {
       _disposedByWrapper = true;
       _terminal = true;
+      _invalidateAllXswdCapabilities();
       return;
     }
     if (_closeFuture == null) {
@@ -1555,6 +1598,7 @@ final class NativeXelisWallet implements XelisWallet {
 
     _terminal = true;
     _disposedByWrapper = true;
+    _invalidateAllXswdCapabilities();
     guardXelisCall(
       _delegate.dispose,
       boundary: const XelisErrorBoundary(
@@ -1568,6 +1612,192 @@ final class NativeXelisWallet implements XelisWallet {
     if (_terminal || isDisposed) {
       throw StateError('The XELIS wallet handle is closed.');
     }
+  }
+
+  GeneratedXswdCallbacks _generatedXswdCallbacks(
+    XelisXswdCallbacks callbacks,
+  ) => generatedXswdCallbacksFromXelis(
+    callbacks,
+    applicationAdapter: _adaptAndRegisterXswdApplication,
+    onApplicationDecisionStarted: _startXswdApplicationDecision,
+    onApplicationDecisionCompleted: _completeXswdApplicationDecision,
+    onApplicationDisconnectStarted: _startXswdApplicationDisconnect,
+  );
+
+  XelisXswdApplication _adaptAndRegisterXswdApplication(
+    generated_xswd.AppInfo native, {
+    bool observedInState = false,
+  }) {
+    final capability = _xswdCapabilities.putIfAbsent(
+      native.sessionRef,
+      () => _NativeXswdSessionCapability(native.sessionRef),
+    );
+    if (observedInState) {
+      capability.admitted = true;
+      capability.pendingApplicationDecision = false;
+    }
+    final application = xelisXswdApplicationFromGenerated(
+      native,
+      sessionIdentity: capability.identity,
+    );
+    _xswdApplicationCapabilities[application] = capability;
+    return application;
+  }
+
+  void _startXswdApplicationDecision(generated_xswd.AppInfo application) {
+    _xswdCapabilityForNative(application).pendingApplicationDecision = true;
+  }
+
+  void _completeXswdApplicationDecision(
+    generated_xswd.AppInfo application,
+    generated_xswd.XswdDecisionCallbackOutcome outcome,
+  ) {
+    final capability = _xswdCapabilities[application.sessionRef];
+    if (capability == null) {
+      return;
+    }
+    final accepted = switch (outcome) {
+      generated_xswd.XswdDecisionCallbackOutcome.accept ||
+      generated_xswd.XswdDecisionCallbackOutcome.alwaysAccept => true,
+      _ => false,
+    };
+    if (accepted) {
+      // Upstream inserts the application only after this callback returns.
+      // Preserve its identity until a fresh state read confirms admission.
+      capability.pendingApplicationDecision = true;
+    } else {
+      _invalidateXswdCapability(capability);
+    }
+  }
+
+  void _startXswdApplicationDisconnect(generated_xswd.AppInfo application) {
+    final capability = _xswdCapabilities[application.sessionRef];
+    if (capability != null) {
+      _invalidateXswdCapability(capability);
+    }
+  }
+
+  _NativeXswdSessionCapability _xswdCapabilityForNative(
+    generated_xswd.AppInfo application,
+  ) => _xswdCapabilities.putIfAbsent(
+    application.sessionRef,
+    () => _NativeXswdSessionCapability(application.sessionRef),
+  );
+
+  _NativeXswdSessionCapability _xswdCapability(
+    XelisXswdApplication application, {
+    required XelisWalletOperation operation,
+  }) {
+    final capability = _xswdApplicationCapabilities[application];
+    if (capability == null ||
+        !capability.active ||
+        !capability.admitted ||
+        !identical(_xswdCapabilities[capability.sessionRef], capability)) {
+      throw xelisOperationPreconditionException(
+        operation: operation,
+        code: XelisWalletErrorCode.conflict,
+        nativeKind: 'XSWD_SESSION_REFERENCE_INVALID',
+        diagnosticMessage:
+            'The XSWD session reference is stale, reconstructed, disconnected, '
+            'or owned by another wallet handle.',
+      );
+    }
+    return capability;
+  }
+
+  Future<T> _runXswdApplicationOperation<T>(
+    String applicationId,
+    Future<T> Function() action, {
+    required XelisWalletOperation operation,
+  }) async {
+    if (_xswdLifecycleOperationInProgress ||
+        !_xswdApplicationOperations.add(applicationId)) {
+      throw _xswdOperationInProgress(operation);
+    }
+    try {
+      _ensureActive();
+      final result = await action();
+      _ensureActive();
+      return result;
+    } finally {
+      _xswdApplicationOperations.remove(applicationId);
+    }
+  }
+
+  Future<T> _runXswdLifecycleOperation<T>(
+    Future<T> Function() action, {
+    required XelisWalletOperation operation,
+  }) async {
+    if (_xswdLifecycleOperationInProgress ||
+        _xswdApplicationOperations.isNotEmpty) {
+      throw _xswdOperationInProgress(operation);
+    }
+    _xswdLifecycleOperationInProgress = true;
+    try {
+      _ensureActive();
+      final result = await action();
+      _ensureActive();
+      return result;
+    } finally {
+      _xswdLifecycleOperationInProgress = false;
+    }
+  }
+
+  XelisWalletException _xswdOperationInProgress(
+    XelisWalletOperation operation,
+  ) => xelisOperationPreconditionException(
+    operation: operation,
+    code: XelisWalletErrorCode.conflict,
+    nativeKind: 'XSWD_APPLICATION_OPERATION_IN_PROGRESS',
+    diagnosticMessage:
+        'Another conflicting XSWD lifecycle operation is already active.',
+  );
+
+  void _reconcileXswdCapabilities(List<generated_xswd.AppInfo> applications) {
+    final current = applications.map((application) => application.sessionRef);
+    final currentReferences = current.toSet();
+    final stale = _xswdCapabilities.entries
+        .where(
+          (entry) =>
+              !currentReferences.contains(entry.key) &&
+              !entry.value.pendingApplicationDecision,
+        )
+        .map((entry) => entry.value)
+        .toList(growable: false);
+    for (final capability in stale) {
+      _invalidateXswdCapability(capability);
+    }
+  }
+
+  void _invalidateXswdCapability(_NativeXswdSessionCapability capability) {
+    if (!capability.active &&
+        !identical(_xswdCapabilities[capability.sessionRef], capability)) {
+      return;
+    }
+    capability.active = false;
+    capability.pendingApplicationDecision = false;
+    if (identical(_xswdCapabilities[capability.sessionRef], capability)) {
+      _xswdCapabilities.remove(capability.sessionRef);
+    }
+    _xswdCapabilityRevision++;
+  }
+
+  void _tombstoneXswdCapability(_NativeXswdSessionCapability capability) {
+    if (!capability.active) {
+      return;
+    }
+    capability.active = false;
+    capability.pendingApplicationDecision = false;
+    _xswdCapabilityRevision++;
+  }
+
+  void _invalidateAllXswdCapabilities() {
+    for (final capability in _xswdCapabilities.values) {
+      capability.active = false;
+      capability.pendingApplicationDecision = false;
+    }
+    _xswdCapabilities.clear();
+    _xswdCapabilityRevision++;
   }
 
   XelisWalletPreparedTransaction _adaptAndRegisterPreparedTransaction(
@@ -1741,6 +1971,16 @@ final class _NativePreparedTransactionCapability {
 
   final BigInt preparationId;
   var active = true;
+}
+
+final class _NativeXswdSessionCapability {
+  _NativeXswdSessionCapability(this.sessionRef);
+
+  final BigInt sessionRef;
+  final Object identity = Object();
+  var active = true;
+  var admitted = false;
+  var pendingApplicationDecision = false;
 }
 
 sealed class _NativeMultisigRequestCapability {

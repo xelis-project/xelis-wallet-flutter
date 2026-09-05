@@ -127,6 +127,14 @@ recovery:
 - absent or stale native capabilities use `resource.not_found`, while
   reconstructed, cross-wallet, consumed, or replayed capabilities fail closed
   with `state.conflict`;
+- XSWD application mutations require the exact live opaque session projection.
+  Detached, stale, disconnected, reconstructed, and cross-wallet projections
+  use `state.conflict / XSWD_SESSION_REFERENCE_INVALID`. Concurrent admission
+  and close attempts for the same application ID, plus start/stop calls that
+  overlap an application operation, fail before FFI with `state.conflict /
+  XSWD_APPLICATION_OPERATION_IN_PROGRESS`; native permission and close failures
+  use the static discriminants
+  `XSWD_PERMISSION_UPDATE_FAILED` and `XSWD_SESSION_CLOSE_FAILED`;
 - broadcast result variants carry both the prepared-slot disposition and the
   original structured exception. Retryability must come from the result
   variant, not exception prose or code alone.

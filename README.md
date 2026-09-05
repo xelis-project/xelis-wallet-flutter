@@ -18,7 +18,7 @@ dependencies:
   xelis_wallet_flutter:
     git:
       url: https://github.com/xelis-project/xelis-wallet-flutter.git
-      ref: v0.1.2
+      ref: v0.3.0
 ```
 
 Keep `ref` pinned to a release tag. Update it when adopting a new package
@@ -189,14 +189,26 @@ validation generate a clean consumer outside the repository:
 
 ```text
 dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform windows --mode run
+dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform web --mode run
 dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform android --mode build
 ```
 
-`run` is available for Linux, macOS, and Windows. Mobile consumers are built in
-release mode; Android release validation must additionally check ZIP and ELF
-alignment for 16 KB pages. The generated workspace is deleted unless `--keep`
-is provided. GitHub Actions runs the full native and Web consumer matrix only
-for release tags or an explicit manual dispatch.
+`run` is available for Linux, macOS, Windows, and Web. The Web run builds the
+resolved package's Rust/WASM bundle into a generated Flutter consumer, builds
+that application in release mode, then uses headless Chrome to verify bridge
+initialization and an integrated-address round trip containing `2^53 + 1` and
+`u64::MAX`. This smoke does not exercise the XSWD relay, permission review, or
+decision callbacks. Mobile consumers are built in release mode; Android release
+validation must additionally check ZIP alignment and the ELF alignment of every
+ARM64 and x86_64 library for 16 KB pages. ARMv7 remains a 4 KB runtime target.
+Run `bash tool/check_android_16k.sh <release.apk>` on Linux/macOS or Git Bash
+with `ANDROID_HOME` set. The checker rejects unreadable or malformed ELF
+headers; its hermetic fixtures run with `dart tool/test_android_16k.dart`.
+Passing alignment checks does not replace execution on a 16 KB device/emulator.
+The consumer matrix pins Flutter 3.47.1. The
+generated workspace is deleted unless `--keep` is provided. GitHub Actions runs
+the full native and Web consumer matrix only for release tags or an explicit
+manual dispatch.
 
 ## Web consumers
 
@@ -217,6 +229,12 @@ rustup toolchain install nightly
 rustup component add rust-src --toolchain nightly
 rustup target add wasm32-unknown-unknown --toolchain nightly
 ```
+
+Use Flutter's default JavaScript Web build (`flutter build web`) with this
+Rust/WASM bundle. Flutter's separate Dart-to-Wasm mode (`--wasm`) is not
+validated with the pinned FRB 2.13.0; its Wasm dry run reports a JS-interop
+runtime-check incompatibility. A passing Rust/WASM consumer does not establish
+support for that separate Flutter compilation mode.
 
 The Web host must enable cross-origin isolation for the shared-memory WASM
 runtime. For local Flutter development:

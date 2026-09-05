@@ -37,6 +37,7 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio-tungstenite = "0.28"
 
 [features]
 default = ["api_server"]

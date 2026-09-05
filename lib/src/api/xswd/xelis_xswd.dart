@@ -142,6 +142,11 @@ final class XelisXswdObjectValue extends XelisXswdValue {
 }
 
 /// Authored projection of one application connected through XSWD.
+///
+/// [sessionReference] is an opaque, wallet-owned capability. Only application
+/// projections returned by a live wallet state read or callback can authorize
+/// permission updates and session closure. Constructed applications and
+/// detached references are descriptive values only.
 final class XelisXswdApplication {
   XelisXswdApplication({
     required this.id,
@@ -150,8 +155,20 @@ final class XelisXswdApplication {
     required this.url,
     required Map<String, XelisXswdPermissionPolicy> permissions,
     required this.isRelayer,
+  }) : sessionReference = XelisXswdSessionReference.detached(),
+       permissions = UnmodifiableMapView(Map.of(permissions));
+
+  XelisXswdApplication._live({
+    required this.sessionReference,
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.url,
+    required Map<String, XelisXswdPermissionPolicy> permissions,
+    required this.isRelayer,
   }) : permissions = UnmodifiableMapView(Map.of(permissions));
 
+  final XelisXswdSessionReference sessionReference;
   final String id;
   final String name;
   final String description;
@@ -168,6 +185,53 @@ final class XelisXswdApplication {
       'XelisXswdApplication(permissionCount=${permissions.length}, '
       'isRelayer=$isRelayer)';
 }
+
+/// Opaque identity of one live XSWD application session.
+///
+/// The value deliberately exposes neither its native token nor application
+/// metadata. A detached reference is suitable for non-restorable routing
+/// placeholders, but never authorizes a native operation.
+final class XelisXswdSessionReference {
+  XelisXswdSessionReference._(this._identity);
+
+  factory XelisXswdSessionReference.detached() =>
+      XelisXswdSessionReference._(Object());
+
+  final Object _identity;
+
+  @override
+  bool operator ==(Object other) =>
+      other is XelisXswdSessionReference &&
+      identical(_identity, other._identity);
+
+  @override
+  int get hashCode => identityHashCode(_identity);
+
+  @override
+  String toString() => 'XelisXswdSessionReference(<opaque>)';
+}
+
+/// Package-internal live projection constructor.
+///
+/// Hidden from the package root export: consumers cannot manufacture the
+/// identity object used by the native wallet adapter.
+XelisXswdApplication xelisXswdApplicationWithSessionIdentity({
+  required Object sessionIdentity,
+  required String id,
+  required String name,
+  required String description,
+  required String? url,
+  required Map<String, XelisXswdPermissionPolicy> permissions,
+  required bool isRelayer,
+}) => XelisXswdApplication._live(
+  sessionReference: XelisXswdSessionReference._(sessionIdentity),
+  id: id,
+  name: name,
+  description: description,
+  url: url,
+  permissions: permissions,
+  isRelayer: isRelayer,
+);
 
 /// Snapshot of the process state owned by one wallet's XSWD integration.
 final class XelisXswdState {
@@ -282,6 +346,10 @@ typedef XelisXswdDecisionCallback = FutureOr<XelisXswdDecision> Function(
 /// Callback exceptions and timeouts never cross into Rust as arbitrary Dart
 /// errors. They become static technical XSWD failures. Only an explicit
 /// [XelisXswdDecision.reject] is represented as a user rejection.
+///
+/// XWF runs one decision callback at a time. Cancellation or disconnection of
+/// the exact upstream application-state instance preempts its active decision;
+/// a later result from that decision is not returned to the wallet.
 final class XelisXswdCallbacks {
   const XelisXswdCallbacks({
     required this.onCancelRequest,
@@ -299,7 +367,7 @@ final class XelisXswdCallbacks {
   final XelisXswdDecisionCallback onPrefetchPermissionsRequest;
   final XelisXswdNotificationCallback onApplicationDisconnect;
 
-  /// Maximum time a callback may retain the native XSWD event loop.
+  /// Maximum time an individual XSWD callback future may remain pending.
   final Duration timeout;
 
   /// Resource budget fixed when these callbacks create the native handler.

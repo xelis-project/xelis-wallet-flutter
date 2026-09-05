@@ -12,7 +12,10 @@ use super::business_events::{pending_transaction, transaction_entry, ExtraDataPr
 use super::XelisWallet;
 use crate::api::{
     error::{NativeXelisError, NativeXelisErrorCode},
-    models::business_event_dtos::{NativeWalletPendingTransaction, NativeWalletTransactionEntry},
+    models::business_event_dtos::{
+        NativeWalletExtraDataDisclosure, NativeWalletPendingTransaction,
+        NativeWalletTransactionEntry,
+    },
 };
 use anyhow::{Context, Result};
 use xelis_common::crypto::{Hash, PublicKey};
@@ -190,7 +193,7 @@ impl XelisWallet {
     pub async fn history(
         &self,
         filter: HistoryPageFilter,
-        include_extra_data_payload: bool,
+        extra_data_disclosure: NativeWalletExtraDataDisclosure,
     ) -> std::result::Result<Vec<NativeWalletTransactionEntry>, NativeXelisError> {
         let mut txs = Vec::new();
         let PreparedHistoryFilter {
@@ -235,7 +238,7 @@ impl XelisWallet {
             );
         }
         let mainnet = self.wallet.get_network().is_mainnet();
-        let projection = ExtraDataProjection::explicit(include_extra_data_payload);
+        let projection = ExtraDataProjection::from_disclosure(extra_data_disclosure);
 
         for tx in pagination.apply(transactions) {
             txs.push(
@@ -254,11 +257,11 @@ impl XelisWallet {
 
     pub async fn get_pending_transactions(
         &self,
-        include_extra_data_payload: bool,
+        extra_data_disclosure: NativeWalletExtraDataDisclosure,
     ) -> std::result::Result<Vec<NativeWalletPendingTransaction>, NativeXelisError> {
         let storage = self.wallet.get_storage().read().await;
         let mainnet = self.wallet.get_network().is_mainnet();
-        let projection = ExtraDataProjection::explicit(include_extra_data_payload);
+        let projection = ExtraDataProjection::from_disclosure(extra_data_disclosure);
 
         storage
             .get_pending_txs()
@@ -279,7 +282,7 @@ impl XelisWallet {
     pub async fn get_transaction_by_hash(
         &self,
         hash: String,
-        include_extra_data_payload: bool,
+        extra_data_disclosure: NativeWalletExtraDataDisclosure,
     ) -> std::result::Result<NativeWalletTransactionEntry, NativeXelisError> {
         let hash = Hash::from_hex(&hash).map_err(|error| {
             classify_history_error(
@@ -299,7 +302,7 @@ impl XelisWallet {
 
         transaction_entry(
             transaction.serializable(self.wallet.get_network().is_mainnet()),
-            ExtraDataProjection::explicit(include_extra_data_payload),
+            ExtraDataProjection::from_disclosure(extra_data_disclosure),
         )
         .map_err(|error| {
             classify_history_error(
@@ -313,7 +316,7 @@ impl XelisWallet {
     pub async fn get_pending_transaction_by_hash(
         &self,
         hash: String,
-        include_extra_data_payload: bool,
+        extra_data_disclosure: NativeWalletExtraDataDisclosure,
     ) -> std::result::Result<NativeWalletPendingTransaction, NativeXelisError> {
         let hash = Hash::from_hex(&hash).map_err(|error| {
             classify_history_error(
@@ -338,7 +341,7 @@ impl XelisWallet {
 
         pending_transaction(
             transaction.serializable(self.wallet.get_network().is_mainnet()),
-            ExtraDataProjection::explicit(include_extra_data_payload),
+            ExtraDataProjection::from_disclosure(extra_data_disclosure),
         )
         .map_err(|error| {
             classify_history_error(

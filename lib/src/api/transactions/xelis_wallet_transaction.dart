@@ -4,6 +4,8 @@ import '../data/xelis_data_element.dart';
 ///
 /// Hashes use their canonical hexadecimal representation. Monetary [BigInt]
 /// values nested below this record use atomic units and remain lossless on Web.
+/// Nested extra data is projected according to the disclosure requested by the
+/// read or business-event subscription that produced this record.
 final class XelisWalletTransactionEntry {
   const XelisWalletTransactionEntry({
     required this.hash,
@@ -29,6 +31,8 @@ final class XelisWalletTransactionEntry {
 ///
 /// Hashes use their canonical hexadecimal representation. Monetary [BigInt]
 /// values nested below this record use atomic units and remain lossless on Web.
+/// Nested extra data is projected according to the disclosure requested by the
+/// read or business-event subscription that produced this record.
 final class XelisWalletPendingTransaction {
   const XelisWalletPendingTransaction({
     required this.hash,
@@ -163,7 +167,7 @@ final class XelisWalletIncomingContractEntry
   final List<XelisWalletContractTransferGroup> transfers;
 }
 
-/// Outgoing blob transaction with redacted extra-data metadata.
+/// Outgoing blob transaction with disclosure-projected extra data.
 final class XelisWalletOutgoingBlobEntry
     extends XelisWalletTransactionEntryData {
   XelisWalletOutgoingBlobEntry({
@@ -179,7 +183,7 @@ final class XelisWalletOutgoingBlobEntry
   final XelisWalletExtraData data;
 }
 
-/// Incoming blob transaction with redacted extra-data metadata.
+/// Incoming blob transaction with disclosure-projected extra data.
 final class XelisWalletIncomingBlobEntry
     extends XelisWalletTransactionEntryData {
   XelisWalletIncomingBlobEntry({
@@ -224,11 +228,13 @@ final class XelisWalletTransferOut {
 /// Metadata about transaction extra data.
 ///
 /// [payload] contains the lossless tagged representation only for a detailed
-/// explicit read. It can contain application data and is therefore potentially
-/// sensitive: do not include it in standard logs.
+/// read or business-event subscription. It can contain application data and is
+/// therefore potentially sensitive: do not include it in standard logs.
 /// [payloadKind] is available from metadata reads without revealing the value.
-/// Passive business events always set all three detail fields to `null`. The
-/// upstream shared encryption key never crosses the package boundary.
+/// Reads and business-event subscriptions apply their requested disclosure:
+/// redacted omits [payload] and [payloadKind], metadata adds [payloadKind], and
+/// detailed may include both. The upstream shared encryption key never crosses
+/// the package boundary.
 final class XelisWalletExtraData {
   const XelisWalletExtraData({
     required this.flag,
@@ -240,12 +246,13 @@ final class XelisWalletExtraData {
   final XelisWalletExtraDataFlag flag;
   final bool hasPayload;
 
-  /// Lossless tagged payload returned by a detailed explicit read.
+  /// Lossless tagged payload returned by a detailed read or subscription.
   ///
   /// This can contain sensitive application data and must not be included in
   /// standard logs or persisted implicitly.
   final XelisDataElement? payload;
 
+  /// Top-level payload kind returned by metadata and detailed projections.
   final XelisWalletExtraDataPayloadKind? payloadKind;
 }
 
@@ -253,7 +260,7 @@ final class XelisWalletExtraData {
 enum XelisWalletExtraDataDisclosure {
   /// Returns only the flag and payload-presence bit.
   ///
-  /// This matches the passive business-event behavior from XWF 0.2.
+  /// This is the default for passive business-event subscriptions.
   redacted,
 
   /// Returns flag, payload presence, and top-level kind without payload data.
@@ -262,7 +269,7 @@ enum XelisWalletExtraDataDisclosure {
   /// Also returns the lossless tagged payload.
   ///
   /// This can contain sensitive application data and is intended for explicit
-  /// detail or reveal flows only.
+  /// detail/reveal flows or an explicitly opted-in subscription only.
   detailed,
 }
 

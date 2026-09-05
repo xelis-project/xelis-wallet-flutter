@@ -17,6 +17,7 @@ part 'xswd_dtos.freezed.dart';
 @freezed
 sealed class AppInfo with _$AppInfo {
   const factory AppInfo({
+    required BigInt sessionRef,
     required String id,
     required String name,
     required String description,

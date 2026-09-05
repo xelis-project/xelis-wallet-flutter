@@ -33,15 +33,17 @@ void main() {
       expect(state.toString(), isNot(contains('application-id')));
 
       await wallet.updateXswdApplicationPermissions(
-        applicationId: 'application-id',
+        application: state.applications.single,
         permissions: const {'get_balance': XelisXswdPermissionPolicy.accept},
       );
       expect(delegate.lastPermissions, {
         'get_balance': generated_models.PermissionPolicy.accept,
       });
 
-      await wallet.closeXswdApplicationSession(applicationId: 'application-id');
-      expect(delegate.closedApplicationId, 'application-id');
+      await wallet.closeXswdApplicationSession(
+        application: state.applications.single,
+      );
+      expect(delegate.closedSessionRef, BigInt.one);
 
       final relayer = XelisXswdRelayer(
         id: 'relay-id',
@@ -66,6 +68,415 @@ void main() {
       await wallet.stopXswd();
       expect(delegate.stopCalls, 2);
     });
+
+    test(
+      'uses exact stable capabilities across projections and wallet handles',
+      () async {
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: [
+            _generatedApplication(),
+            _generatedApplication(sessionRef: BigInt.two, isRelayer: true),
+          ],
+        );
+        final wallet = NativeXelisWallet(delegate);
+        final first = await wallet.getXswdState();
+        final second = await wallet.getXswdState();
+
+        expect(
+          first.applications.first.sessionReference,
+          second.applications.first.sessionReference,
+        );
+        expect(
+          first.applications.first.sessionReference,
+          isNot(first.applications.last.sessionReference),
+        );
+        expect(
+          first.applications.first.sessionReference.toString(),
+          'XelisXswdSessionReference(<opaque>)',
+        );
+
+        await wallet.updateXswdApplicationPermissions(
+          application: first.applications.last,
+          permissions: const {},
+        );
+        expect(delegate.lastPermissionsSessionRef, BigInt.two);
+
+        final reconstructed = XelisXswdApplication(
+          id: first.applications.first.id,
+          name: first.applications.first.name,
+          description: first.applications.first.description,
+          url: first.applications.first.url,
+          permissions: first.applications.first.permissions,
+          isRelayer: first.applications.first.isRelayer,
+        );
+        await _expectInvalidXswdSession(
+          wallet.closeXswdApplicationSession(application: reconstructed),
+        );
+
+        final otherWallet = NativeXelisWallet(
+          _FakeGeneratedXswdWallet(
+            running: true,
+            applications: [_generatedApplication(sessionRef: BigInt.from(3))],
+          ),
+        );
+        await _expectInvalidXswdSession(
+          otherWallet.closeXswdApplicationSession(
+            application: first.applications.first,
+          ),
+        );
+
+        await wallet.closeXswdApplicationSession(
+          application: first.applications.first,
+        );
+        await _expectInvalidXswdSession(
+          wallet.updateXswdApplicationPermissions(
+            application: second.applications.first,
+            permissions: const {},
+          ),
+        );
+      },
+    );
+
+    test('keeps capability after native close failure', () async {
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+        sessionFailure: AnyhowException('first close failed'),
+      );
+      final wallet = NativeXelisWallet(delegate);
+      final application = (await wallet.getXswdState()).applications.single;
+
+      await expectLater(
+        wallet.closeXswdApplicationSession(application: application),
+        throwsA(isA<XelisWalletException>()),
+      );
+      delegate.sessionFailure = null;
+      await wallet.closeXswdApplicationSession(application: application);
+      expect(delegate.closedSessionRef, BigInt.one);
+    });
+
+    test('rejects same-id close while relayer admission is pending', () async {
+      final relayerGate = Completer<void>();
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      )..relayerGate = relayerGate;
+      final wallet = NativeXelisWallet(delegate);
+      final application = (await wallet.getXswdState()).applications.single;
+      final add = wallet.addXswdRelayer(
+        relayer: XelisXswdRelayer(
+          id: application.id,
+          name: 'Replacement',
+          description: '',
+          url: null,
+          permissions: const [],
+          relayer: 'wss://relay.example',
+        ),
+        callbacks: _callbacks(),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await _expectXswdOperationInProgress(
+        wallet.closeXswdApplicationSession(application: application),
+        XelisWalletOperation.walletXswdSessionClose,
+      );
+
+      expect(delegate.closedSessionRef, isNull);
+      relayerGate.complete();
+      await add;
+      await wallet.closeXswdApplicationSession(application: application);
+      expect(delegate.operationOrder, [
+        'add:start',
+        'add:end',
+        'close:start',
+        'close:end',
+      ]);
+    });
+
+    test('rejects same-id relayer admission while close is pending', () async {
+      final closeGate = Completer<void>();
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      )..closeGate = closeGate;
+      final wallet = NativeXelisWallet(delegate);
+      final application = (await wallet.getXswdState()).applications.single;
+      final close = wallet.closeXswdApplicationSession(
+        application: application,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await _expectXswdOperationInProgress(
+        wallet.addXswdRelayer(
+          relayer: XelisXswdRelayer(
+            id: application.id,
+            name: 'Replacement',
+            description: '',
+            url: null,
+            permissions: const [],
+            relayer: 'wss://relay.example',
+          ),
+          callbacks: _callbacks(),
+        ),
+        XelisWalletOperation.walletXswdRelayerAdd,
+      );
+      expect(delegate.relayerCalls, 0);
+
+      closeGate.complete();
+      await close;
+      await wallet.addXswdRelayer(
+        relayer: XelisXswdRelayer(
+          id: application.id,
+          name: 'Replacement',
+          description: '',
+          url: null,
+          permissions: const [],
+          relayer: 'wss://relay.example',
+        ),
+        callbacks: _callbacks(),
+      );
+      expect(delegate.operationOrder, [
+        'close:start',
+        'close:end',
+        'add:start',
+        'add:end',
+      ]);
+    });
+
+    test('rejects stop while an application operation is pending', () async {
+      final relayerGate = Completer<void>();
+      final delegate = _FakeGeneratedXswdWallet()..relayerGate = relayerGate;
+      final wallet = NativeXelisWallet(delegate);
+      final add = wallet.addXswdRelayer(
+        relayer: XelisXswdRelayer(
+          id: 'application-id',
+          name: 'Relayer',
+          description: '',
+          url: null,
+          permissions: const [],
+          relayer: 'wss://relay.example',
+        ),
+        callbacks: _callbacks(),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await _expectXswdOperationInProgress(
+        wallet.stopXswd(),
+        XelisWalletOperation.walletXswdStop,
+      );
+      await _expectXswdOperationInProgress(
+        wallet.startXswd(callbacks: _callbacks()),
+        XelisWalletOperation.walletXswdStart,
+      );
+      expect(delegate.stopCalls, 0);
+      relayerGate.complete();
+      await add;
+      await wallet.stopXswd();
+      expect(delegate.stopCalls, 1);
+    });
+
+    test(
+      'rejects relayer admission during stop and allows it after restart',
+      () async {
+        final stopGate = Completer<void>();
+        final delegate = _FakeGeneratedXswdWallet(running: true)
+          ..stopGate = stopGate;
+        final wallet = NativeXelisWallet(delegate);
+        final stop = wallet.stopXswd();
+        await Future<void>.delayed(Duration.zero);
+
+        await _expectXswdOperationInProgress(
+          wallet.addXswdRelayer(
+            relayer: XelisXswdRelayer(
+              id: 'application-id',
+              name: 'Relayer',
+              description: '',
+              url: null,
+              permissions: const [],
+              relayer: 'wss://relay.example',
+            ),
+            callbacks: _callbacks(),
+          ),
+          XelisWalletOperation.walletXswdRelayerAdd,
+        );
+        await _expectXswdOperationInProgress(
+          wallet.startXswd(callbacks: _callbacks()),
+          XelisWalletOperation.walletXswdStart,
+        );
+        expect(delegate.relayerCalls, 0);
+
+        stopGate.complete();
+        await stop;
+        await wallet.startXswd(callbacks: _callbacks());
+        await wallet.addXswdRelayer(
+          relayer: XelisXswdRelayer(
+            id: 'application-id',
+            name: 'Relayer',
+            description: '',
+            url: null,
+            permissions: const [],
+            relayer: 'wss://relay.example',
+          ),
+          callbacks: _callbacks(),
+        );
+        expect(delegate.stopCalls, 1);
+        expect(delegate.relayerCalls, 1);
+      },
+    );
+
+    test('invalidates rejected callback session capabilities', () async {
+      late XelisXswdApplication callbackApplication;
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      await wallet.startXswd(
+        callbacks: XelisXswdCallbacks(
+          onCancelRequest: (_) async {},
+          onApplicationRequest: (request) {
+            callbackApplication = request.application;
+            return XelisXswdDecision.reject;
+          },
+          onPermissionRequest: (_) async => XelisXswdDecision.accept,
+          onPrefetchPermissionsRequest: (_) async => XelisXswdDecision.accept,
+          onApplicationDisconnect: (_) async {},
+        ),
+      );
+
+      final outcome = await delegate.applicationCallback!(
+        _generatedRequest(const generated_models.XswdRequestType.application()),
+      );
+      expect(outcome, generated_models.XswdDecisionCallbackOutcome.reject);
+      await _expectInvalidXswdSession(
+        wallet.closeXswdApplicationSession(application: callbackApplication),
+      );
+    });
+
+    test('keeps admission identity stable but non-operable until state confirms it', () async {
+      late XelisXswdApplication callbackApplication;
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      );
+      final wallet = NativeXelisWallet(delegate);
+      await wallet.startXswd(
+        callbacks: XelisXswdCallbacks(
+          onCancelRequest: (_) async {},
+          onApplicationRequest: (request) {
+            callbackApplication = request.application;
+            return XelisXswdDecision.accept;
+          },
+          onPermissionRequest: (_) async => XelisXswdDecision.accept,
+          onPrefetchPermissionsRequest: (_) async => XelisXswdDecision.accept,
+          onApplicationDisconnect: (_) async {},
+        ),
+      );
+
+      expect(
+        await delegate.applicationCallback!(
+          _generatedRequest(
+            const generated_models.XswdRequestType.application(),
+          ),
+        ),
+        generated_models.XswdDecisionCallbackOutcome.accept,
+      );
+      await _expectInvalidXswdSession(
+        wallet.closeXswdApplicationSession(application: callbackApplication),
+      );
+      expect(delegate.closedSessionRef, isNull);
+
+      delegate.applications = const [];
+      expect((await wallet.getXswdState()).applications, isEmpty);
+      delegate.applications = [_generatedApplication()];
+      final admitted = (await wallet.getXswdState()).applications.single;
+      expect(admitted.sessionReference, callbackApplication.sessionReference);
+      await wallet.updateXswdApplicationPermissions(
+        application: admitted,
+        permissions: const {},
+      );
+      expect(delegate.lastPermissionsSessionRef, BigInt.one);
+    });
+
+    test('does not revive a session from a stale state read', () async {
+      final staleApplications = [_generatedApplication()];
+      final applicationsRead = Completer<List<generated_models.AppInfo>>();
+      final disconnectRelease = Completer<void>();
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: staleApplications,
+      );
+      final wallet = NativeXelisWallet(delegate);
+      await wallet.startXswd(
+        callbacks: XelisXswdCallbacks(
+          onCancelRequest: (_) async {},
+          onApplicationRequest: (_) async => XelisXswdDecision.accept,
+          onPermissionRequest: (_) async => XelisXswdDecision.accept,
+          onPrefetchPermissionsRequest: (_) async => XelisXswdDecision.accept,
+          onApplicationDisconnect: (_) => disconnectRelease.future,
+        ),
+      );
+      final application = (await wallet.getXswdState()).applications.single;
+
+      delegate.applicationsFuture = applicationsRead.future;
+      final staleRead = wallet.getXswdState();
+      await Future<void>.delayed(Duration.zero);
+      final disconnect = delegate.disconnectCallback!(
+        _generatedRequest(
+          const generated_models.XswdRequestType.appDisconnect(),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await _expectInvalidXswdSession(
+        wallet.closeXswdApplicationSession(application: application),
+      );
+      delegate
+        ..applications = const []
+        ..applicationsFuture = null;
+      applicationsRead.complete(staleApplications);
+      final refreshed = await staleRead;
+      expect(refreshed.applications, isEmpty);
+
+      disconnectRelease.complete();
+      expect(
+        await disconnect,
+        generated_models.XswdNotificationCallbackOutcome.completed,
+      );
+    });
+
+    test(
+      'does not revive sessions from a state read overtaken by stop',
+      () async {
+        final staleApplications = [_generatedApplication()];
+        final applicationsRead = Completer<List<generated_models.AppInfo>>();
+        final delegate = _FakeGeneratedXswdWallet(
+          running: true,
+          applications: staleApplications,
+        );
+        final wallet = NativeXelisWallet(delegate);
+        final application = (await wallet.getXswdState()).applications.single;
+
+        delegate.applicationsFuture = applicationsRead.future;
+        final staleRead = wallet.getXswdState();
+        await Future<void>.delayed(Duration.zero);
+        await wallet.stopXswd();
+        delegate
+          ..applications = const []
+          ..applicationsFuture = null;
+        applicationsRead.complete(staleApplications);
+
+        final refreshed = await staleRead;
+        expect(refreshed.isRunning, isFalse);
+        expect(refreshed.applications, isEmpty);
+        await _expectInvalidXswdSession(
+          wallet.updateXswdApplicationPermissions(
+            application: application,
+            permissions: const {},
+          ),
+        );
+      },
+    );
 
     test('adapts generated callbacks and redacts request payloads', () async {
       late XelisXswdRequest received;
@@ -328,12 +739,16 @@ void main() {
     });
 
     test('rejects prefixed permission names before generated calls', () async {
-      final delegate = _FakeGeneratedXswdWallet();
+      final delegate = _FakeGeneratedXswdWallet(
+        running: true,
+        applications: [_generatedApplication()],
+      );
       final wallet = NativeXelisWallet(delegate);
+      final application = (await wallet.getXswdState()).applications.single;
 
       await expectLater(
         wallet.updateXswdApplicationPermissions(
-          applicationId: 'application-id',
+          application: application,
           permissions: const {
             'wallet.get_balance': XelisXswdPermissionPolicy.accept,
           },
@@ -436,18 +851,27 @@ void main() {
       );
       await _expectXswdOperation(
         wallet: NativeXelisWallet(
-          _FakeGeneratedXswdWallet(sessionFailure: failure),
+          _FakeGeneratedXswdWallet(
+            running: true,
+            applications: [_generatedApplication()],
+            sessionFailure: failure,
+          ),
         ),
-        call: (wallet) =>
-            wallet.closeXswdApplicationSession(applicationId: 'id'),
+        call: (wallet) async => wallet.closeXswdApplicationSession(
+          application: (await wallet.getXswdState()).applications.single,
+        ),
         operation: XelisWalletOperation.walletXswdSessionClose,
       );
       await _expectXswdOperation(
         wallet: NativeXelisWallet(
-          _FakeGeneratedXswdWallet(permissionsFailure: failure),
+          _FakeGeneratedXswdWallet(
+            running: true,
+            applications: [_generatedApplication()],
+            permissionsFailure: failure,
+          ),
         ),
-        call: (wallet) => wallet.updateXswdApplicationPermissions(
-          applicationId: 'id',
+        call: (wallet) async => wallet.updateXswdApplicationPermissions(
+          application: (await wallet.getXswdState()).applications.single,
           permissions: const {},
         ),
         operation: XelisWalletOperation.walletXswdPermissionsUpdate,
@@ -472,6 +896,36 @@ Future<void> _expectXswdOperation({
   }
 }
 
+Future<void> _expectInvalidXswdSession(Future<void> future) => expectLater(
+  future,
+  throwsA(
+    isA<XelisWalletException>()
+        .having((error) => error.code, 'code', XelisWalletErrorCode.conflict)
+        .having(
+          (error) => error.nativeKind,
+          'nativeKind',
+          'XSWD_SESSION_REFERENCE_INVALID',
+        ),
+  ),
+);
+
+Future<void> _expectXswdOperationInProgress(
+  Future<void> future,
+  XelisWalletOperation operation,
+) => expectLater(
+  future,
+  throwsA(
+    isA<XelisWalletException>()
+        .having((error) => error.operation, 'operation', operation)
+        .having((error) => error.code, 'code', XelisWalletErrorCode.conflict)
+        .having(
+          (error) => error.nativeKind,
+          'nativeKind',
+          'XSWD_APPLICATION_OPERATION_IN_PROGRESS',
+        ),
+  ),
+);
+
 XelisXswdCallbacks _callbacks({
   Duration timeout = const Duration(minutes: 1),
   XelisXswdProjectionLimits limits = const XelisXswdProjectionLimits(),
@@ -488,15 +942,19 @@ XelisXswdCallbacks _callbacks({
   onApplicationDisconnect: (_) async {},
 );
 
-generated_models.AppInfo _generatedApplication() =>
-    const generated_models.AppInfo(
-      id: 'application-id',
-      name: 'application-name',
-      description: 'application-description',
-      url: 'https://application.example',
-      permissions: {'get_balance': generated_models.PermissionPolicy.ask},
-      isRelayer: false,
-    );
+generated_models.AppInfo _generatedApplication({
+  BigInt? sessionRef,
+  String id = 'application-id',
+  bool isRelayer = false,
+}) => generated_models.AppInfo(
+  sessionRef: sessionRef ?? BigInt.one,
+  id: id,
+  name: 'application-name',
+  description: 'application-description',
+  url: 'https://application.example',
+  permissions: {'get_balance': generated_models.PermissionPolicy.ask},
+  isRelayer: isRelayer,
+);
 
 generated_models.XswdRequestSummary _generatedRequest(
   generated_models.XswdRequestType type,
@@ -569,18 +1027,24 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   });
 
   bool running;
-  final List<generated_models.AppInfo> applications;
+  List<generated_models.AppInfo> applications;
+  Future<List<generated_models.AppInfo>>? applicationsFuture;
   final Object? startFailure;
   final Object? stopFailure;
   final Object? stateFailure;
   final Object? relayerFailure;
-  final Object? sessionFailure;
+  Object? sessionFailure;
   final Object? permissionsFailure;
 
   var startCalls = 0;
   var stopCalls = 0;
   var relayerCalls = 0;
-  String? closedApplicationId;
+  Completer<void>? relayerGate;
+  Completer<void>? closeGate;
+  Completer<void>? stopGate;
+  final operationOrder = <String>[];
+  BigInt? closedSessionRef;
+  BigInt? lastPermissionsSessionRef;
   Map<String, generated_models.PermissionPolicy>? lastPermissions;
   generated_models.ApplicationDataRelayer? lastRelayer;
   generated_models.NativeXswdProjectionLimits? lastProjectionLimits;
@@ -592,6 +1056,14 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
     generated_models.XswdRequestSummary,
   )?
   permissionCallback;
+  FutureOr<generated_models.XswdDecisionCallbackOutcome> Function(
+    generated_models.XswdRequestSummary,
+  )?
+  applicationCallback;
+  FutureOr<generated_models.XswdNotificationCallbackOutcome> Function(
+    generated_models.XswdRequestSummary,
+  )?
+  disconnectCallback;
 
   @override
   bool get isDisposed => false;
@@ -625,13 +1097,16 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
     if (startFailure case final error?) throw error;
     lastProjectionLimits = projectionLimits;
     cancelCallback = cancelRequestDartCallback;
+    applicationCallback = requestApplicationDartCallback;
     permissionCallback = requestPermissionDartCallback;
+    disconnectCallback = appDisconnectDartCallback;
     running = true;
   }
 
   @override
   Future<void> stopXswd() async {
     stopCalls++;
+    await stopGate?.future;
     if (stopFailure case final error?) throw error;
     running = false;
   }
@@ -639,6 +1114,7 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
   @override
   Future<List<generated_models.AppInfo>> getApplicationPermissions() async {
     if (stateFailure case final error?) throw error;
+    if (applicationsFuture case final future?) return future;
     return applications;
   }
 
@@ -666,22 +1142,29 @@ final class _FakeGeneratedXswdWallet implements generated_wallet.XelisWallet {
     appDisconnectDartCallback,
   }) async {
     relayerCalls++;
+    operationOrder.add('add:start');
+    await relayerGate?.future;
     if (relayerFailure case final error?) throw error;
     lastRelayer = appData;
+    operationOrder.add('add:end');
   }
 
   @override
-  Future<void> closeApplicationSession({required String id}) async {
+  Future<void> closeApplicationSession({required BigInt sessionRef}) async {
     if (sessionFailure case final error?) throw error;
-    closedApplicationId = id;
+    operationOrder.add('close:start');
+    await closeGate?.future;
+    closedSessionRef = sessionRef;
+    operationOrder.add('close:end');
   }
 
   @override
   Future<void> modifyApplicationPermissions({
-    required String id,
+    required BigInt sessionRef,
     required Map<String, generated_models.PermissionPolicy> permissions,
   }) async {
     if (permissionsFailure case final error?) throw error;
+    lastPermissionsSessionRef = sessionRef;
     lastPermissions = permissions;
   }
 

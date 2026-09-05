@@ -4,20 +4,15 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../../frb_generated.dart';
+import '../error.dart';
 import '../models/xswd_dtos.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `apply_permission_updates`, `convert_encryption_mode`, `create_event_summary`, `decision_failure_code`, `encryption_key`, `fail_permission_projection`, `fail_prefetch_projection`, `handle_permission_outcome`, `handle_prefetch_permissions_outcome`, `handle_xswd_event`, `modify_app_permissions`, `notification_callback_failure`, `notification_failure_code`, `permission_from_policy`, `permission_result_from_outcome`, `prefetch_permissions_from_decision`, `xswd_event_name`
+// These functions are ignored because they are not marked as `pub`: `acknowledge_cancelled_request`, `apply_permission_updates`, `cancel_deferred_xswd_decisions`, `cancel`, `clear`, `complete_with`, `complete`, `convert_encryption_mode`, `create_app_info`, `create_event_summary`, `decision_failure_code`, `defer_xswd_decision`, `defer_xswd_disconnect`, `encryption_key`, `fail_deferred_xswd_decisions`, `fail_deferred_xswd_event`, `fail_permission_projection`, `fail_prefetch_projection`, `fail`, `fail`, `handle_permission_outcome`, `handle_prefetch_permissions_outcome`, `handle_xswd_lifecycle_event`, `invalid_xswd_session_reference`, `invalidate_state`, `invalidate`, `is_xswd_decision_event`, `modify_app_permissions`, `notification_callback_failure`, `notification_failure_code`, `permission_from_policy`, `permission_result_from_outcome`, `prefetch_permissions_from_decision`, `prepare_xswd_event`, `register`, `remove_dead`, `resolve`, `send_permission_failure`, `send_prefetch_failure`, `xswd_event_name`, `xswd_handler_with_registry`, `xswd_permission_update_failed`, `xswd_session_close_failed`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `PendingXswdDecision`, `PendingXswdResponse`, `PreparedXswdEvent`, `XswdHandlerInput`, `XswdLifecycleEvent`, `XswdSessionRegistry`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `xswd_handler`
-
-Future<AppInfo> createAppInfo({required AppState state}) =>
-    XelisWalletFlutterBridge.instance.api.crateApiXswdImpCreateAppInfo(
-      state: state,
-    );
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppState>>
-abstract class AppState implements RustOpaqueInterface {}
+// These functions are ignored (category: IgnoreBecauseOwnerTyShouldIgnore): `default`
 
 abstract class XSWD {
   Future<void> addXswdRelayer({
@@ -39,14 +34,14 @@ abstract class XSWD {
     appDisconnectDartCallback,
   });
 
-  Future<void> closeApplicationSession({required String id});
+  Future<void> closeApplicationSession({required BigInt sessionRef});
 
   Future<List<AppInfo>> getApplicationPermissions();
 
   Future<bool> isXswdRunning();
 
   Future<void> modifyApplicationPermissions({
-    required String id,
+    required BigInt sessionRef,
     required Map<String, PermissionPolicy> permissions,
   });
 

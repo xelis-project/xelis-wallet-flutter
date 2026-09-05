@@ -2,6 +2,24 @@
 
 ## 0.3.0
 
+- **Breaking:** XSWD session close and permission updates now require the exact
+  live `XelisXswdApplication` capability instead of an application ID. Opaque
+  session references remain stable across callbacks and state reads, reject
+  stale/reconstructed/cross-wallet use, and distinguish simultaneous local and
+  relayed applications that share an ID.
+- XSWD decision handling is now bounded and cancellation-aware: exact
+  cancellation/disconnect events preempt pending Dart decisions, late results
+  cannot authorize requests, relayer close shuts down the client transport,
+  and local close preserves upstream cancel/disconnect cleanup.
+- XSWD admission proposals stay non-operable until a fresh state read confirms
+  upstream insertion. State-read generations and disconnect tombstones prevent
+  delayed native snapshots from reviving stopped or disconnected sessions.
+- Relayer session close now drives cancellation and client shutdown
+  concurrently, so transport teardown does not wait for a blocked disconnect
+  notification. Concurrent same-ID admission and close calls fail closed;
+  frames already selected by the pinned upstream client remain in-flight until
+  its pre-dispatch closing gate is addressed upstream.
+
 - **Breaking:** Replaced `XelisXswdRequest.payloadJson` with the typed,
   deeply immutable `XelisXswdValue` projection for XWF 0.3.0. Native `i64` and
   `u64` request values now cross Web as exact Dart `BigInt`s, payload projection
@@ -17,6 +35,10 @@
 - Added per-subscription redacted, metadata, and detailed business-event
   extra-data disclosure. The default preserves the XWF 0.2 redacted behavior,
   and the upstream shared encryption key is never exposed.
+- **Breaking:** Wallet history, pending, and hash-detail bridge methods now
+  transport `XelisWalletExtraDataDisclosure` as a three-way contract instead
+  of collapsing it to a payload boolean. Explicit `redacted` reads now omit
+  both payload and top-level payload kind as documented.
 - **Breaking:** Replaced logger `diagnosticMode` with
   `XelisNativeLogScope`. Raw `xelis_wallet` and `xelis_common` records require
   the explicitly unsafe local-diagnostic scope. Migrate `diagnosticMode: false`
@@ -24,7 +46,9 @@
   `scope: packageDiagnostic`; the unsafe upstream scope has no 0.2 equivalent.
 - Added `XelisWalletConnectionOptions` with a configurable positive timeout
   and opt-in experimental upstream-managed reconnection. Application-managed
-  reconnection and a 20-second timeout remain the defaults.
+  reconnection and a 20-second connect timeout remain the defaults. The timeout
+  applies only to connection establishment; offline and close always await
+  native handler shutdown.
 - **Build:** Updated the pinned Rust toolchain from 1.93.1 to 1.94.1 while
   retaining the same declared components and supported native targets.
 - **Build:** Changed the supported binding-generation command to

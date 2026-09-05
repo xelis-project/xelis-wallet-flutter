@@ -21,7 +21,7 @@ mixin _$NativeWalletBusinessEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent);
 }
 
 
@@ -30,7 +30,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent()';
+    return 'NativeWalletBusinessEvent()';
 }
 
 
@@ -227,16 +227,18 @@ $NativeWalletBusinessEvent_NewTransactionCopyWith<NativeWalletBusinessEvent_NewT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewTransaction&&(identical(other.transaction, transaction) || other.transaction == transaction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewTransaction&&(identical(other.transaction, transaction) || other.transaction == transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,transaction);
+int get hashCode {
+    return Object.hash(runtimeType,transaction);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.newTransaction(transaction: $transaction)';
+    return 'NativeWalletBusinessEvent.newTransaction(transaction: $transaction)';
 }
 
 
@@ -293,16 +295,18 @@ $NativeWalletBusinessEvent_NewPendingTransactionCopyWith<NativeWalletBusinessEve
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewPendingTransaction&&(identical(other.transaction, transaction) || other.transaction == transaction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewPendingTransaction&&(identical(other.transaction, transaction) || other.transaction == transaction));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,transaction);
+int get hashCode {
+    return Object.hash(runtimeType,transaction);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.newPendingTransaction(transaction: $transaction)';
+    return 'NativeWalletBusinessEvent.newPendingTransaction(transaction: $transaction)';
 }
 
 
@@ -360,16 +364,18 @@ $NativeWalletBusinessEvent_BalanceChangedCopyWith<NativeWalletBusinessEvent_Bala
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_BalanceChanged&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.balance, balance) || other.balance == balance));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_BalanceChanged&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.balance, balance) || other.balance == balance));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset,balance);
+int get hashCode {
+    return Object.hash(runtimeType,asset,balance);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.balanceChanged(asset: $asset, balance: $balance)';
+    return 'NativeWalletBusinessEvent.balanceChanged(asset: $asset, balance: $balance)';
 }
 
 
@@ -427,16 +433,18 @@ $NativeWalletBusinessEvent_NewAssetCopyWith<NativeWalletBusinessEvent_NewAsset> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewAsset&&(identical(other.asset, asset) || other.asset == asset));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_NewAsset&&(identical(other.asset, asset) || other.asset == asset));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset);
+int get hashCode {
+    return Object.hash(runtimeType,asset);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.newAsset(asset: $asset)';
+    return 'NativeWalletBusinessEvent.newAsset(asset: $asset)';
 }
 
 
@@ -493,16 +501,18 @@ $NativeWalletBusinessEvent_AssetTrackedCopyWith<NativeWalletBusinessEvent_AssetT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_AssetTracked&&(identical(other.asset, asset) || other.asset == asset));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_AssetTracked&&(identical(other.asset, asset) || other.asset == asset));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset);
+int get hashCode {
+    return Object.hash(runtimeType,asset);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.assetTracked(asset: $asset)';
+    return 'NativeWalletBusinessEvent.assetTracked(asset: $asset)';
 }
 
 
@@ -559,16 +569,18 @@ $NativeWalletBusinessEvent_AssetUntrackedCopyWith<NativeWalletBusinessEvent_Asse
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_AssetUntracked&&(identical(other.asset, asset) || other.asset == asset));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_AssetUntracked&&(identical(other.asset, asset) || other.asset == asset));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset);
+int get hashCode {
+    return Object.hash(runtimeType,asset);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.assetUntracked(asset: $asset)';
+    return 'NativeWalletBusinessEvent.assetUntracked(asset: $asset)';
 }
 
 
@@ -626,16 +638,18 @@ $NativeWalletBusinessEvent_DegradedCopyWith<NativeWalletBusinessEvent_Degraded> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_Degraded&&(identical(other.skippedEvents, skippedEvents) || other.skippedEvents == skippedEvents)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_Degraded&&(identical(other.skippedEvents, skippedEvents) || other.skippedEvents == skippedEvents)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,skippedEvents,failure);
+int get hashCode {
+    return Object.hash(runtimeType,skippedEvents,failure);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.degraded(skippedEvents: $skippedEvents, failure: $failure)';
+    return 'NativeWalletBusinessEvent.degraded(skippedEvents: $skippedEvents, failure: $failure)';
 }
 
 
@@ -694,16 +708,18 @@ $NativeWalletBusinessEvent_ClosedCopyWith<NativeWalletBusinessEvent_Closed> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_Closed&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletBusinessEvent_Closed&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,reason,failure);
+int get hashCode {
+    return Object.hash(runtimeType,reason,failure);
+}
 
 @override
 String toString() {
-  return 'NativeWalletBusinessEvent.closed(reason: $reason, failure: $failure)';
+    return 'NativeWalletBusinessEvent.closed(reason: $reason, failure: $failure)';
 }
 
 
@@ -751,7 +767,7 @@ mixin _$NativeWalletTransactionEntryData {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData);
 }
 
 
@@ -760,7 +776,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData()';
+    return 'NativeWalletTransactionEntryData()';
 }
 
 
@@ -969,16 +985,18 @@ $NativeWalletTransactionEntryData_CoinbaseCopyWith<NativeWalletTransactionEntryD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Coinbase&&(identical(other.reward, reward) || other.reward == reward));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Coinbase&&(identical(other.reward, reward) || other.reward == reward));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,reward);
+int get hashCode {
+    return Object.hash(runtimeType,reward);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.coinbase(reward: $reward)';
+    return 'NativeWalletTransactionEntryData.coinbase(reward: $reward)';
 }
 
 
@@ -1038,16 +1056,18 @@ $NativeWalletTransactionEntryData_BurnCopyWith<NativeWalletTransactionEntryData_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Burn&&(identical(other.asset, asset) || other.asset == asset)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,asset,amount,fee,nonce);
+int get hashCode {
+    return Object.hash(runtimeType,asset,amount,fee,nonce);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.burn(asset: $asset, amount: $amount, fee: $fee, nonce: $nonce)';
+    return 'NativeWalletTransactionEntryData.burn(asset: $asset, amount: $amount, fee: $fee, nonce: $nonce)';
 }
 
 
@@ -1114,16 +1134,18 @@ $NativeWalletTransactionEntryData_IncomingCopyWith<NativeWalletTransactionEntryD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Incoming&&(identical(other.from, from) || other.from == from)&&const DeepCollectionEquality().equals(other._transfers, _transfers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Incoming&&(identical(other.from, from) || other.from == from)&&const DeepCollectionEquality().equals(other.transfers, _transfers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,from,const DeepCollectionEquality().hash(_transfers));
+int get hashCode {
+    return Object.hash(runtimeType,from,const DeepCollectionEquality().hash(_transfers));
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.incoming(from: $from, transfers: $transfers)';
+    return 'NativeWalletTransactionEntryData.incoming(from: $from, transfers: $transfers)';
 }
 
 
@@ -1189,16 +1211,18 @@ $NativeWalletTransactionEntryData_OutgoingCopyWith<NativeWalletTransactionEntryD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Outgoing&&const DeepCollectionEquality().equals(other._transfers, _transfers)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Outgoing&&const DeepCollectionEquality().equals(other.transfers, _transfers)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers),fee,nonce);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers),fee,nonce);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.outgoing(transfers: $transfers, fee: $fee, nonce: $nonce)';
+    return 'NativeWalletTransactionEntryData.outgoing(transfers: $transfers, fee: $fee, nonce: $nonce)';
 }
 
 
@@ -1266,16 +1290,18 @@ $NativeWalletTransactionEntryData_MultisigCopyWith<NativeWalletTransactionEntryD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Multisig&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.threshold, threshold) || other.threshold == threshold)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_Multisig&&const DeepCollectionEquality().equals(other.participants, _participants)&&(identical(other.threshold, threshold) || other.threshold == threshold)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_participants),threshold,fee,nonce);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_participants),threshold,fee,nonce);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.multisig(participants: $participants, threshold: $threshold, fee: $fee, nonce: $nonce)';
+    return 'NativeWalletTransactionEntryData.multisig(participants: $participants, threshold: $threshold, fee: $fee, nonce: $nonce)';
 }
 
 
@@ -1353,16 +1379,18 @@ $NativeWalletTransactionEntryData_InvokeContractCopyWith<NativeWalletTransaction
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_InvokeContract&&(identical(other.contract, contract) || other.contract == contract)&&const DeepCollectionEquality().equals(other._deposits, _deposits)&&const DeepCollectionEquality().equals(other._received, _received)&&(identical(other.chunkId, chunkId) || other.chunkId == chunkId)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.maxGas, maxGas) || other.maxGas == maxGas)&&(identical(other.nonce, nonce) || other.nonce == nonce));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_InvokeContract&&(identical(other.contract, contract) || other.contract == contract)&&const DeepCollectionEquality().equals(other.deposits, _deposits)&&const DeepCollectionEquality().equals(other.received, _received)&&(identical(other.chunkId, chunkId) || other.chunkId == chunkId)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.maxGas, maxGas) || other.maxGas == maxGas)&&(identical(other.nonce, nonce) || other.nonce == nonce));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,contract,const DeepCollectionEquality().hash(_deposits),const DeepCollectionEquality().hash(_received),chunkId,fee,maxGas,nonce);
+int get hashCode {
+    return Object.hash(runtimeType,contract,const DeepCollectionEquality().hash(_deposits),const DeepCollectionEquality().hash(_received),chunkId,fee,maxGas,nonce);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.invokeContract(contract: $contract, deposits: $deposits, received: $received, chunkId: $chunkId, fee: $fee, maxGas: $maxGas, nonce: $nonce)';
+    return 'NativeWalletTransactionEntryData.invokeContract(contract: $contract, deposits: $deposits, received: $received, chunkId: $chunkId, fee: $fee, maxGas: $maxGas, nonce: $nonce)';
 }
 
 
@@ -1427,16 +1455,18 @@ $NativeWalletTransactionEntryData_DeployContractCopyWith<NativeWalletTransaction
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_DeployContract&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.invoke, invoke) || other.invoke == invoke));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_DeployContract&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.invoke, invoke) || other.invoke == invoke));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,fee,nonce,invoke);
+int get hashCode {
+    return Object.hash(runtimeType,fee,nonce,invoke);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.deployContract(fee: $fee, nonce: $nonce, invoke: $invoke)';
+    return 'NativeWalletTransactionEntryData.deployContract(fee: $fee, nonce: $nonce, invoke: $invoke)';
 }
 
 
@@ -1501,16 +1531,18 @@ $NativeWalletTransactionEntryData_IncomingContractCopyWith<NativeWalletTransacti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_IncomingContract&&const DeepCollectionEquality().equals(other._transfers, _transfers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_IncomingContract&&const DeepCollectionEquality().equals(other.transfers, _transfers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_transfers));
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.incomingContract(transfers: $transfers)';
+    return 'NativeWalletTransactionEntryData.incomingContract(transfers: $transfers)';
 }
 
 
@@ -1576,16 +1608,18 @@ $NativeWalletTransactionEntryData_OutgoingBlobCopyWith<NativeWalletTransactionEn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_OutgoingBlob&&const DeepCollectionEquality().equals(other._destinations, _destinations)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.data, data) || other.data == data));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_OutgoingBlob&&const DeepCollectionEquality().equals(other.destinations, _destinations)&&(identical(other.fee, fee) || other.fee == fee)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_destinations),fee,nonce,data);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_destinations),fee,nonce,data);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.outgoingBlob(destinations: $destinations, fee: $fee, nonce: $nonce, data: $data)';
+    return 'NativeWalletTransactionEntryData.outgoingBlob(destinations: $destinations, fee: $fee, nonce: $nonce, data: $data)';
 }
 
 
@@ -1653,16 +1687,18 @@ $NativeWalletTransactionEntryData_IncomingBlobCopyWith<NativeWalletTransactionEn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_IncomingBlob&&(identical(other.from, from) || other.from == from)&&const DeepCollectionEquality().equals(other._destinations, _destinations)&&(identical(other.data, data) || other.data == data));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeWalletTransactionEntryData_IncomingBlob&&(identical(other.from, from) || other.from == from)&&const DeepCollectionEquality().equals(other.destinations, _destinations)&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,from,const DeepCollectionEquality().hash(_destinations),data);
+int get hashCode {
+    return Object.hash(runtimeType,from,const DeepCollectionEquality().hash(_destinations),data);
+}
 
 @override
 String toString() {
-  return 'NativeWalletTransactionEntryData.incomingBlob(from: $from, destinations: $destinations, data: $data)';
+    return 'NativeWalletTransactionEntryData.incomingBlob(from: $from, destinations: $destinations, data: $data)';
 }
 
 

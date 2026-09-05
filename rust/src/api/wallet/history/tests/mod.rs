@@ -17,14 +17,32 @@ use tempfile::tempdir;
 
 use super::{
     apply_exact_integrated_destination, classify_history_error, ensure_transactions_to_export,
-    FilteredPagination,
+    ExtraDataProjection, FilteredPagination,
 };
 #[cfg(not(target_arch = "wasm32"))]
 use super::{create_temporary_csv_file, csv_path_error, persist_csv_file};
 use crate::api::{
     error::{NativeXelisErrorCode, NativeXelisErrorSource},
-    models::wallet_dtos::HistoryPageFilter,
+    models::{
+        business_event_dtos::NativeWalletExtraDataDisclosure, wallet_dtos::HistoryPageFilter,
+    },
 };
+
+#[test]
+fn read_disclosure_maps_all_public_variants_without_collapsing_redacted() {
+    assert_eq!(
+        ExtraDataProjection::from_disclosure(NativeWalletExtraDataDisclosure::Redacted),
+        ExtraDataProjection::Redacted,
+    );
+    assert_eq!(
+        ExtraDataProjection::from_disclosure(NativeWalletExtraDataDisclosure::Metadata),
+        ExtraDataProjection::Metadata,
+    );
+    assert_eq!(
+        ExtraDataProjection::from_disclosure(NativeWalletExtraDataDisclosure::Detailed),
+        ExtraDataProjection::Detailed,
+    );
+}
 
 fn filter() -> HistoryPageFilter {
     HistoryPageFilter {

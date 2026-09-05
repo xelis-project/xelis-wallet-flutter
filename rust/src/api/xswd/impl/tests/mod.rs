@@ -8,8 +8,12 @@ use xelis_common::tokio::sync::{mpsc, oneshot};
 use super::*;
 
 fn app_state() -> Arc<AppState> {
+    app_state_with_id("app-id")
+}
+
+fn app_state_with_id(id: &str) -> Arc<AppState> {
     let data: ApplicationData = serde_json::from_value(json!({
-        "id": "app-id",
+        "id": id,
         "name": "Test app",
         "description": "Test description",
         "url": "https://example.com",

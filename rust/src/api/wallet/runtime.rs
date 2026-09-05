@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::path::Path;
 use std::sync::Arc;
 use std::thread;
@@ -33,7 +34,6 @@ use xelis_wallet::{
 mod table_cache;
 
 static MT_PARAMS: StateMutex<Option<(usize, usize)>> = StateMutex::new(None);
-const DEFAULT_ONLINE_MODE_TIMEOUT: Duration = Duration::from_secs(20);
 const DAEMON_EVENT_CAPACITY: usize = 64;
 
 fn invalid_daemon_address() -> NativeXelisError {
@@ -85,6 +85,13 @@ fn normalize_offline_mode_result(
         | Err(WalletError::NetworkError(NetworkError::DaemonAPIError(_))) => Ok(()),
         Err(error) => Err(NativeXelisError::from(error)),
     }
+}
+
+async fn complete_offline_mode<F>(offline: F) -> std::result::Result<(), NativeXelisError>
+where
+    F: Future<Output = std::result::Result<(), WalletError>>,
+{
+    normalize_offline_mode_result(offline.await)
 }
 
 async fn disconnect_daemon_api(api: &DaemonAPI) {
@@ -452,6 +459,7 @@ pub(super) async fn create_xelis_wallet(
         asset_resolution: Default::default(),
         prepared_transaction: StateRwLock::new(Default::default()),
         pending_multisig: StateRwLock::new(PendingMultisigStore::default()),
+        xswd_sessions: Default::default(),
     })
 }
 
@@ -519,6 +527,7 @@ pub(super) async fn open_xelis_wallet(
         asset_resolution: Default::default(),
         prepared_transaction: StateRwLock::new(Default::default()),
         pending_multisig: StateRwLock::new(PendingMultisigStore::default()),
+        xswd_sessions: Default::default(),
     })
 }
 
@@ -582,7 +591,7 @@ impl XelisWallet {
         if let Some(stale) = self.active_connection.lock().await.take() {
             stale.api.client().set_auto_reconnect_delay(None).await;
             disconnect_daemon_api(stale.api.as_ref()).await;
-            normalize_offline_mode_result(self.wallet.set_offline_mode().await)?;
+            complete_offline_mode(self.wallet.set_offline_mode()).await?;
         }
         if attempt.is_cancelled() {
             return Err(network_connect_cancelled());
@@ -636,10 +645,7 @@ impl XelisWallet {
                         attempt.wait_completed().await;
                         Err(network_connect_cancelled())
                     } else {
-                        *active_connection = Some(ActiveWalletConnection {
-                            api,
-                            timeout: timeout_duration,
-                        });
+                        *active_connection = Some(ActiveWalletConnection { api });
                         finalized_sender
                             .send(())
                             .map_err(|_| network_connect_worker_failed())?;
@@ -665,9 +671,6 @@ impl XelisWallet {
     pub async fn offline_mode(&self) -> std::result::Result<(), NativeXelisError> {
         self.cancel_connection_attempt(false).await;
         let active = self.active_connection.lock().await.take();
-        let timeout_duration = active
-            .as_ref()
-            .map_or(DEFAULT_ONLINE_MODE_TIMEOUT, |connection| connection.timeout);
         if let Some(connection) = active {
             connection.api.client().set_auto_reconnect_delay(None).await;
             disconnect_daemon_api(connection.api.as_ref()).await;
@@ -678,14 +681,12 @@ impl XelisWallet {
         // DaemonAPIError. `set_offline_mode` removes that finished handler before
         // awaiting it, so replaying the old error here would make an idempotent
         // disconnect look like a fresh failure and could stop the next retry.
-        match timeout(timeout_duration, self.wallet.set_offline_mode()).await {
-            Ok(result) => normalize_offline_mode_result(result),
-            Err(_) => Err(NativeXelisError::xelis_wallet_flutter(
-                NativeXelisErrorCode::Network,
-                "NETWORK_DISCONNECT_TIMEOUT",
-                "Native wallet disconnection exceeded its configured caller limit",
-            )),
-        }
+        // The caller-configured timeout bounds connection establishment only.
+        // Once the upstream handler has been installed, dropping its shutdown
+        // future can lose the only join handle after upstream removes it from
+        // the wallet. Always await cleanup so a completed call is a reliable
+        // rotation and close barrier.
+        complete_offline_mode(self.wallet.set_offline_mode()).await
     }
 
     pub async fn is_online(&self) -> bool {

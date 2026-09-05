@@ -97,7 +97,7 @@ class XelisWalletFlutterBridge
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 1026549697;
+  int get rustContentHash => 1872998055;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -257,7 +257,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   Future<void> crateApiWalletXelisWalletCloseApplicationSession({
     required XelisWallet that,
-    required String id,
+    required BigInt sessionRef,
   });
 
   Future<String> crateApiWalletXelisWalletConvertTransactionsToCsv({
@@ -418,13 +418,13 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   crateApiWalletXelisWalletGetPendingTransactionByHash({
     required XelisWallet that,
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<List<NativeWalletPendingTransaction>>
   crateApiWalletXelisWalletGetPendingTransactions({
     required XelisWallet that,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<String> crateApiWalletXelisWalletGetSeed({
@@ -440,7 +440,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   crateApiWalletXelisWalletGetTransactionByHash({
     required XelisWallet that,
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<BigInt> crateApiWalletXelisWalletGetXelisBalance({
@@ -455,7 +455,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   Future<List<NativeWalletTransactionEntry>> crateApiWalletXelisWalletHistory({
     required XelisWallet that,
     required HistoryPageFilter filter,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   });
 
   Future<NativeMultisigSigningRequest>
@@ -535,7 +535,7 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   Future<void> crateApiWalletXelisWalletModifyApplicationPermissions({
     required XelisWallet that,
-    required String id,
+    required BigInt sessionRef,
     required Map<String, PermissionPolicy> permissions,
   });
 
@@ -685,8 +685,6 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
 
   void crateApiWalletClearCachedTables();
 
-  Future<AppInfo> crateApiXswdImpCreateAppInfo({required AppState state});
-
   Stream<NativeLogEntry> crateApiApiCreateLogStream();
 
   Stream<ProgressReport> crateApiApiCreateProgressReportStream();
@@ -790,14 +788,6 @@ abstract class XelisWalletFlutterBridgeApi extends BaseApi {
   RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Address;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AddressPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_AppState;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_AppState;
-
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppStatePtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_DataElement;
@@ -1927,7 +1917,7 @@ class XelisWalletFlutterBridgeApiImpl
   @override
   Future<void> crateApiWalletXelisWalletCloseApplicationSession({
     required XelisWallet that,
-    required String id,
+    required BigInt sessionRef,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -1937,7 +1927,7 @@ class XelisWalletFlutterBridgeApiImpl
             that,
             serializer,
           );
-          sse_encode_String(id, serializer);
+          sse_encode_u_64(sessionRef, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -1947,10 +1937,10 @@ class XelisWalletFlutterBridgeApiImpl
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletCloseApplicationSessionConstMeta,
-        argValues: [that, id],
+        argValues: [that, sessionRef],
         apiImpl: this,
       ),
     );
@@ -1960,7 +1950,7 @@ class XelisWalletFlutterBridgeApiImpl
   get kCrateApiWalletXelisWalletCloseApplicationSessionConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_close_application_session",
-        argNames: ["that", "id"],
+        argNames: ["that", "sessionRef"],
       );
 
   @override
@@ -3143,7 +3133,7 @@ class XelisWalletFlutterBridgeApiImpl
   crateApiWalletXelisWalletGetPendingTransactionByHash({
     required XelisWallet that,
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -3154,7 +3144,10 @@ class XelisWalletFlutterBridgeApiImpl
             serializer,
           );
           sse_encode_String(hash, serializer);
-          sse_encode_bool(includeExtraDataPayload, serializer);
+          sse_encode_native_wallet_extra_data_disclosure(
+            extraDataDisclosure,
+            serializer,
+          );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -3168,7 +3161,7 @@ class XelisWalletFlutterBridgeApiImpl
         ),
         constMeta:
             kCrateApiWalletXelisWalletGetPendingTransactionByHashConstMeta,
-        argValues: [that, hash, includeExtraDataPayload],
+        argValues: [that, hash, extraDataDisclosure],
         apiImpl: this,
       ),
     );
@@ -3178,14 +3171,14 @@ class XelisWalletFlutterBridgeApiImpl
   get kCrateApiWalletXelisWalletGetPendingTransactionByHashConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_get_pending_transaction_by_hash",
-        argNames: ["that", "hash", "includeExtraDataPayload"],
+        argNames: ["that", "hash", "extraDataDisclosure"],
       );
 
   @override
   Future<List<NativeWalletPendingTransaction>>
   crateApiWalletXelisWalletGetPendingTransactions({
     required XelisWallet that,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -3195,7 +3188,10 @@ class XelisWalletFlutterBridgeApiImpl
             that,
             serializer,
           );
-          sse_encode_bool(includeExtraDataPayload, serializer);
+          sse_encode_native_wallet_extra_data_disclosure(
+            extraDataDisclosure,
+            serializer,
+          );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -3208,7 +3204,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletGetPendingTransactionsConstMeta,
-        argValues: [that, includeExtraDataPayload],
+        argValues: [that, extraDataDisclosure],
         apiImpl: this,
       ),
     );
@@ -3217,7 +3213,7 @@ class XelisWalletFlutterBridgeApiImpl
   TaskConstMeta get kCrateApiWalletXelisWalletGetPendingTransactionsConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_get_pending_transactions",
-        argNames: ["that", "includeExtraDataPayload"],
+        argNames: ["that", "extraDataDisclosure"],
       );
 
   @override
@@ -3299,7 +3295,7 @@ class XelisWalletFlutterBridgeApiImpl
   crateApiWalletXelisWalletGetTransactionByHash({
     required XelisWallet that,
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -3310,7 +3306,10 @@ class XelisWalletFlutterBridgeApiImpl
             serializer,
           );
           sse_encode_String(hash, serializer);
-          sse_encode_bool(includeExtraDataPayload, serializer);
+          sse_encode_native_wallet_extra_data_disclosure(
+            extraDataDisclosure,
+            serializer,
+          );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -3323,7 +3322,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletGetTransactionByHashConstMeta,
-        argValues: [that, hash, includeExtraDataPayload],
+        argValues: [that, hash, extraDataDisclosure],
         apiImpl: this,
       ),
     );
@@ -3332,7 +3331,7 @@ class XelisWalletFlutterBridgeApiImpl
   TaskConstMeta get kCrateApiWalletXelisWalletGetTransactionByHashConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_get_transaction_by_hash",
-        argNames: ["that", "hash", "includeExtraDataPayload"],
+        argNames: ["that", "hash", "extraDataDisclosure"],
       );
 
   @override
@@ -3413,7 +3412,7 @@ class XelisWalletFlutterBridgeApiImpl
   Future<List<NativeWalletTransactionEntry>> crateApiWalletXelisWalletHistory({
     required XelisWallet that,
     required HistoryPageFilter filter,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -3424,7 +3423,10 @@ class XelisWalletFlutterBridgeApiImpl
             serializer,
           );
           sse_encode_box_autoadd_history_page_filter(filter, serializer);
-          sse_encode_bool(includeExtraDataPayload, serializer);
+          sse_encode_native_wallet_extra_data_disclosure(
+            extraDataDisclosure,
+            serializer,
+          );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -3437,7 +3439,7 @@ class XelisWalletFlutterBridgeApiImpl
           decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta: kCrateApiWalletXelisWalletHistoryConstMeta,
-        argValues: [that, filter, includeExtraDataPayload],
+        argValues: [that, filter, extraDataDisclosure],
         apiImpl: this,
       ),
     );
@@ -3446,7 +3448,7 @@ class XelisWalletFlutterBridgeApiImpl
   TaskConstMeta get kCrateApiWalletXelisWalletHistoryConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_history",
-        argNames: ["that", "filter", "includeExtraDataPayload"],
+        argNames: ["that", "filter", "extraDataDisclosure"],
       );
 
   @override
@@ -4004,7 +4006,7 @@ class XelisWalletFlutterBridgeApiImpl
   @override
   Future<void> crateApiWalletXelisWalletModifyApplicationPermissions({
     required XelisWallet that,
-    required String id,
+    required BigInt sessionRef,
     required Map<String, PermissionPolicy> permissions,
   }) {
     return handler.executeNormal(
@@ -4015,7 +4017,7 @@ class XelisWalletFlutterBridgeApiImpl
             that,
             serializer,
           );
-          sse_encode_String(id, serializer);
+          sse_encode_u_64(sessionRef, serializer);
           sse_encode_Map_String_permission_policy_None(permissions, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
@@ -4026,11 +4028,11 @@ class XelisWalletFlutterBridgeApiImpl
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_native_xelis_error,
         ),
         constMeta:
             kCrateApiWalletXelisWalletModifyApplicationPermissionsConstMeta,
-        argValues: [that, id, permissions],
+        argValues: [that, sessionRef, permissions],
         apiImpl: this,
       ),
     );
@@ -4040,7 +4042,7 @@ class XelisWalletFlutterBridgeApiImpl
   get kCrateApiWalletXelisWalletModifyApplicationPermissionsConstMeta =>
       const TaskConstMeta(
         debugName: "XelisWallet_modify_application_permissions",
-        argNames: ["that", "id", "permissions"],
+        argNames: ["that", "sessionRef", "permissions"],
       );
 
   @override
@@ -5076,37 +5078,6 @@ class XelisWalletFlutterBridgeApiImpl
       const TaskConstMeta(debugName: "clear_cached_tables", argNames: []);
 
   @override
-  Future<AppInfo> crateApiXswdImpCreateAppInfo({required AppState state}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-            state,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 119,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_app_info,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiXswdImpCreateAppInfoConstMeta,
-        argValues: [state],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiXswdImpCreateAppInfoConstMeta =>
-      const TaskConstMeta(debugName: "create_app_info", argNames: ["state"]);
-
-  @override
   Stream<NativeLogEntry> crateApiApiCreateLogStream() {
     final s = RustStreamSink<NativeLogEntry>();
     unawaited(
@@ -5118,7 +5089,7 @@ class XelisWalletFlutterBridgeApiImpl
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 120,
+              funcId: 119,
               port: port_,
             );
           },
@@ -5150,7 +5121,7 @@ class XelisWalletFlutterBridgeApiImpl
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 121,
+              funcId: 120,
               port: port_,
             );
           },
@@ -5202,7 +5173,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 122,
+            funcId: 121,
             port: port_,
           );
         },
@@ -5255,7 +5226,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 123,
+            funcId: 122,
           )!;
         },
         codec: SseCodec(
@@ -5281,7 +5252,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 124,
+            funcId: 123,
             port: port_,
           );
         },
@@ -5311,7 +5282,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 125,
+            funcId: 124,
             port: port_,
           );
         },
@@ -5341,7 +5312,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 126,
+            funcId: 125,
             port: port_,
           );
         },
@@ -5373,7 +5344,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 127,
+            funcId: 126,
           )!;
         },
         codec: SseCodec(
@@ -5410,7 +5381,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 128,
+            funcId: 127,
           )!;
         },
         codec: SseCodec(
@@ -5440,7 +5411,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 129,
+            funcId: 128,
             port: port_,
           );
         },
@@ -5488,7 +5459,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 130,
+            funcId: 129,
             port: port_,
           );
         },
@@ -5536,7 +5507,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 131,
+            funcId: 130,
           )!;
         },
         codec: SseCodec(
@@ -5565,7 +5536,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 132,
+            funcId: 131,
             port: port_,
           );
         },
@@ -5599,7 +5570,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 133,
+            funcId: 132,
             port: port_,
           );
         },
@@ -5633,7 +5604,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 134,
+            funcId: 133,
             port: port_,
           );
         },
@@ -5665,7 +5636,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 135,
+            funcId: 134,
           )!;
         },
         codec: SseCodec(
@@ -5696,7 +5667,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 136,
+            funcId: 135,
           )!;
         },
         codec: SseCodec(
@@ -5729,7 +5700,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 137,
+            funcId: 136,
             port: port_,
           );
         },
@@ -5766,7 +5737,7 @@ class XelisWalletFlutterBridgeApiImpl
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 138,
+            funcId: 137,
             port: port_,
           );
         },
@@ -5798,7 +5769,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 139,
+            funcId: 138,
           )!;
         },
         codec: SseCodec(
@@ -5832,7 +5803,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 140,
+            funcId: 139,
           )!;
         },
         codec: SseCodec(
@@ -5866,7 +5837,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 141,
+            funcId: 140,
           )!;
         },
         codec: SseCodec(
@@ -5900,7 +5871,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 142,
+            funcId: 141,
           )!;
         },
         codec: SseCodec(
@@ -5934,7 +5905,7 @@ class XelisWalletFlutterBridgeApiImpl
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 143,
+            funcId: 142,
           )!;
         },
         codec: SseCodec(
@@ -6036,14 +6007,6 @@ class XelisWalletFlutterBridgeApiImpl
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_Address => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAddress;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_AppState => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_AppState => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_DataElement => wire
@@ -6257,15 +6220,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  AppState
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppStateImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   IntegratedAddress
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     dynamic raw,
@@ -6394,15 +6348,6 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AddressImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  AppState
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AppStateImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -6552,15 +6497,16 @@ class XelisWalletFlutterBridgeApiImpl
   AppInfo dco_decode_app_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return AppInfo(
-      id: dco_decode_String(arr[0]),
-      name: dco_decode_String(arr[1]),
-      description: dco_decode_String(arr[2]),
-      url: dco_decode_opt_String(arr[3]),
-      permissions: dco_decode_Map_String_permission_policy_None(arr[4]),
-      isRelayer: dco_decode_bool(arr[5]),
+      sessionRef: dco_decode_u_64(arr[0]),
+      id: dco_decode_String(arr[1]),
+      name: dco_decode_String(arr[2]),
+      description: dco_decode_String(arr[3]),
+      url: dco_decode_opt_String(arr[4]),
+      permissions: dco_decode_Map_String_permission_policy_None(arr[5]),
+      isRelayer: dco_decode_bool(arr[6]),
     );
   }
 
@@ -8613,18 +8559,6 @@ class XelisWalletFlutterBridgeApiImpl
   }
 
   @protected
-  AppState
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppStateImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   IntegratedAddress
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     SseDeserializer deserializer,
@@ -8749,18 +8683,6 @@ class XelisWalletFlutterBridgeApiImpl
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return AddressImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  AppState
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return AppStateImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -8919,6 +8841,7 @@ class XelisWalletFlutterBridgeApiImpl
   @protected
   AppInfo sse_decode_app_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_sessionRef = sse_decode_u_64(deserializer);
     var var_id = sse_decode_String(deserializer);
     var var_name = sse_decode_String(deserializer);
     var var_description = sse_decode_String(deserializer);
@@ -8928,6 +8851,7 @@ class XelisWalletFlutterBridgeApiImpl
     );
     var var_isRelayer = sse_decode_bool(deserializer);
     return AppInfo(
+      sessionRef: var_sessionRef,
       id: var_id,
       name: var_name,
       description: var_description,
@@ -11518,19 +11442,6 @@ class XelisWalletFlutterBridgeApiImpl
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    AppState self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppStateImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerIntegratedAddress(
     IntegratedAddress self,
     SseSerializer serializer,
@@ -11713,19 +11624,6 @@ class XelisWalletFlutterBridgeApiImpl
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as AddressImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
-    AppState self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as AppStateImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -11916,6 +11814,7 @@ class XelisWalletFlutterBridgeApiImpl
   @protected
   void sse_encode_app_info(AppInfo self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.sessionRef, serializer);
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.name, serializer);
     sse_encode_String(self.description, serializer);
@@ -14032,32 +13931,6 @@ class AddressImpl extends RustOpaque implements Address {
 }
 
 @sealed
-class AppStateImpl extends RustOpaque implements AppState {
-  // Not to be used by end users
-  AppStateImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  AppStateImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_AppState,
-    rustArcDecrementStrongCount: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_AppState,
-    rustArcDecrementStrongCountPtr: XelisWalletFlutterBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_AppStatePtr,
-  );
-}
-
-@sealed
 class DataElementImpl extends RustOpaque implements DataElement {
   // Not to be used by end users
   DataElementImpl.frbInternalDcoDecode(List<dynamic> wire)
@@ -14527,9 +14400,12 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
   Future<void> close() => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletClose(that: this);
 
-  Future<void> closeApplicationSession({required String id}) =>
+  Future<void> closeApplicationSession({required BigInt sessionRef}) =>
       XelisWalletFlutterBridge.instance.api
-          .crateApiWalletXelisWalletCloseApplicationSession(that: this, id: id);
+          .crateApiWalletXelisWalletCloseApplicationSession(
+            that: this,
+            sessionRef: sessionRef,
+          );
 
   Future<String> convertTransactionsToCsv({
     required HistoryPageFilter filter,
@@ -14750,20 +14626,20 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
 
   Future<NativeWalletPendingTransaction> getPendingTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletGetPendingTransactionByHash(
         that: this,
         hash: hash,
-        includeExtraDataPayload: includeExtraDataPayload,
+        extraDataDisclosure: extraDataDisclosure,
       );
 
   Future<List<NativeWalletPendingTransaction>> getPendingTransactions({
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletGetPendingTransactions(
         that: this,
-        includeExtraDataPayload: includeExtraDataPayload,
+        extraDataDisclosure: extraDataDisclosure,
       );
 
   Future<String> getSeed({BigInt? languageIndex}) =>
@@ -14779,12 +14655,12 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
 
   Future<NativeWalletTransactionEntry> getTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletGetTransactionByHash(
         that: this,
         hash: hash,
-        includeExtraDataPayload: includeExtraDataPayload,
+        extraDataDisclosure: extraDataDisclosure,
       );
 
   Future<BigInt> getXelisBalance() => XelisWalletFlutterBridge.instance.api
@@ -14796,11 +14672,11 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
 
   Future<List<NativeWalletTransactionEntry>> history({
     required HistoryPageFilter filter,
-    required bool includeExtraDataPayload,
+    required NativeWalletExtraDataDisclosure extraDataDisclosure,
   }) => XelisWalletFlutterBridge.instance.api.crateApiWalletXelisWalletHistory(
     that: this,
     filter: filter,
-    includeExtraDataPayload: includeExtraDataPayload,
+    extraDataDisclosure: extraDataDisclosure,
   );
 
   Future<NativeMultisigSigningRequest> initDeleteMultisig({
@@ -14908,12 +14784,12 @@ class XelisWalletImpl extends RustOpaque implements XelisWallet {
           .crateApiWalletXelisWalletMigrateAddressBookV2(that: this);
 
   Future<void> modifyApplicationPermissions({
-    required String id,
+    required BigInt sessionRef,
     required Map<String, PermissionPolicy> permissions,
   }) => XelisWalletFlutterBridge.instance.api
       .crateApiWalletXelisWalletModifyApplicationPermissions(
         that: this,
-        id: id,
+        sessionRef: sessionRef,
         permissions: permissions,
       );
 

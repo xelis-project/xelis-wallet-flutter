@@ -106,16 +106,21 @@ abstract interface class XelisWallet {
     required XelisXswdCallbacks callbacks,
   });
 
-  /// Closes the active XSWD session for [applicationId].
-  Future<void> closeXswdApplicationSession({required String applicationId});
+  /// Closes the exact live XSWD [application] session.
+  ///
+  /// Reconstructed, stale, and other-wallet projections are rejected.
+  Future<void> closeXswdApplicationSession({
+    required XelisXswdApplication application,
+  });
 
-  /// Replaces the retained permission policies for [applicationId].
+  /// Replaces the retained permission policies for the exact live
+  /// [application] session.
   ///
   /// Permission keys use unprefixed method identifiers such as `get_balance`.
   /// A prefixed identifier such as `wallet.get_balance` fails before the native
   /// call with `input.invalid / XSWD_PERMISSION_NAME_INVALID`.
   Future<void> updateXswdApplicationPermissions({
-    required String applicationId,
+    required XelisXswdApplication application,
     required Map<String, XelisXswdPermissionPolicy> permissions,
   });
 

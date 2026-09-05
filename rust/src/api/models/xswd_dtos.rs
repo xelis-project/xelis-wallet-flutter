@@ -129,6 +129,8 @@ impl XswdRequestSummary {
 #[derive(Clone, Debug)]
 #[frb(dart_metadata=("freezed"))]
 pub struct AppInfo {
+    /// Private bridge reference to this exact live XSWD session.
+    pub session_ref: u64,
     pub id: String,
     pub name: String,
     pub description: String,

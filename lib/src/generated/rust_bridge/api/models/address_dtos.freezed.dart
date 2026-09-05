@@ -26,16 +26,21 @@ $NativeXelisAddressDescriptorCopyWith<NativeXelisAddressDescriptor> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisAddressDescriptor&&(identical(other.encodedAddress, encodedAddress) || other.encodedAddress == encodedAddress)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.isMainnet, isMainnet) || other.isMainnet == isMainnet)&&(identical(other.integratedData, integratedData) || other.integratedData == integratedData));
+  final _this = this as NativeXelisAddressDescriptor;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisAddressDescriptor&&(identical(other.encodedAddress, _this.encodedAddress) || other.encodedAddress == _this.encodedAddress)&&(identical(other.baseAddress, _this.baseAddress) || other.baseAddress == _this.baseAddress)&&(identical(other.isMainnet, _this.isMainnet) || other.isMainnet == _this.isMainnet)&&(identical(other.integratedData, _this.integratedData) || other.integratedData == _this.integratedData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,encodedAddress,baseAddress,isMainnet,integratedData);
+int get hashCode {
+  final _this = this as NativeXelisAddressDescriptor;
+  return Object.hash(runtimeType,_this.encodedAddress,_this.baseAddress,_this.isMainnet,_this.integratedData);
+}
 
 @override
 String toString() {
-  return 'NativeXelisAddressDescriptor(encodedAddress: $encodedAddress, baseAddress: $baseAddress, isMainnet: $isMainnet, integratedData: $integratedData)';
+  final _this = this as NativeXelisAddressDescriptor;
+  return 'NativeXelisAddressDescriptor(encodedAddress: ${_this.encodedAddress}, baseAddress: ${_this.baseAddress}, isMainnet: ${_this.isMainnet}, integratedData: ${_this.integratedData})';
 }
 
 
@@ -234,16 +239,18 @@ _$NativeXelisAddressDescriptorCopyWith<_NativeXelisAddressDescriptor> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeXelisAddressDescriptor&&(identical(other.encodedAddress, encodedAddress) || other.encodedAddress == encodedAddress)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.isMainnet, isMainnet) || other.isMainnet == isMainnet)&&(identical(other.integratedData, integratedData) || other.integratedData == integratedData));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeXelisAddressDescriptor&&(identical(other.encodedAddress, encodedAddress) || other.encodedAddress == encodedAddress)&&(identical(other.baseAddress, baseAddress) || other.baseAddress == baseAddress)&&(identical(other.isMainnet, isMainnet) || other.isMainnet == isMainnet)&&(identical(other.integratedData, integratedData) || other.integratedData == integratedData));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,encodedAddress,baseAddress,isMainnet,integratedData);
+int get hashCode {
+    return Object.hash(runtimeType,encodedAddress,baseAddress,isMainnet,integratedData);
+}
 
 @override
 String toString() {
-  return 'NativeXelisAddressDescriptor(encodedAddress: $encodedAddress, baseAddress: $baseAddress, isMainnet: $isMainnet, integratedData: $integratedData)';
+    return 'NativeXelisAddressDescriptor(encodedAddress: $encodedAddress, baseAddress: $baseAddress, isMainnet: $isMainnet, integratedData: $integratedData)';
 }
 
 
@@ -305,7 +312,7 @@ mixin _$NativeXelisDataElement {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement);
 }
 
 
@@ -314,7 +321,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeXelisDataElement()';
+    return 'NativeXelisDataElement()';
 }
 
 
@@ -481,16 +488,18 @@ $NativeXelisDataElement_ValueCopyWith<NativeXelisDataElement_Value> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Value&&(identical(other.value, value) || other.value == value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Value&&(identical(other.value, value) || other.value == value));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,value);
+int get hashCode {
+    return Object.hash(runtimeType,value);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataElement.value(value: $value)';
+    return 'NativeXelisDataElement.value(value: $value)';
 }
 
 
@@ -562,16 +571,18 @@ $NativeXelisDataElement_ArrayCopyWith<NativeXelisDataElement_Array> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Array&&const DeepCollectionEquality().equals(other._values, _values));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Array&&const DeepCollectionEquality().equals(other.values, _values));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_values));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_values));
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataElement.array(values: $values)';
+    return 'NativeXelisDataElement.array(values: $values)';
 }
 
 
@@ -634,16 +645,18 @@ $NativeXelisDataElement_FieldsCopyWith<NativeXelisDataElement_Fields> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Fields&&const DeepCollectionEquality().equals(other._fields, _fields));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataElement_Fields&&const DeepCollectionEquality().equals(other.fields, _fields));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields));
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataElement.fields(fields: $fields)';
+    return 'NativeXelisDataElement.fields(fields: $fields)';
 }
 
 
@@ -695,16 +708,21 @@ $NativeXelisDataFieldCopyWith<NativeXelisDataField> get copyWith => _$NativeXeli
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataField&&(identical(other.key, key) || other.key == key)&&(identical(other.value, value) || other.value == value));
+  final _this = this as NativeXelisDataField;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataField&&(identical(other.key, _this.key) || other.key == _this.key)&&(identical(other.value, _this.value) || other.value == _this.value));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,key,value);
+int get hashCode {
+  final _this = this as NativeXelisDataField;
+  return Object.hash(runtimeType,_this.key,_this.value);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataField(key: $key, value: $value)';
+  final _this = this as NativeXelisDataField;
+  return 'NativeXelisDataField(key: ${_this.key}, value: ${_this.value})';
 }
 
 
@@ -905,16 +923,18 @@ _$NativeXelisDataFieldCopyWith<_NativeXelisDataField> get copyWith => __$NativeX
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeXelisDataField&&(identical(other.key, key) || other.key == key)&&(identical(other.value, value) || other.value == value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NativeXelisDataField&&(identical(other.key, key) || other.key == key)&&(identical(other.value, value) || other.value == value));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,key,value);
+int get hashCode {
+    return Object.hash(runtimeType,key,value);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataField(key: $key, value: $value)';
+    return 'NativeXelisDataField(key: $key, value: $value)';
 }
 
 
@@ -980,7 +1000,7 @@ mixin _$NativeXelisDataValue {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue);
 }
 
 
@@ -989,7 +1009,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'NativeXelisDataValue()';
+    return 'NativeXelisDataValue()';
 }
 
 
@@ -1168,16 +1188,18 @@ $NativeXelisDataValue_BoolValueCopyWith<NativeXelisDataValue_BoolValue> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_BoolValue&&(identical(other.value, value) || other.value == value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_BoolValue&&(identical(other.value, value) || other.value == value));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,value);
+int get hashCode {
+    return Object.hash(runtimeType,value);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataValue.boolValue(value: $value)';
+    return 'NativeXelisDataValue.boolValue(value: $value)';
 }
 
 
@@ -1234,16 +1256,18 @@ $NativeXelisDataValue_StringValueCopyWith<NativeXelisDataValue_StringValue> get 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_StringValue&&(identical(other.value, value) || other.value == value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_StringValue&&(identical(other.value, value) || other.value == value));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,value);
+int get hashCode {
+    return Object.hash(runtimeType,value);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataValue.stringValue(value: $value)';
+    return 'NativeXelisDataValue.stringValue(value: $value)';
 }
 
 
@@ -1301,16 +1325,18 @@ $NativeXelisDataValue_UnsignedIntegerCopyWith<NativeXelisDataValue_UnsignedInteg
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_UnsignedInteger&&(identical(other.integerType, integerType) || other.integerType == integerType)&&(identical(other.decimalValue, decimalValue) || other.decimalValue == decimalValue));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_UnsignedInteger&&(identical(other.integerType, integerType) || other.integerType == integerType)&&(identical(other.decimalValue, decimalValue) || other.decimalValue == decimalValue));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,integerType,decimalValue);
+int get hashCode {
+    return Object.hash(runtimeType,integerType,decimalValue);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataValue.unsignedInteger(integerType: $integerType, decimalValue: $decimalValue)';
+    return 'NativeXelisDataValue.unsignedInteger(integerType: $integerType, decimalValue: $decimalValue)';
 }
 
 
@@ -1368,16 +1394,18 @@ $NativeXelisDataValue_HashValueCopyWith<NativeXelisDataValue_HashValue> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_HashValue&&(identical(other.hexValue, hexValue) || other.hexValue == hexValue));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_HashValue&&(identical(other.hexValue, hexValue) || other.hexValue == hexValue));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,hexValue);
+int get hashCode {
+    return Object.hash(runtimeType,hexValue);
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataValue.hashValue(hexValue: $hexValue)';
+    return 'NativeXelisDataValue.hashValue(hexValue: $hexValue)';
 }
 
 
@@ -1434,16 +1462,18 @@ $NativeXelisDataValue_BlobValueCopyWith<NativeXelisDataValue_BlobValue> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_BlobValue&&const DeepCollectionEquality().equals(other.bytes, bytes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is NativeXelisDataValue_BlobValue&&const DeepCollectionEquality().equals(other.bytes, bytes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(bytes));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(bytes));
+}
 
 @override
 String toString() {
-  return 'NativeXelisDataValue.blobValue(bytes: $bytes)';
+    return 'NativeXelisDataValue.blobValue(bytes: $bytes)';
 }
 
 

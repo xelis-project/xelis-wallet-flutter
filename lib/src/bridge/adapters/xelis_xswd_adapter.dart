@@ -8,21 +8,42 @@ import '../../generated/rust_bridge/api/models/xswd_dtos.dart' as generated;
 import 'xelis_error_adapter.dart';
 
 XelisXswdApplication xelisXswdApplicationFromGenerated(
+  generated.AppInfo application, {
+  Object? sessionIdentity,
+}) => sessionIdentity == null
+    ? XelisXswdApplication(
+        id: application.id,
+        name: application.name,
+        description: application.description,
+        url: application.url,
+        permissions: application.permissions.map(
+          (name, policy) =>
+              MapEntry(name, _permissionPolicyFromGenerated(policy)),
+        ),
+        isRelayer: application.isRelayer,
+      )
+    : xelisXswdApplicationWithSessionIdentity(
+        sessionIdentity: sessionIdentity,
+        id: application.id,
+        name: application.name,
+        description: application.description,
+        url: application.url,
+        permissions: application.permissions.map(
+          (name, policy) =>
+              MapEntry(name, _permissionPolicyFromGenerated(policy)),
+        ),
+        isRelayer: application.isRelayer,
+      );
+
+typedef GeneratedXswdApplicationAdapter = XelisXswdApplication Function(
   generated.AppInfo application,
-) => XelisXswdApplication(
-  id: application.id,
-  name: application.name,
-  description: application.description,
-  url: application.url,
-  permissions: application.permissions.map(
-    (name, policy) => MapEntry(name, _permissionPolicyFromGenerated(policy)),
-  ),
-  isRelayer: application.isRelayer,
 );
 
 XelisXswdRequest xelisXswdRequestFromGenerated(
   generated.XswdRequestSummary request, {
   XelisXswdProjectionLimits limits = const XelisXswdProjectionLimits(),
+  GeneratedXswdApplicationAdapter applicationAdapter =
+      xelisXswdApplicationFromGenerated,
 }) {
   final (kind, payload) = switch (request.eventType) {
     generated.XswdRequestType_Application() => (
@@ -49,7 +70,7 @@ XelisXswdRequest xelisXswdRequestFromGenerated(
 
   return XelisXswdRequest(
     kind: kind,
-    application: xelisXswdApplicationFromGenerated(request.applicationInfo),
+    application: applicationAdapter(request.applicationInfo),
     payload: payload,
   );
 }
@@ -307,39 +328,101 @@ final class GeneratedXswdCallbacks {
 }
 
 GeneratedXswdCallbacks generatedXswdCallbacksFromXelis(
-  XelisXswdCallbacks callbacks,
-) => GeneratedXswdCallbacks(
+  XelisXswdCallbacks callbacks, {
+  required GeneratedXswdApplicationAdapter applicationAdapter,
+  required void Function(generated.AppInfo application)
+  onApplicationDecisionStarted,
+  required void Function(
+    generated.AppInfo application,
+    generated.XswdDecisionCallbackOutcome outcome,
+  )
+  onApplicationDecisionCompleted,
+  required void Function(generated.AppInfo application)
+  onApplicationDisconnectStarted,
+}) => GeneratedXswdCallbacks(
   cancelRequest: (request) => _runNotificationCallback(
     callbacks.onCancelRequest,
     request,
     timeout: callbacks.timeout,
     limits: callbacks.projectionLimits,
+    applicationAdapter: applicationAdapter,
   ),
-  applicationRequest: (request) => _runDecisionCallback(
+  applicationRequest: (request) => _runApplicationDecisionCallback(
     callbacks.onApplicationRequest,
     request,
     timeout: callbacks.timeout,
     limits: callbacks.projectionLimits,
+    applicationAdapter: applicationAdapter,
+    onStarted: onApplicationDecisionStarted,
+    onCompleted: onApplicationDecisionCompleted,
   ),
   permissionRequest: (request) => _runDecisionCallback(
     callbacks.onPermissionRequest,
     request,
     timeout: callbacks.timeout,
     limits: callbacks.projectionLimits,
+    applicationAdapter: applicationAdapter,
   ),
   prefetchPermissionsRequest: (request) => _runDecisionCallback(
     callbacks.onPrefetchPermissionsRequest,
     request,
     timeout: callbacks.timeout,
     limits: callbacks.projectionLimits,
+    applicationAdapter: applicationAdapter,
   ),
-  applicationDisconnect: (request) => _runNotificationCallback(
+  applicationDisconnect: (request) => _runDisconnectNotificationCallback(
     callbacks.onApplicationDisconnect,
     request,
     timeout: callbacks.timeout,
     limits: callbacks.projectionLimits,
+    applicationAdapter: applicationAdapter,
+    onProjected: (_) => onApplicationDisconnectStarted(request.applicationInfo),
   ),
 );
+
+Future<generated.XswdDecisionCallbackOutcome> _runApplicationDecisionCallback(
+  XelisXswdDecisionCallback callback,
+  generated.XswdRequestSummary request, {
+  required Duration timeout,
+  required XelisXswdProjectionLimits limits,
+  required GeneratedXswdApplicationAdapter applicationAdapter,
+  required void Function(generated.AppInfo application) onStarted,
+  required void Function(
+    generated.AppInfo application,
+    generated.XswdDecisionCallbackOutcome outcome,
+  )
+  onCompleted,
+}) async {
+  onStarted(request.applicationInfo);
+  final outcome = await _runDecisionCallback(
+    callback,
+    request,
+    timeout: timeout,
+    limits: limits,
+    applicationAdapter: applicationAdapter,
+  );
+  onCompleted(request.applicationInfo, outcome);
+  return outcome;
+}
+
+Future<generated.XswdNotificationCallbackOutcome>
+_runDisconnectNotificationCallback(
+  XelisXswdNotificationCallback callback,
+  generated.XswdRequestSummary request, {
+  required Duration timeout,
+  required XelisXswdProjectionLimits limits,
+  required GeneratedXswdApplicationAdapter applicationAdapter,
+  required void Function(XelisXswdRequest request) onProjected,
+}) async {
+  return _runNotificationCallback(
+    callback,
+    request,
+    timeout: timeout,
+    limits: limits,
+    applicationAdapter: applicationAdapter,
+    onProjected: onProjected,
+  );
+}
 
 generated.NativeXswdProjectionLimits generatedXswdLimitsFromXelis(
   XelisXswdCallbacks callbacks, {
@@ -355,7 +438,8 @@ generated.NativeXswdProjectionLimits generatedXswdLimitsFromXelis(
   }
 
   final limits = callbacks.projectionLimits;
-  final valid = limits.maxDepth > 0 &&
+  final valid =
+      limits.maxDepth > 0 &&
       limits.maxDepth <= XelisXswdProjectionLimits.technicalMaxDepth &&
       limits.maxTokens > 0 &&
       limits.maxTokens <= XelisXswdProjectionLimits.technicalMaxTokens &&
@@ -392,13 +476,20 @@ Future<generated.XswdNotificationCallbackOutcome> _runNotificationCallback(
   generated.XswdRequestSummary request, {
   required Duration timeout,
   required XelisXswdProjectionLimits limits,
+  required GeneratedXswdApplicationAdapter applicationAdapter,
+  void Function(XelisXswdRequest request)? onProjected,
 }) async {
   final XelisXswdRequest authored;
   try {
-    authored = xelisXswdRequestFromGenerated(request, limits: limits);
+    authored = xelisXswdRequestFromGenerated(
+      request,
+      limits: limits,
+      applicationAdapter: applicationAdapter,
+    );
   } catch (_) {
     return generated.XswdNotificationCallbackOutcome.invalidPayload;
   }
+  onProjected?.call(authored);
   try {
     await Future<void>.sync(() => callback(authored)).timeout(timeout);
     return generated.XswdNotificationCallbackOutcome.completed;
@@ -414,10 +505,15 @@ Future<generated.XswdDecisionCallbackOutcome> _runDecisionCallback(
   generated.XswdRequestSummary request, {
   required Duration timeout,
   required XelisXswdProjectionLimits limits,
+  required GeneratedXswdApplicationAdapter applicationAdapter,
 }) async {
   final XelisXswdRequest authored;
   try {
-    authored = xelisXswdRequestFromGenerated(request, limits: limits);
+    authored = xelisXswdRequestFromGenerated(
+      request,
+      limits: limits,
+      applicationAdapter: applicationAdapter,
+    );
   } catch (_) {
     return generated.XswdDecisionCallbackOutcome.invalidPayload;
   }

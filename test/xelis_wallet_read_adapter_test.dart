@@ -166,8 +166,14 @@ void main() {
       expect(mappedFilter.acceptBlob, isFalse);
       expect(mappedFilter.minTimestamp, BigInt.from(5));
       expect(mappedFilter.maxTimestamp, BigInt.from(6));
-      expect(delegate.lastHistoryIncludeExtraDataPayload, isTrue);
-      expect(delegate.lastPendingIncludeExtraDataPayload, isTrue);
+      expect(
+        delegate.lastHistoryExtraDataDisclosure,
+        generated_event.NativeWalletExtraDataDisclosure.detailed,
+      );
+      expect(
+        delegate.lastPendingExtraDataDisclosure,
+        generated_event.NativeWalletExtraDataDisclosure.detailed,
+      );
 
       final historyExtra = (history.single.entry as XelisWalletIncomingEntry)
           .transfers
@@ -284,8 +290,74 @@ void main() {
 
       expect(confirmedResult.hash, 'confirmed-hash');
       expect(pendingResult.hash, 'pending-hash');
-      expect(delegate.detailArguments, ('confirmed-hash', false));
-      expect(delegate.pendingDetailArguments, ('pending-hash', true));
+      expect(delegate.detailArguments, (
+        'confirmed-hash',
+        generated_event.NativeWalletExtraDataDisclosure.metadata,
+      ));
+      expect(delegate.pendingDetailArguments, (
+        'pending-hash',
+        generated_event.NativeWalletExtraDataDisclosure.detailed,
+      ));
+    },
+  );
+
+  test(
+    'every read applies all three disclosure levels to its output',
+    () async {
+      final confirmed = _overinformativeConfirmedTransaction();
+      final pending = _overinformativePendingTransaction();
+      final delegate = _ReadGeneratedWallet(
+        historyEntries: [confirmed],
+        pendingEntries: [pending],
+        detailEntry: confirmed,
+        pendingDetailEntry: pending,
+      );
+      final wallet = NativeXelisWallet(delegate);
+      final cases = [
+        (
+          XelisWalletExtraDataDisclosure.redacted,
+          generated_event.NativeWalletExtraDataDisclosure.redacted,
+        ),
+        (
+          XelisWalletExtraDataDisclosure.metadata,
+          generated_event.NativeWalletExtraDataDisclosure.metadata,
+        ),
+        (
+          XelisWalletExtraDataDisclosure.detailed,
+          generated_event.NativeWalletExtraDataDisclosure.detailed,
+        ),
+      ];
+
+      for (final (authored, generated) in cases) {
+        final history = await wallet.history(
+          filter: XelisWalletHistoryFilter(page: BigInt.one),
+          extraDataDisclosure: authored,
+        );
+        final pendingTransactions = await wallet.pendingTransactions(
+          extraDataDisclosure: authored,
+        );
+        final detail = await wallet.transactionByHash(
+          hash: 'confirmed-hash',
+          extraDataDisclosure: authored,
+        );
+        final pendingDetail = await wallet.pendingTransactionByHash(
+          hash: 'pending-hash',
+          extraDataDisclosure: authored,
+        );
+
+        for (final extraData in [
+          _confirmedExtraData(history.single),
+          _pendingExtraData(pendingTransactions.single),
+          _confirmedExtraData(detail),
+          _pendingExtraData(pendingDetail),
+        ]) {
+          _expectExtraDataDisclosure(extraData, authored);
+        }
+        expect(delegate.lastHistoryExtraDataDisclosure, generated);
+        expect(delegate.lastPendingExtraDataDisclosure, generated);
+        expect(delegate.detailArguments, ('confirmed-hash', generated));
+        expect(delegate.pendingDetailArguments, ('pending-hash', generated));
+      }
     },
   );
 
@@ -377,7 +449,7 @@ void main() {
           ],
         ),
       ),
-      includePayload: true,
+      extraDataDisclosure: XelisWalletExtraDataDisclosure.detailed,
     );
 
     final extraData = (transaction.entry as XelisWalletIncomingEntry)
@@ -395,6 +467,86 @@ void main() {
     );
     expect(extraData.payloadKind, XelisWalletExtraDataPayloadKind.u128);
   });
+}
+
+const _sensitivePayload = XelisDataElement.value(
+  XelisDataValue.string('sensitive application payload'),
+);
+
+const _overinformativeNativeExtraData = generated_event.NativeWalletExtraData(
+  flag: generated_event.NativeWalletExtraDataFlag.private,
+  hasPayload: true,
+  payload: generated_address.NativeXelisDataElement.value(
+    value: generated_address.NativeXelisDataValue.stringValue(
+      value: 'sensitive application payload',
+    ),
+  ),
+  payloadKind: generated_event.NativeWalletExtraDataPayloadKind.string,
+);
+
+generated_event.NativeWalletTransactionEntry
+_overinformativeConfirmedTransaction() =>
+    generated_event.NativeWalletTransactionEntry(
+      hash: 'confirmed-hash',
+      topoheight: BigInt.one,
+      timestampMillis: BigInt.two,
+      entry: generated_event.NativeWalletTransactionEntryData.incoming(
+        from: 'xel:source',
+        transfers: [
+          generated_event.NativeWalletTransferIn(
+            asset: 'asset',
+            amount: BigInt.one,
+            extraData: _overinformativeNativeExtraData,
+          ),
+        ],
+      ),
+    );
+
+generated_event.NativeWalletPendingTransaction
+_overinformativePendingTransaction() =>
+    generated_event.NativeWalletPendingTransaction(
+      hash: 'pending-hash',
+      timestampMillis: BigInt.two,
+      entry: generated_event.NativeWalletTransactionEntryData.incoming(
+        from: 'xel:source',
+        transfers: [
+          generated_event.NativeWalletTransferIn(
+            asset: 'asset',
+            amount: BigInt.one,
+            extraData: _overinformativeNativeExtraData,
+          ),
+        ],
+      ),
+    );
+
+XelisWalletExtraData _confirmedExtraData(
+  XelisWalletTransactionEntry transaction,
+) =>
+    (transaction.entry as XelisWalletIncomingEntry).transfers.single.extraData!;
+
+XelisWalletExtraData _pendingExtraData(
+  XelisWalletPendingTransaction transaction,
+) =>
+    (transaction.entry as XelisWalletIncomingEntry).transfers.single.extraData!;
+
+void _expectExtraDataDisclosure(
+  XelisWalletExtraData extraData,
+  XelisWalletExtraDataDisclosure disclosure,
+) {
+  expect(extraData.flag, XelisWalletExtraDataFlag.private);
+  expect(extraData.hasPayload, isTrue);
+  expect(
+    extraData.payload,
+    disclosure == XelisWalletExtraDataDisclosure.detailed
+        ? _sensitivePayload
+        : null,
+  );
+  expect(
+    extraData.payloadKind,
+    disclosure == XelisWalletExtraDataDisclosure.redacted
+        ? null
+        : XelisWalletExtraDataPayloadKind.string,
+  );
 }
 
 final class _ReadGeneratedWallet implements generated_wallet.XelisWallet {
@@ -440,10 +592,13 @@ final class _ReadGeneratedWallet implements generated_wallet.XelisWallet {
   generated_models.HistoryPageFilter? lastCsvConversionFilter;
   generated_models.HistoryPageFilter? lastCsvFileExportFilter;
   String? lastCsvFileExportPath;
-  bool? lastHistoryIncludeExtraDataPayload;
-  bool? lastPendingIncludeExtraDataPayload;
-  (String, bool)? detailArguments;
-  (String, bool)? pendingDetailArguments;
+  generated_event.NativeWalletExtraDataDisclosure?
+  lastHistoryExtraDataDisclosure;
+  generated_event.NativeWalletExtraDataDisclosure?
+  lastPendingExtraDataDisclosure;
+  (String, generated_event.NativeWalletExtraDataDisclosure)? detailArguments;
+  (String, generated_event.NativeWalletExtraDataDisclosure)?
+  pendingDetailArguments;
   String? trackedAsset;
   String? untrackedAsset;
 
@@ -488,10 +643,11 @@ final class _ReadGeneratedWallet implements generated_wallet.XelisWallet {
   @override
   Future<List<generated_event.NativeWalletTransactionEntry>> history({
     required generated_models.HistoryPageFilter filter,
-    required bool includeExtraDataPayload,
+    required generated_event.NativeWalletExtraDataDisclosure
+    extraDataDisclosure,
   }) async {
     lastFilter = filter;
-    lastHistoryIncludeExtraDataPayload = includeExtraDataPayload;
+    lastHistoryExtraDataDisclosure = extraDataDisclosure;
     return historyEntries;
   }
 
@@ -520,17 +676,21 @@ final class _ReadGeneratedWallet implements generated_wallet.XelisWallet {
 
   @override
   Future<List<generated_event.NativeWalletPendingTransaction>>
-  getPendingTransactions({required bool includeExtraDataPayload}) async {
-    lastPendingIncludeExtraDataPayload = includeExtraDataPayload;
+  getPendingTransactions({
+    required generated_event.NativeWalletExtraDataDisclosure
+    extraDataDisclosure,
+  }) async {
+    lastPendingExtraDataDisclosure = extraDataDisclosure;
     return pendingEntries;
   }
 
   @override
   Future<generated_event.NativeWalletTransactionEntry> getTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required generated_event.NativeWalletExtraDataDisclosure
+    extraDataDisclosure,
   }) async {
-    detailArguments = (hash, includeExtraDataPayload);
+    detailArguments = (hash, extraDataDisclosure);
     return detailEntry!;
   }
 
@@ -538,9 +698,10 @@ final class _ReadGeneratedWallet implements generated_wallet.XelisWallet {
   Future<generated_event.NativeWalletPendingTransaction>
   getPendingTransactionByHash({
     required String hash,
-    required bool includeExtraDataPayload,
+    required generated_event.NativeWalletExtraDataDisclosure
+    extraDataDisclosure,
   }) async {
-    pendingDetailArguments = (hash, includeExtraDataPayload);
+    pendingDetailArguments = (hash, extraDataDisclosure);
     return pendingDetailEntry!;
   }
 

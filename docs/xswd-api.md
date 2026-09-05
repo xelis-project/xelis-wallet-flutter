@@ -13,10 +13,32 @@ One opened `XelisWallet` owns its local XSWD server and relayer sessions.
 - `addXswdRelayer` adds a parsed relay session and works independently of local
   server availability.
 - `getXswdState` returns the current running flag and connected applications.
-- `closeXswdApplicationSession` closes exactly one application session.
-- `updateXswdApplicationPermissions` replaces policies for an application.
+- `closeXswdApplicationSession` closes exactly the live session represented by
+  the supplied `XelisXswdApplication` projection.
+- `updateXswdApplicationPermissions` replaces policies for that exact live
+  application projection.
 - `stopXswd` stops both the local server and relay sessions and is idempotent
   while stopped.
+
+Start and stop are mutually exclusive with application admission and close.
+A conflicting call fails before FFI with `state.conflict /
+XSWD_APPLICATION_OPERATION_IN_PROGRESS`; the consumer must settle or reject
+the active admission/close and retry stop. Stop does not implicitly preempt an
+in-progress application operation.
+
+Each callback and state-list projection carries an opaque
+`XelisXswdSessionReference`. Repeated projections of the same native
+application-state instance compare equal, including between callbacks and
+state reads. The initial application-request projection is not operational
+while admission is still pending: close and permission update fail before FFI
+until a fresh `getXswdState` read confirms that exact instance was admitted.
+That read retains the same opaque reference. A different local or relayed
+instance remains distinct even when it uses the same application ID.
+Reconstructed applications, detached route placeholders, stale sessions, and
+projections owned by another wallet handle cannot authorize close or
+permission-update operations. The application ID is descriptive and persisted
+application metadata, not live session authority. The reference's native token
+is never exposed by the authored API or its `toString()` output.
 
 Consumers own orchestration across wallet-session replacement. Stop XSWD and
 await completion before closing or disposing the wallet handle.
@@ -43,6 +65,64 @@ abandoned with a static diagnostic only.
 Only one native XSWD event handler exists at a time. The call that creates it
 fixes callbacks, timeout, and projection limits until `stopXswd()`. Relayers
 added later use that same handler configuration.
+
+Only one decision callback is active at a time, and later application,
+permission, and prefetch decisions remain ordered behind it. A
+`CancelRequest` or `AppDisconnect` for that exact upstream application-state
+instance preempts the active decision: XWF rejects its upstream response with
+the static `XSWD_REQUEST_CANCELLED` technical failure, drops the pending Dart
+future, and ignores any later decision from it. Requests already queued for
+the same instance are rejected without being presented. A cancellation from a
+replaced instance that happens to reuse the same application ID cannot cancel
+or clear the current review.
+
+The handler retains at most 64 deferred events in total. Further decisions fail
+with the static `XSWD_REQUEST_QUEUE_FULL` technical failure and are never
+presented. `CancelRequest` is handled directly and never occupies this queue.
+Repeated deferred disconnects for the same state instance are coalesced. A new
+disconnect at capacity displaces and rejects one deferred decision; if the
+queue contains only distinct disconnects, XWF fails the active decision with
+static `XSWD_HANDLER_OVERLOADED` and handles the new disconnect directly so the
+queue can drain.
+
+Lifecycle reception remains responsive: XWF consumes at most 16 events with
+receiver priority before giving a ready decision priority. Thus a cancellation
+observed during that bounded receive burst wins over a simultaneously ready
+decision without allowing sustained input to starve the decision forever. If
+the upstream event channel closes, active and queued decisions fail closed with
+static `XSWD_HANDLER_CLOSED` instead of waiting for their Dart callback timeout.
+
+This preemption begins once upstream emits the lifecycle event. The pinned
+upstream relayer currently waits for `on_message` to finish before it reads the
+next WebSocket frame, so a peer-only remote socket close may not be observed
+until the active callback completes or reaches its configured timeout. An
+explicit wallet-side session close does emit the cancellation independently
+and is preemptive. Consumers should therefore keep callback timeouts finite;
+full remote-close preemption requires an upstream relayer change.
+
+For relayed sessions, wallet-side close drives exact application removal and
+client transport shutdown concurrently. This both cancels an active decision
+without waiting for its timeout and lets the socket task terminate while an
+application-disconnect callback is pending. The wallet-level relayer lock is
+not held while callbacks run. Concurrent authored relayer admission and close
+calls for the same application ID are rejected until the first operation
+settles, preventing a replacement instance from satisfying the pinned upstream
+provider's ID-only membership check for the old transport. Frames already
+selected by the pinned upstream client at the instant close begins remain
+in-flight; in particular upstream `node.*` and `xswd.*` dispatch do not consult
+relayer membership. The close
+future waits for the client task and for the disconnect event to be enqueued;
+the consumer notification may finish asynchronously afterward. A strict
+pre-dispatch closing-state gate requires an upstream relayer change. For local
+sessions, the WebSocket server owns map removal so its `on_close` path always
+emits cancellation and disconnect before the opaque registry entry is
+invalidated.
+
+The initial application-request callback cannot reliably determine local
+versus relayed origin because the pinned upstream event does not carry that
+provenance before insertion. `isRelayer` is authoritative in later live state
+reads; consumers must not treat its initial callback value as a transport
+security boundary.
 
 ## Typed RPC payload
 
@@ -119,3 +199,14 @@ Invalid relayer encryption keys fail before the native call as structured
 from structured fields and must never show `diagnosticMessage` or caught
 exception text. Follow [`error-handling.md`](error-handling.md) for exception
 handling and [`logging.md`](logging.md) for diagnostic retention.
+
+An invalid, detached, stale, disconnected, or other-wallet session projection
+fails before the native call with `state.conflict /
+XSWD_SESSION_REFERENCE_INVALID`. Native lookup uses the same classification if
+the exact registry entry is no longer active. A conflicting lifecycle call or
+a same-ID admission/close attempt made while the other operation is active fails before FFI with
+`state.conflict / XSWD_APPLICATION_OPERATION_IN_PROGRESS`; retry only after the
+first future settles. Permission mutation and close failures use
+`XSWD_PERMISSION_UPDATE_FAILED` and
+`XSWD_SESSION_CLOSE_FAILED`; their diagnostic text is not a control-flow
+contract.
