@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
@@ -103,13 +103,15 @@ jobs:
           cache-dependency-path: pubspec.yaml
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: rust -> target
       - run: flutter pub get
+      - name: Test Android alignment checker
+        run: dart tool/test_android_16k.dart
       - name: Build generated Android consumer
         run: |
           dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform android --mode build --keep | tee "$RUNNER_TEMP/consumer-smoke.log"
@@ -127,7 +129,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
@@ -145,7 +147,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.47.1
           cache: true
           pub-cache: true
       - uses: Swatinem/rust-cache@v2
@@ -160,5 +162,7 @@ jobs:
           cargo install wasm-pack --locked
       - name: Test lossless XSWD Web projection
         run: flutter test --platform chrome test/xelis_xswd_web_projection_test.dart
-      - name: Build Web consumer package
-        run: dart --packages=.dart_tool/package_config.json tool/build_web.dart --output "$RUNNER_TEMP/xwf-web/pkg"
+      - name: Run generated Web initialization, address, and integer consumer
+        env:
+          CHROME_EXECUTABLE: google-chrome
+        run: dart --packages=.dart_tool/package_config.json tool/consumer_smoke.dart --platform web --mode run
