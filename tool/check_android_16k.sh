@@ -12,8 +12,8 @@ if [[ -z "$android_sdk" || ! -d "$android_sdk" ]]; then
   exit 69
 fi
 
-zipalign="$(find -L "$android_sdk/build-tools" -type f -name zipalign -perm -u+x -print | sort -V | tail -n 1)"
-llvm_readelf="$(find -L "$android_sdk/ndk" -type f -path '*/bin/llvm-readelf' -perm -u+x -print | sort -V | tail -n 1)"
+zipalign="$(find -L "$android_sdk/build-tools" -type f \( -name zipalign -o -name zipalign.exe \) -perm -u+x -print | sort -V | tail -n 1)"
+llvm_readelf="$(find -L "$android_sdk/ndk" -type f \( -path '*/bin/llvm-readelf' -o -path '*/bin/llvm-readelf.exe' \) -perm -u+x -print | sort -V | tail -n 1)"
 if [[ -z "$zipalign" ]]; then
   echo "Could not locate zipalign under $android_sdk/build-tools." >&2
   exit 69
@@ -39,14 +39,48 @@ if [[ ${#libraries[@]} -eq 0 ]]; then
   exit 65
 fi
 
+checked_libraries=0
 for library in "${libraries[@]}"; do
+  abi="$(basename "$(dirname "$library")")"
+  case "$abi" in
+    arm64-v8a|x86_64) ;;
+    armeabi-v7a|x86)
+      # Android's 16 KB runtime requirement applies to 64-bit ABIs. A 4 KB
+      # ARMv7 library does not make an otherwise aligned 64-bit APK invalid.
+      echo "Skipping 32-bit ELF page-size check: $abi/$(basename "$library")"
+      continue
+      ;;
+    *)
+      echo "Unsupported Android ABI in $library: $abi" >&2
+      exit 65
+      ;;
+  esac
+  if ! elf_headers="$("$llvm_readelf" -lW "$library")"; then
+    echo "Could not read ELF program headers in $library." >&2
+    exit 65
+  fi
+  alignments="$(awk '$1 == "LOAD" { print $NF }' <<< "$elf_headers")"
+  if [[ -z "$alignments" ]]; then
+    echo "No ELF LOAD segments in $library." >&2
+    exit 65
+  fi
   while read -r alignment; do
+    if [[ ! "$alignment" =~ ^0x[0-9a-fA-F]+$ ]]; then
+      echo "Invalid ELF LOAD alignment in $library." >&2
+      exit 65
+    fi
     alignment_value=$((alignment))
     if (( alignment_value < 0x4000 )); then
       echo "ELF LOAD alignment below 16 KB in $library: $alignment" >&2
       exit 65
     fi
-  done < <("$llvm_readelf" -lW "$library" | awk '$1 == "LOAD" { print $NF }')
+  done <<< "$alignments"
+  checked_libraries=$((checked_libraries + 1))
 done
 
-echo "Android ZIP and ELF alignment are compatible with 16 KB pages."
+if (( checked_libraries == 0 )); then
+  echo "No supported 64-bit Android libraries were checked." >&2
+  exit 65
+fi
+
+echo "Android ZIP and all $checked_libraries 64-bit ELF libraries are aligned for 16 KB pages. Runtime testing is still required."

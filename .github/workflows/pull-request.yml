@@ -64,6 +64,9 @@ jobs:
       - name: Analyze Dart and Flutter
         run: dart analyze
 
+      - name: Test Android alignment checker
+        run: dart tool/test_android_16k.dart
+
       - name: Check Rust formatting
         if: steps.rust-changes.outputs.changed == 'true'
         working-directory: rust
