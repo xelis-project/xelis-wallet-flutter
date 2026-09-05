@@ -96,7 +96,15 @@ matrix.
 ## Android 16 KB pages
 
 An Android release is accepted only when every supported 64-bit ABI has both
-16 KB ZIP alignment and 16 KB ELF segment alignment:
+16 KB ZIP alignment and 16 KB ELF segment alignment.
+
+XWF's `rust/build.rs` explicitly sets 16 KB maximum and common page sizes when
+linking its ARM64 and x86_64 Android shared library. This applies to Native
+Assets consumers as well as direct Cargo builds; it does not rely on a
+consumer's working directory or NDK defaults. Other targets are unchanged.
+The Rust suite includes `android_build_contract` to protect target selection.
+The APK checks below still verify the actual result, including other bundled
+libraries; compiler configuration alone is not release evidence.
 
 ```text
 dart tool/test_android_16k.dart

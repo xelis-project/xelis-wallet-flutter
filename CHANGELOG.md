@@ -2,6 +2,9 @@
 
 ## 0.3.0
 
+- Fixed Android ARM64 and x86_64 Rust shared-library linking to explicitly
+  require 16 KB ELF alignment for Native Assets consumers.
+
 - Fixed connection-timeout cleanup retaining worker acknowledgements while
   awaiting shutdown. Timeout releases both acknowledgements before joining the
   worker, preventing a late connection result from blocking cancellation.
