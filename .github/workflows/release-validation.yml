@@ -1,0 +1,44 @@
+name: Release evidence
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Resolve candidate commit
+        id: candidate
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD^{commit})" >> "$GITHUB_OUTPUT"
+      - name: Test evidence checker
+        run: node --test tool/ci/release_evidence.test.cjs
+      - name: Verify existing validation results
+        uses: actions/github-script@v8
+        env:
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.sha }}
+        with:
+          script: |
+            const { verifyReleaseEvidence } = require('./tool/ci/release_evidence.cjs');
+            const evidence = await verifyReleaseEvidence({
+              github,
+              repo: context.repo,
+              sha: process.env.CANDIDATE_SHA,
+            });
+            await core.summary
+              .addHeading('Release evidence')
+              .addRaw(`Validated commit: ${process.env.CANDIDATE_SHA}\n\n`)
+              .addList(evidence.map(item => `${item.workflow}: ${item.url}`))
+              .addRaw('\nAndroid 16 KB execution remains a separate maintainer check. No builds were repeated.\n')
+              .write();

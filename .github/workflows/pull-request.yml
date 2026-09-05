@@ -35,6 +35,9 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Test release evidence checker
+        run: node --test tool/ci/release_evidence.test.cjs
+
       - name: Restore Cargo cache
         uses: Swatinem/rust-cache@v2
         with:

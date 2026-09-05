@@ -36,7 +36,7 @@ supported platform.
 
 Two Rust tests intentionally use production Argon2 work and real loopback
 WebSocket transports. They remain ignored in the fast Rust suite and are run
-serially by the Linux job in the tag/manual consumer workflow:
+serially by the Linux job in the manual consumer workflow:
 
 ```text
 cd rust
@@ -72,9 +72,10 @@ initialization and an integrated-address round trip containing `2^53 + 1` and
 `u64::MAX`. It does not exercise the XSWD relay, permission review, decision
 callbacks, durable browser storage, or network broadcast.
 
-GitHub Actions runs the complete consumer matrix only for a release tag or an
-explicit manual dispatch of **Consumer validation**. Ordinary pull requests do
-not pay for this platform matrix.
+GitHub Actions runs the complete consumer matrix only on an explicit manual
+dispatch of **Consumer validation** with `platform: all`. Select one platform
+for development checks. Ordinary pull requests and tags do not rebuild this
+matrix.
 
 ## Android 16 KB pages
 
@@ -118,10 +119,38 @@ unverified browser engines, unrelated failures, and residual upstream gaps.
 3. Review the results and the separate Android 16 KB execution evidence.
    The Android CI job builds and checks alignment; it does not launch an
    emulator. Resolve failed or missing required checks before tagging.
-4. Create the annotated tag on that validated commit. For version 0.3.0:
+4. Run **Release evidence** manually on the same branch and confirm its SHA.
+   This lightweight preflight reads existing results without rebuilding.
+5. Create the annotated tag on that validated commit. For version 0.3.0:
    `git tag -a v0.3.0 <validated-commit> -m "Release 0.3.0"`.
-5. Push that tag explicitly with `git push origin v0.3.0`. The tag triggers
-   **Consumer validation** again; inspect its results before announcing release.
+6. Push that tag explicitly with `git push origin v0.3.0`. The tag triggers
+   only **Release evidence**; inspect its result before announcing release.
 
 Tags are the Git installation boundary; this package is not published to
 pub.dev (`publish_to: none`). Do not move an already published release tag.
+
+## Lightweight release gate
+
+**Release evidence** uses read-only Actions access and no Flutter/Rust setup.
+It checks the resolved commit (including annotated tags), not the latest green
+run on the branch. Both validation workflows must have a completed successful
+manual run for that exact SHA in this repository. The newest manual run of each
+workflow is authoritative; older successes cannot hide a newer failure or an
+in-progress run. All six consumer jobs must be present and successful in that
+run; skipped platforms do not count. Finish with `platform: all`, not a targeted
+run, before the preflight. A new commit requires new validation evidence.
+
+Missing, deleted, inaccessible, or failed evidence fails the gate without
+launching builds. Complete the missing validation, then rerun the gate. Its
+summary links the accepted runs. Android 16 KB execution remains a separate
+manual release requirement, not a guarantee of this automated check.
+
+A tag-triggered failure does not undo or prevent the Git tag push. Use the
+manual preflight before tagging; this workflow is an evidence check, not a
+repository tag-protection rule. Evidence is checked at execution time, so review
+any subsequent reruns before announcing the release.
+
+The checker uses Node's built-in test runner, with no npm dependencies:
+`node --test tool/ci/release_evidence.test.cjs`. These tests run in PR validation
+and the lightweight gate. For local CI/docs-only validation, run these tests
+and lint the workflows; no wallet rebuild is needed.

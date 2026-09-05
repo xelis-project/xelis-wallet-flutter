@@ -202,7 +202,9 @@ Follow `docs/validation.md` for the authoritative commands and release
 evidence. For Rust-only changes run format, locked check, and focused tests. For
 FFI changes regenerate bindings, run the Rust checks, then analyze and test the
 Dart package. Keep pull-request checks fast; run real transport tests and the
-consumer platform matrix in the tag/manual release workflow.
+consumer platform matrix in the manual consumer workflow. Tags only verify
+existing exact-commit evidence through `Release evidence`; they must not
+rebuild the matrix. Keep its checker covered by Node's built-in test runner.
 
 `tool/consumer_smoke.dart` must generate outside the repository, delete only
 its owned temporary directory, and keep `run` limited to desktop targets plus
