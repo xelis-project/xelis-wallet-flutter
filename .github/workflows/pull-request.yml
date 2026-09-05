@@ -81,7 +81,7 @@ jobs:
         run: cargo test --locked
 
       - name: Test Flutter and native loading
-        run: flutter test
+        run: dart tool/test_native.dart
 
       - name: Check whitespace
         run: git diff --check

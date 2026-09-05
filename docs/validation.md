@@ -14,7 +14,7 @@ flutter pub get
 dart tool/generate_bindings.dart
 dart format --output=none --set-exit-if-changed lib test tool bin hook
 dart analyze
-flutter test
+dart tool/test_native.dart
 cd rust
 cargo fmt --check
 cargo check --locked
@@ -28,9 +28,25 @@ Install the matching generator with
 Never edit `lib/src/generated/rust_bridge/**` or
 `rust/src/frb_generated.rs` manually.
 
-`flutter test` includes a host smoke that initializes and calls the Rust
-library. It is the lightweight pull-request boundary, not proof for every
-supported platform.
+`dart tool/test_native.dart` runs `flutter test`, including a host smoke that
+initializes and calls the Rust library. On Linux it sets
+`FRB_DART_LOAD_EXTERNAL_LIBRARY_NATIVE_LIB_DIR` to the absolute
+`build/native_assets/linux` directory populated by Flutter's build hook. It
+does not run a second Cargo build or use `rust/target/release`. Windows and
+macOS retain their existing loading environment. Run the script directly with
+`dart`, not `dart run`, to avoid an extra hook invocation before Flutter starts.
+Use the default Flutter build directory for this package test command.
+
+Test arguments are forwarded, so the focused loading check is:
+
+```text
+dart tool/test_native.dart test/native_library_smoke_test.dart
+```
+
+This launcher is for host package tests, not Web or device integration tests.
+Consumer builds keep their normal bundled-library loading. A passing host smoke
+is the lightweight pull-request boundary, not proof for every supported
+platform.
 
 ## Real XSWD transport tests
 
